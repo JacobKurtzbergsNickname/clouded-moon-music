@@ -1,0 +1,48 @@
+// REQUESTS FOR SONGS
+
+### GET ALL SONGS
+GET http://localhost:8080/songs
+
+### GET SONG BY ID
+GET http://localhost:8080/songs/1
+
+### CREATE SONG
+POST http://localhost:8080/songs
+Content-Type: application/json
+
+{
+    "title": "Hide in Shade",
+    "artists": ["Zeal & Ardor"],
+    "album": "GREIF",
+    "genres": ["Black Metal", "Gospel"],
+    "releaseDate": "2021-01-01",
+    "duration": "03:30"
+}
+
+### UPDATE SONG
+PATCH http://localhost:8080/songs/4
+Content-Type: application/json
+
+{
+    "title": "Hide in Shade",
+    "artists": ["Zeal & Ardor"],
+    "album": "GREIF",
+    "genres": ["Black Metal", "Gospel"],
+    "releaseDate": "2021-01-01",
+    "duration": "03:30"
+}
+### REPLACE SONG
+PUT http://localhost:8080/songs/4
+Content-Type: application/json
+
+{
+    "title": "Hide in Shade",
+    "artists": ["Zeal & Ardor"],
+    "album": "GREIF",
+    "genres": ["Black Metal", "Gospel"],
+    "releaseDate": "2021-01-01",
+    "duration": "03:30"
+}
+### DELETE SONG
+DELETE http://localhost:8080/songs/4
+
