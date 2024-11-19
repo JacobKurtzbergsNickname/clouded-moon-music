@@ -3,7 +3,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { CMLogger } from "./logger.service";
 import { Logger } from "winston";
-import { LogEntry } from "./interfaces";
+import { ILogEntry } from "./interfaces";
 
 // Create a mock Winston Logger with jest.fn()
 const mockWinstonLogger: Partial<Logger> = {
@@ -38,12 +38,12 @@ describe("CMLogger", () => {
   });
 
   it("should log info messages", () => {
-    const mockLogEntry: LogEntry = {
+    const mockLogEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
       message: "Test log message",
     };
-    service.log("info", mockLogEntry);
+    service.info("info", mockLogEntry);
     expect(logger.info).toHaveBeenCalledWith(mockLogEntry);
   });
 

@@ -1,6 +1,7 @@
 // src/common/logger/winston.config.ts
 
 import * as winston from "winston";
+import { createLogger, Logger } from "winston";
 import "winston-daily-rotate-file";
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
@@ -11,7 +12,7 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
 });
 
 // Define the logger configuration
-const logger = winston.createLogger({
+const winstonLogger: Logger = createLogger({
   level: "info", // Default log level
   format: combine(
     colorize(), // Colorize the output for console
@@ -50,4 +51,4 @@ const logger = winston.createLogger({
   exitOnError: false, // Do not exit on handled exceptions
 });
 
-export default logger;
+export default winstonLogger;
