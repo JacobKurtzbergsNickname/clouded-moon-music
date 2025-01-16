@@ -9,8 +9,18 @@ import winstonLogger from "./winston.config";
 export class CMLogger implements LoggerService {
   private readonly logger: Logger = winstonLogger;
 
-  info(message: string, logEntry: ILogEntry) {
-    this.logger.info(message, logEntry);
+  // Overload signatures
+  info(message: string): void;
+  info(message: string, logEntry: ILogEntry): void;
+
+
+  // Implementation
+  info(message: string, logEntry?: ILogEntry): void {
+    if (logEntry) {
+      this.logger.info(message, logEntry);
+    } else {
+      this.logger.info(message);
+    }
   }
 
   error(message: string, trace: string) {

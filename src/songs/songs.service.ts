@@ -3,9 +3,16 @@ import { CreateSongDTO } from "./models/create-song.dto";
 import { plainToClass } from "class-transformer";
 import { Song } from "./models/song.entity";
 import { ISong } from "./models/song.interface";
+import { CMLogger, ILogEntry } from "src/common/logger";
 
 @Injectable()
 export class SongsService {
+
+  private readonly logger: CMLogger;
+  constructor(logger: CMLogger) {
+    this.logger = logger;
+  }
+
   // Mockup data
   private songs: Array<Song> = [
     {
@@ -51,6 +58,13 @@ export class SongsService {
   ];
 
   findAll(): Array<Song> {
+    const logEntry: ILogEntry = {
+        timestamp: new Date().toISOString(),
+        level: 'info',
+        message: 'Getting all songs',
+        context: 'SongsService'
+    };
+    this.logger.info("Method: findAll()", logEntry);
     return this.songs;
   }
 

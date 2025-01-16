@@ -6,6 +6,7 @@ import { LoggerMiddleware } from "./common/middleware/logger.middleware";
 import { WinstonModule } from "nest-winston";
 import { LoggerModule } from "./common/logger/logger.module";
 import winston from "winston";
+import { SongsController } from "./songs/songs.controller";
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import winston from "winston";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes("songs");
+    consumer.apply(LoggerMiddleware).forRoutes(SongsController);
   }
 }
