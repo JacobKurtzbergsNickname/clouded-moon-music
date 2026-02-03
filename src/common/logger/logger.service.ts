@@ -38,4 +38,8 @@ export class CMLogger implements LoggerService {
   verbose(message: string) {
     this.logger.verbose(message);
   }
+
+  log(message: string) {
+    this.logger.info(message);
+  }
 }
