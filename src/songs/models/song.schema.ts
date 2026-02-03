@@ -17,7 +17,7 @@ export class Song {
   @Prop()
   year: number;
 
-  @Prop({ type: [String], required: true })
+  @Prop({ type: [String] })
   genres: string[];
 
   @Prop({ required: true })
