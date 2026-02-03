@@ -14,7 +14,7 @@ export class Song {
   @Prop({ required: true })
   album: string;
 
-  @Prop({ required: true })
+  @Prop()
   year: number;
 
   @Prop({ type: [String], required: true })
