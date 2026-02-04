@@ -31,30 +31,12 @@ export class SongsController {
   }
 
   @Patch(":id")
-  update(@Param("id") id: string) {
-    const updatedSong: Partial<CreateSongDTO> = {
-      title: "Helvegen",
-      artists: ["Wardruna"],
-      album: "Runaljod - Yggdrasil",
-      year: 2013,
-      genres: ["Nordic Folk"],
-      duration: 561, // 9:21 in seconds
-      releaseDate: new Date("2013-01-01T00:00:00Z"),
-    };
-    return this.songsService.update(id, updatedSong);
+  update(@Param("id") id: string, @Body() song: Partial<CreateSongDTO>) {
+    return this.songsService.update(id, song);
   }
 
   @Put(":id")
-  replace(@Param("id") id: string) {
-    const song: CreateSongDTO = {
-      title: "Helvegen",
-      artists: ["Wardruna"],
-      album: "Runaljod - Yggdrasil",
-      year: 2013,
-      genres: ["Nordic Folk"],
-      duration: 561, // 9:21 in seconds
-      releaseDate: new Date("2013-01-01T00:00:00Z"),
-    };
+  replace(@Param("id") id: string, @Body() song: CreateSongDTO) {
     return this.songsService.replace(id, song);
   }
 

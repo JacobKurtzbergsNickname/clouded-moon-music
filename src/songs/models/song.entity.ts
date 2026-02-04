@@ -7,6 +7,7 @@ import {
 } from "typeorm";
 import { Artist } from "./artist.entity";
 import { Genre } from "./genre.entity";
+import { SongDTO } from "./song.dto";
 
 @Entity("songs")
 export class Song {
@@ -43,4 +44,21 @@ export class Song {
 
   @Column({ type: "timestamp" })
   releaseDate: Date;
+
+  /**
+   * Converts the Song entity to a SongDTO
+   * Note: Requires artists and genres relations to be loaded (they are eager-loaded by default)
+   */
+  toDTO(): SongDTO {
+    return {
+      id: String(this.id),
+      title: this.title,
+      artists: this.artists.map((artist) => artist.name),
+      album: this.album,
+      year: this.year,
+      genres: this.genres.map((genre) => genre.name),
+      duration: this.duration,
+      releaseDate: this.releaseDate,
+    };
+  }
 }

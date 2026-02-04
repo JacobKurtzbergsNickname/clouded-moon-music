@@ -8,9 +8,8 @@ import {
   Min,
   Max,
 } from "class-validator";
-import { ISong } from "./song.interface";
 
-export default class CreateSongDTO implements Omit<ISong, "id"> {
+export default class CreateSongDTO {
   @IsString()
   @IsNotEmpty()
   readonly title: string;

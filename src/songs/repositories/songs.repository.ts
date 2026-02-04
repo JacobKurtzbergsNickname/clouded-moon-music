@@ -1,18 +1,12 @@
 import CreateSongDTO from "../models/create-song.dto";
-import { Song } from "../models/song.entity";
-
-// API representation of Song with string ID
-export type SongResponse = Omit<Song, "id"> & { id: string };
+import { SongDTO } from "../models/song.dto";
 
 export interface SongsRepository {
-  findAll(): Promise<SongResponse[]>;
-  findOne(id: string): Promise<SongResponse | null>;
-  create(dto: CreateSongDTO): Promise<SongResponse>;
-  update(
-    id: string,
-    song: Partial<CreateSongDTO>,
-  ): Promise<SongResponse | null>;
-  replace(id: string, song: CreateSongDTO): Promise<SongResponse | null>;
+  findAll(): Promise<SongDTO[]>;
+  findOne(id: string): Promise<SongDTO | null>;
+  create(dto: CreateSongDTO): Promise<SongDTO>;
+  update(id: string, song: Partial<CreateSongDTO>): Promise<SongDTO | null>;
+  replace(id: string, song: CreateSongDTO): Promise<SongDTO | null>;
   remove(id: string): Promise<string | null>;
 }
 

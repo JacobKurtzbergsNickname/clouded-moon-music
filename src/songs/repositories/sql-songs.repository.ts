@@ -4,7 +4,8 @@ import { Repository } from "typeorm";
 import { Song } from "../models/song.entity";
 import { Artist } from "../models/artist.entity";
 import { Genre } from "../models/genre.entity";
-import { SongsRepository, SongResponse } from "./songs.repository";
+import { SongDTO } from "../models/song.dto";
+import { SongsRepository } from "./songs.repository";
 import CreateSongDTO from "../models/create-song.dto";
 
 @Injectable()
@@ -18,14 +19,14 @@ export class SqlSongsRepository implements SongsRepository {
     private readonly genreRepository: Repository<Genre>,
   ) {}
 
-  async findAll(): Promise<SongResponse[]> {
+  async findAll(): Promise<SongDTO[]> {
     const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
     return songs.map((song) => this.toSongWithStringId(song));
   }
 
-  async findOne(id: string): Promise<SongResponse | null> {
+  async findOne(id: string): Promise<SongDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
@@ -37,7 +38,7 @@ export class SqlSongsRepository implements SongsRepository {
     return song ? this.toSongWithStringId(song) : null;
   }
 
-  async create(dto: CreateSongDTO): Promise<SongResponse> {
+  async create(dto: CreateSongDTO): Promise<SongDTO> {
     // Find or create artists
     const artists = await Promise.all(
       dto.artists.map(async (artistName) => {
@@ -83,7 +84,7 @@ export class SqlSongsRepository implements SongsRepository {
   async update(
     id: string,
     dto: Partial<CreateSongDTO>,
-  ): Promise<SongResponse | null> {
+  ): Promise<SongDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
@@ -142,7 +143,7 @@ export class SqlSongsRepository implements SongsRepository {
     return this.toSongWithStringId(savedSong);
   }
 
-  async replace(id: string, dto: CreateSongDTO): Promise<SongResponse | null> {
+  async replace(id: string, dto: CreateSongDTO): Promise<SongDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
@@ -215,12 +216,18 @@ export class SqlSongsRepository implements SongsRepository {
   }
 
   /**
-   * Converts a Song entity with numeric ID (from TypeORM) to one with string ID
+   * Converts a Song entity with numeric ID (from TypeORM) to SongDTO with string ID
    */
-  private toSongWithStringId(song: Song): SongResponse {
+  private toSongWithStringId(song: Song): SongDTO {
     return {
-      ...song,
       id: String(song.id),
+      title: song.title,
+      artists: song.artists.map((artist) => artist.name),
+      album: song.album,
+      year: song.year,
+      genres: song.genres.map((genre) => genre.name),
+      duration: song.duration,
+      releaseDate: song.releaseDate,
     };
   }
 }

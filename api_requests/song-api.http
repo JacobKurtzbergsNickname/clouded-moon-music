@@ -1,13 +1,13 @@
 // REQUESTS FOR SONGS
 
 ### GET ALL SONGS
-GET http://localhost:8080/songs
+GET http://localhost:3456/songs
 
 ### GET SONG BY ID
-GET http://localhost:8080/songs/1
+GET http://localhost:3456/songs/1
 
 ### CREATE SONG
-POST http://localhost:8080/songs
+POST http://localhost:3456/songs
 Content-Type: application/json
 
 {
@@ -20,7 +20,7 @@ Content-Type: application/json
 }
 
 ### UPDATE SONG
-PATCH http://localhost:8080/songs/4
+PATCH http://localhost:3456/songs/4
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
     "duration": "03:30"
 }
 ### REPLACE SONG
-PUT http://localhost:8080/songs/4
+PUT http://localhost:3456/songs/4
 Content-Type: application/json
 
 {
@@ -44,5 +44,5 @@ Content-Type: application/json
     "duration": "03:30"
 }
 ### DELETE SONG
-DELETE http://localhost:8080/songs/4
+DELETE http://localhost:3456/songs/4
 
