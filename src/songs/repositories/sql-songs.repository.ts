@@ -23,7 +23,7 @@ export class SqlSongsRepository implements SongsRepository {
     const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
-    return songs.map((song) => this.toSongDTO(song));
+    return songs.map((song) => song.toDTO());
   }
 
   async findOne(id: number): Promise<SongDTO | null> {
@@ -31,7 +31,7 @@ export class SqlSongsRepository implements SongsRepository {
       where: { id },
       relations: ["artists", "genres"],
     });
-    return song ? this.toSongDTO(song) : null;
+    return song ? song.toDTO() : null;
   }
 
   async create(dto: CreateSongDTO): Promise<SongDTO> {
@@ -74,7 +74,7 @@ export class SqlSongsRepository implements SongsRepository {
     });
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongDTO(savedSong);
+    return savedSong.toDTO();
   }
 
   async update(id: number, dto: Partial<CreateSongDTO>): Promise<SongDTO | null> {
@@ -129,7 +129,7 @@ export class SqlSongsRepository implements SongsRepository {
     }
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongDTO(savedSong);
+    return savedSong.toDTO();
   }
 
   async replace(id: number, dto: CreateSongDTO): Promise<SongDTO | null> {
@@ -180,7 +180,7 @@ export class SqlSongsRepository implements SongsRepository {
     song.genres = genres;
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongDTO(savedSong);
+    return savedSong.toDTO();
   }
 
   async remove(id: number): Promise<number | null> {
@@ -192,21 +192,5 @@ export class SqlSongsRepository implements SongsRepository {
 
     await this.songRepository.remove(song);
     return id;
-  }
-
-  /**
-   * Converts a Song entity to a SongDTO
-   */
-  private toSongDTO(song: Song): SongDTO {
-    return {
-      id: song.id,
-      title: song.title,
-      artists: song.artists.map((artist) => artist.name),
-      album: song.album,
-      year: song.year,
-      genres: song.genres.map((genre) => genre.name),
-      duration: song.duration,
-      releaseDate: song.releaseDate,
-    };
   }
 }
