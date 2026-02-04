@@ -18,16 +18,13 @@ import { SongsController } from "./songs/songs.controller";
         retryDelay: 1000,
         connectionFactory: (connection) => {
           connection.on("connected", () => {
-            // eslint-disable-next-line no-console
-            console.log("MongoDB connected successfully");
+            winston.info("MongoDB connected successfully");
           });
           connection.on("error", (error) => {
-            // eslint-disable-next-line no-console
-            console.error("MongoDB connection error:", error);
+            winston.error("MongoDB connection error:", error);
           });
           connection.on("disconnected", () => {
-            // eslint-disable-next-line no-console
-            console.warn("MongoDB disconnected");
+            winston.warn("MongoDB disconnected");
           });
           return connection;
         },
