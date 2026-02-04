@@ -4,6 +4,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { Logger } from "winston";
 import { CMLogger } from "./logger.service";
 import { ILogEntry } from "./interfaces";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 
 // Create a mock Winston Logger with jest.fn()
 const mockWinstonLogger: Partial<Logger> = {
@@ -19,18 +20,20 @@ describe("CMLogger", () => {
   let logger: Logger;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CMLogger,
         {
-          provide: "winston",
+          provide: WINSTON_MODULE_PROVIDER,
           useValue: mockWinstonLogger,
         },
       ],
     }).compile();
 
     service = module.get<CMLogger>(CMLogger);
-    logger = module.get<Logger>("winston");
+    logger = module.get<Logger>(WINSTON_MODULE_PROVIDER);
   });
 
   it("should be defined", () => {
@@ -43,15 +46,15 @@ describe("CMLogger", () => {
       level: "info",
       message: "Test log message",
     };
-    service.info("info", mockLogEntry);
-    expect(logger.info).toHaveBeenCalledWith(mockLogEntry);
+    service.info("Test log message", mockLogEntry);
+    expect(logger.info).toHaveBeenCalledWith("Test log message", mockLogEntry);
   });
 
   it("should log error messages", () => {
     const message = "Test error message";
     const trace = "Error trace";
     service.error(message, trace);
-    expect(logger.error).toHaveBeenCalledWith(message, trace);
+    expect(logger.error).toHaveBeenCalledWith(`${message} - Trace: ${trace}`);
   });
 
   it("should log warn messages", () => {
