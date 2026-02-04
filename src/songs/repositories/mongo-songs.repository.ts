@@ -17,12 +17,11 @@ export class MongoSongsRepository implements SongsRepository {
     return docs.map((doc) => this.toSong(doc));
   }
 
-  async findOne(id: number): Promise<SongEntity | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async findOne(id: string): Promise<SongEntity | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const doc = await this.songModel.findById(stringId).exec();
+    const doc = await this.songModel.findById(id).exec();
     return doc ? this.toSong(doc) : null;
   }
 
@@ -33,26 +32,24 @@ export class MongoSongsRepository implements SongsRepository {
   }
 
   async update(
-    id: number,
+    id: string,
     song: Partial<CreateSongDTO>,
   ): Promise<SongEntity | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.songModel
-      .findByIdAndUpdate(stringId, song, { new: true })
+      .findByIdAndUpdate(id, song, { new: true })
       .exec();
     return doc ? this.toSong(doc) : null;
   }
 
-  async replace(id: number, song: CreateSongDTO): Promise<SongEntity | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async replace(id: string, song: CreateSongDTO): Promise<SongEntity | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.songModel
-      .findByIdAndUpdate(stringId, song, {
+      .findByIdAndUpdate(id, song, {
         new: true,
         overwrite: true,
         runValidators: true,
@@ -61,13 +58,12 @@ export class MongoSongsRepository implements SongsRepository {
     return doc ? this.toSong(doc) : null;
   }
 
-  async remove(id: number): Promise<number | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async remove(id: string): Promise<string | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const result = await this.songModel.findByIdAndDelete(stringId).exec();
-    return result ? 1 : 0;
+    const result = await this.songModel.findByIdAndDelete(id).exec();
+    return result ? id : null;
   }
 
   /**
@@ -75,7 +71,7 @@ export class MongoSongsRepository implements SongsRepository {
    */
   private toSong(doc: SongDocument): SongEntity {
     const song = new SongEntity();
-    song.id = parseInt(doc._id.toString(), 10);
+    song.id = doc._id.toString();
     song.title = doc.title;
     song.artists = doc.artists as any; // MongoDB stores as string[], entity expects Artist[]
     song.album = doc.album;

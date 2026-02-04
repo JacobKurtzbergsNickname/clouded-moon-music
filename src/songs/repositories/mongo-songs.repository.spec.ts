@@ -3,14 +3,14 @@ import { getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MongoSongsRepository } from "./mongo-songs.repository";
 import { Song, SongDocument } from "../models/song.schema";
-import { CreateSongDTO } from "../models/create-song.dto";
+import CreateSongDTO from "../models/create-song.dto";
 
 describe("MongoSongsRepository", () => {
   let repository: MongoSongsRepository;
   let songModel: Model<SongDocument>;
 
   const mockSongDocument = {
-    _id: "mockId123",
+    _id: { toString: () => "507f1f77bcf86cd799439011" },
     title: "Test Song",
     artists: ["Test Artist"],
     album: "Test Album",
@@ -70,7 +70,9 @@ describe("MongoSongsRepository", () => {
 
       const result = await repository.findAll();
 
-      expect(result).toEqual(mockSongs);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe("507f1f77bcf86cd799439011");
+      expect(result[0].title).toBe("Test Song");
       expect(songModel.find).toHaveBeenCalled();
     });
 
@@ -92,10 +94,14 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(mockSongDocument),
       });
 
-      const result = await repository.findOne("mockId123");
+      const result = await repository.findOne("507f1f77bcf86cd799439011");
 
-      expect(result).toEqual(mockSongDocument);
-      expect(songModel.findById).toHaveBeenCalledWith("mockId123");
+      expect(result).toBeDefined();
+      expect(result.id).toBe("507f1f77bcf86cd799439011");
+      expect(result.title).toBe("Test Song");
+      expect(songModel.findById).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
     });
 
     it("should return null when song is not found", async () => {
@@ -103,10 +109,19 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.findOne("nonexistentId");
+      const result = await repository.findOne("507f1f77bcf86cd799439011");
 
       expect(result).toBeNull();
-      expect(songModel.findById).toHaveBeenCalledWith("nonexistentId");
+      expect(songModel.findById).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
+    });
+
+    it("should return null when id is invalid", async () => {
+      const result = await repository.findOne("invalid-id");
+
+      expect(result).toBeNull();
+      expect(songModel.findById).not.toHaveBeenCalled();
     });
   });
 
@@ -125,7 +140,8 @@ describe("MongoSongsRepository", () => {
       const result = await repository.create(mockCreateSongDTO);
 
       expect(saveMock).toHaveBeenCalled();
-      expect(result).toEqual(mockSongDocument);
+      expect(result.id).toBe("507f1f77bcf86cd799439011");
+      expect(result.title).toBe("Test Song");
     });
   });
 
@@ -138,11 +154,15 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(updatedSong),
       });
 
-      const result = await repository.update("mockId123", updatedData);
+      const result = await repository.update(
+        "507f1f77bcf86cd799439011",
+        updatedData,
+      );
 
-      expect(result).toEqual(updatedSong);
+      expect(result.id).toBe("507f1f77bcf86cd799439011");
+      expect(result.title).toBe("Updated Title");
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "mockId123",
+        "507f1f77bcf86cd799439011",
         updatedData,
         { new: true },
       );
@@ -153,11 +173,20 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.update("nonexistentId", {
+      const result = await repository.update("507f1f77bcf86cd799439011", {
         title: "Updated",
       });
 
       expect(result).toBeNull();
+    });
+
+    it("should return null when id is invalid", async () => {
+      const result = await repository.update("invalid-id", {
+        title: "Updated",
+      });
+
+      expect(result).toBeNull();
+      expect(songModel.findByIdAndUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -169,11 +198,15 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(replacedSong),
       });
 
-      const result = await repository.replace("mockId123", mockCreateSongDTO);
+      const result = await repository.replace(
+        "507f1f77bcf86cd799439011",
+        mockCreateSongDTO,
+      );
 
-      expect(result).toEqual(replacedSong);
+      expect(result.id).toBe("507f1f77bcf86cd799439011");
+      expect(result.title).toBe("Test Song");
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "mockId123",
+        "507f1f77bcf86cd799439011",
         mockCreateSongDTO,
         { new: true, overwrite: true, runValidators: true },
       );
@@ -185,35 +218,53 @@ describe("MongoSongsRepository", () => {
       });
 
       const result = await repository.replace(
-        "nonexistentId",
+        "507f1f77bcf86cd799439011",
         mockCreateSongDTO,
       );
 
       expect(result).toBeNull();
     });
+
+    it("should return null when id is invalid", async () => {
+      const result = await repository.replace("invalid-id", mockCreateSongDTO);
+
+      expect(result).toBeNull();
+      expect(songModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
   });
 
   describe("remove", () => {
-    it("should remove a song and return true", async () => {
+    it("should remove a song and return the id", async () => {
       mockSongModel.findByIdAndDelete.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockSongDocument),
       });
 
-      const result = await repository.remove("mockId123");
+      const result = await repository.remove("507f1f77bcf86cd799439011");
 
-      expect(result).toBe(true);
-      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("mockId123");
+      expect(result).toBe("507f1f77bcf86cd799439011");
+      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
     });
 
-    it("should return false when song to remove is not found", async () => {
+    it("should return null when song to remove is not found", async () => {
       mockSongModel.findByIdAndDelete.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.remove("nonexistentId");
+      const result = await repository.remove("507f1f77bcf86cd799439011");
 
-      expect(result).toBe(false);
-      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("nonexistentId");
+      expect(result).toBeNull();
+      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
+    });
+
+    it("should return null when id is invalid", async () => {
+      const result = await repository.remove("invalid-id");
+
+      expect(result).toBeNull();
+      expect(songModel.findByIdAndDelete).not.toHaveBeenCalled();
     });
   });
 });

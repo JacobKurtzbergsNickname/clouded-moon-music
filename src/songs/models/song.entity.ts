@@ -11,7 +11,7 @@ import { Genre } from "./genre.entity";
 @Entity("songs")
 export class Song {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: string | number;
 
   @Column()
   title: string;

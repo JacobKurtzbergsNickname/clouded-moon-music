@@ -19,17 +19,22 @@ export class SqlSongsRepository implements SongsRepository {
   ) {}
 
   async findAll(): Promise<Song[]> {
-    return this.songRepository.find({
+    const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
+    return songs.map((song) => this.toSongWithStringId(song));
   }
 
-  async findOne(id: number): Promise<Song | null> {
+  async findOne(id: string): Promise<Song | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const song = await this.songRepository.findOne({
-      where: { id },
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
-    return song || null;
+    return song ? this.toSongWithStringId(song) : null;
   }
 
   async create(dto: CreateSongDTO): Promise<Song> {
@@ -71,12 +76,17 @@ export class SqlSongsRepository implements SongsRepository {
       genres,
     });
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongWithStringId(savedSong);
   }
 
-  async update(id: number, dto: Partial<CreateSongDTO>): Promise<Song | null> {
+  async update(id: string, dto: Partial<CreateSongDTO>): Promise<Song | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const song = await this.songRepository.findOne({
-      where: { id },
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
 
@@ -125,12 +135,17 @@ export class SqlSongsRepository implements SongsRepository {
       song.genres = genres;
     }
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongWithStringId(savedSong);
   }
 
-  async replace(id: number, dto: CreateSongDTO): Promise<Song | null> {
+  async replace(id: string, dto: CreateSongDTO): Promise<Song | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
     const song = await this.songRepository.findOne({
-      where: { id },
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
 
@@ -175,11 +190,18 @@ export class SqlSongsRepository implements SongsRepository {
     song.artists = artists;
     song.genres = genres;
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongWithStringId(savedSong);
   }
 
-  async remove(id: number): Promise<number | null> {
-    const song = await this.songRepository.findOne({ where: { id } });
+  async remove(id: string): Promise<string | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
+    const song = await this.songRepository.findOne({
+      where: { id: numericId },
+    });
 
     if (!song) {
       return null;
@@ -187,5 +209,15 @@ export class SqlSongsRepository implements SongsRepository {
 
     await this.songRepository.remove(song);
     return id;
+  }
+
+  /**
+   * Converts a Song entity with numeric ID to one with string ID
+   */
+  private toSongWithStringId(song: Song): Song {
+    return {
+      ...song,
+      id: song.id.toString(),
+    };
   }
 }

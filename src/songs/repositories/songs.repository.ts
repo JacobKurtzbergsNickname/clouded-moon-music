@@ -3,11 +3,11 @@ import { Song } from "../models/song.entity";
 
 export interface SongsRepository {
   findAll(): Promise<Song[]>;
-  findOne(id: number): Promise<Song | null>;
+  findOne(id: string): Promise<Song | null>;
   create(dto: CreateSongDTO): Promise<Song>;
-  update(id: number, song: Partial<CreateSongDTO>): Promise<Song | null>;
-  replace(id: number, song: CreateSongDTO): Promise<Song | null>;
-  remove(id: number): Promise<number | null>;
+  update(id: string, song: Partial<CreateSongDTO>): Promise<Song | null>;
+  replace(id: string, song: CreateSongDTO): Promise<Song | null>;
+  remove(id: string): Promise<string | null>;
 }
 
 export const SONGS_REPOSITORY = Symbol("SONGS_REPOSITORY");
