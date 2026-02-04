@@ -3,11 +3,11 @@ import { SongDTO } from "../models/song.dto";
 
 export interface SongsRepository {
   findAll(): Promise<SongDTO[]>;
-  findOne(id: number): Promise<SongDTO | null>;
+  findOne(id: string): Promise<SongDTO | null>;
   create(dto: CreateSongDTO): Promise<SongDTO>;
-  update(id: number, song: Partial<CreateSongDTO>): Promise<SongDTO | null>;
-  replace(id: number, song: CreateSongDTO): Promise<SongDTO | null>;
-  remove(id: number): Promise<number | null>;
+  update(id: string, song: Partial<CreateSongDTO>): Promise<SongDTO | null>;
+  replace(id: string, song: CreateSongDTO): Promise<SongDTO | null>;
+  remove(id: string): Promise<string | null>;
 }
 
 export const SONGS_REPOSITORY = Symbol("SONGS_REPOSITORY");

@@ -51,7 +51,7 @@ export class Song {
    */
   toDTO(): SongDTO {
     return {
-      id: this.id,
+      id: String(this.id),
       title: this.title,
       artists: this.artists.map((artist) => artist.name),
       album: this.album,

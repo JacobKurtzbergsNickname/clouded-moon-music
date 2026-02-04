@@ -3,19 +3,13 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Put,
 } from "@nestjs/common";
 import { SongsService } from "./songs.service";
 import CreateSongDTO from "./models/create-song.dto";
-
-function validInt(): ParseIntPipe {
-  return new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE });
-}
 
 @Controller("songs")
 export class SongsController {
@@ -32,40 +26,22 @@ export class SongsController {
   }
 
   @Get(":id")
-  findOne(@Param("id", validInt()) id: number) {
+  findOne(@Param("id") id: string) {
     return this.songsService.findOne(id);
   }
 
   @Patch(":id")
-  update(@Param("id", validInt()) id: number) {
-    const updatedSong: Partial<CreateSongDTO> = {
-      title: "Helvegen",
-      artists: ["Wardruna"],
-      album: "Runaljod - Yggdrasil",
-      year: 2013,
-      genres: ["Nordic Folk"],
-      duration: 561, // 561 seconds (9:21)
-      releaseDate: new Date("2013-01-01T00:00:00Z"),
-    };
-    return this.songsService.update(id, updatedSong);
+  update(@Param("id") id: string, @Body() song: Partial<CreateSongDTO>) {
+    return this.songsService.update(id, song);
   }
 
   @Put(":id")
-  replace(@Param("id", validInt()) id: number) {
-    const song: CreateSongDTO = {
-      title: "Helvegen",
-      artists: ["Wardruna"],
-      album: "Runaljod - Yggdrasil",
-      year: 2013,
-      genres: ["Nordic Folk"],
-      duration: 561, // 561 seconds (9:21)
-      releaseDate: new Date("2013-01-01T00:00:00Z"),
-    };
+  replace(@Param("id") id: string, @Body() song: CreateSongDTO) {
     return this.songsService.replace(id, song);
   }
 
   @Delete(":id")
-  remove(@Param("id", validInt()) id: number) {
+  remove(@Param("id") id: string) {
     return this.songsService.remove(id);
   }
 }

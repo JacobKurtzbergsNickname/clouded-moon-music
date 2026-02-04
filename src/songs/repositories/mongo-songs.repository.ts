@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Song, SongDocument } from "../models/song.schema";
-import { SongDTO } from "../models/song.dto";
 import CreateSongDTO from "../models/create-song.dto";
+import { SongDTO } from "../models/song.dto";
 import { SongsRepository } from "./songs.repository";
 
 @Injectable()
@@ -14,73 +14,69 @@ export class MongoSongsRepository implements SongsRepository {
 
   async findAll(): Promise<SongDTO[]> {
     const docs = await this.songModel.find().exec();
-    return docs.map((doc) => this.toSongDTO(doc));
+    return docs.map((doc) => this.toSong(doc));
   }
 
-  async findOne(id: number): Promise<SongDTO | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async findOne(id: string): Promise<SongDTO | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const doc = await this.songModel.findById(stringId).exec();
-    return doc ? this.toSongDTO(doc) : null;
+    const doc = await this.songModel.findById(id).exec();
+    return doc ? this.toSong(doc) : null;
   }
 
   async create(dto: CreateSongDTO): Promise<SongDTO> {
     const createdSong = new this.songModel(dto);
     const doc = await createdSong.save();
-    return this.toSongDTO(doc);
+    return this.toSong(doc);
   }
 
   async update(
-    id: number,
+    id: string,
     song: Partial<CreateSongDTO>,
   ): Promise<SongDTO | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.songModel
-      .findByIdAndUpdate(stringId, song, { new: true })
+      .findByIdAndUpdate(id, song, { new: true })
       .exec();
-    return doc ? this.toSongDTO(doc) : null;
+    return doc ? this.toSong(doc) : null;
   }
 
-  async replace(id: number, song: CreateSongDTO): Promise<SongDTO | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async replace(id: string, song: CreateSongDTO): Promise<SongDTO | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.songModel
-      .findByIdAndUpdate(stringId, song, {
+      .findByIdAndUpdate(id, song, {
         new: true,
         overwrite: true,
         runValidators: true,
       })
       .exec();
-    return doc ? this.toSongDTO(doc) : null;
+    return doc ? this.toSong(doc) : null;
   }
 
-  async remove(id: number): Promise<number | null> {
-    const stringId = id.toString();
-    if (!Types.ObjectId.isValid(stringId)) {
+  async remove(id: string): Promise<string | null> {
+    if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const result = await this.songModel.findByIdAndDelete(stringId).exec();
-    return result ? 1 : 0;
+    const result = await this.songModel.findByIdAndDelete(id).exec();
+    return result ? id : null;
   }
 
   /**
-   * Converts a Mongoose document to a SongDTO
+   * Converts a Mongoose document to a plain Song DTO object
    */
-  private toSongDTO(doc: SongDocument): SongDTO {
+  private toSong(doc: SongDocument): SongDTO {
     return {
-      id: parseInt(doc._id.toString(), 10),
+      id: doc._id.toString(),
       title: doc.title,
       artists: doc.artists,
       album: doc.album,
       year: doc.year,
-      genres: doc.genres || [], // genres is optional in the schema
+      genres: doc.genres,
       duration: doc.duration,
       releaseDate: doc.releaseDate,
     };
