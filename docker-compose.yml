@@ -6,7 +6,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: PreahChanTravPopookKrap2026!
     ports:
-      - "27017:27017"
+      - "27019:27017"
     volumes:
       - mongo_data:/data/db
 
@@ -22,7 +22,7 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: PreahChanTravPopookKrap2026!
     ports:
-      - "8081:8081"
+      - "8083:8081"
 
 volumes:
   mongo_data:
