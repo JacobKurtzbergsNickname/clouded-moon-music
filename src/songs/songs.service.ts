@@ -1,14 +1,17 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { CMLogger, ILogEntry } from "src/common/logger";
 import { CreateSongDTO } from "./models/create-song.dto";
 import { Song } from "./models/song.entity";
 import { ISong } from "./models/song.interface";
-import { CMLogger, ILogEntry } from "src/common/logger";
-import { SongsRepository, SONGS_REPOSITORY } from "./repositories/songs.repository";
+import {
+  SongsRepository,
+  SONGS_REPOSITORY,
+} from "./repositories/songs.repository";
 
 @Injectable()
 export class SongsService {
-
   private readonly logger: CMLogger;
+
   constructor(
     @Inject(SONGS_REPOSITORY) private readonly songsRepository: SongsRepository,
     logger: CMLogger,
@@ -18,10 +21,10 @@ export class SongsService {
 
   findAll(): Array<Song> {
     const logEntry: ILogEntry = {
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message: 'Getting all songs',
-        context: 'SongsService'
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: "Getting all songs",
+      context: "SongsService",
     };
     this.logger.info("Method: findAll()", logEntry);
     return this.songsRepository.findAll();

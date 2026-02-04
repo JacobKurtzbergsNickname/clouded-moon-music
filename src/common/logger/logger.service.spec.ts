@@ -1,8 +1,8 @@
 // src/common/logger/logger.service.spec.ts
 
 import { Test, TestingModule } from "@nestjs/testing";
-import { CMLogger } from "./logger.service";
 import { Logger } from "winston";
+import { CMLogger } from "./logger.service";
 import { ILogEntry } from "./interfaces";
 
 // Create a mock Winston Logger with jest.fn()

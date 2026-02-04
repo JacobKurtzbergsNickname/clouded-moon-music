@@ -5,6 +5,6 @@ export interface ISong {
   album: string;
   year: number;
   genres: Array<string>;
-  duration: Date;
+  duration: number;
   releaseDate: Date;
 }

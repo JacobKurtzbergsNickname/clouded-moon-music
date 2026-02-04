@@ -11,8 +11,8 @@ export class CMLogger implements LoggerService {
 
   // Overload signatures
   info(message: string): void;
-  info(message: string, logEntry: ILogEntry): void;
 
+  info(message: string, logEntry: ILogEntry): void;
 
   // Implementation
   info(message: string, logEntry?: ILogEntry): void {

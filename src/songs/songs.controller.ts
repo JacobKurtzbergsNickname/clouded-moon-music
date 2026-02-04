@@ -54,7 +54,7 @@ export class SongsController {
   @Put(":id")
   replace(@Param("id", validInt()) id: number) {
     const song: Song = {
-      id: id,
+      id,
       title: "Helvegen",
       artists: ["Wardruna"],
       album: "Runaljod - Yggdrasil",

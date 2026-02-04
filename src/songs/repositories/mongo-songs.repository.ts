@@ -1,105 +1,88 @@
 import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-import { CreateSongDTO } from "../models/create-song.dto";
-import { Song } from "../models/song.entity";
-import { ISong } from "../models/song.interface";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { Song, SongDocument } from "../models/song.schema";
+import { Song as SongEntity } from "../models/song.entity";
+import CreateSongDTO from "../models/create-song.dto";
 import { SongsRepository } from "./songs.repository";
 
 @Injectable()
 export class MongoSongsRepository implements SongsRepository {
-  // Mockup data
-  private songs: Array<Song> = [
-    {
-      id: 0,
-      title: "Dickichtgott",
-      artists: ["Helrunar"],
-      album: "Baldr Ok Íss",
-      year: 2006,
-      genres: ["Black Metal"],
-      duration: new Date("02:34"),
-      releaseDate: new Date("2006-01-01T00:00:00Z"),
-    },
-    {
-      id: 1,
-      title: "The Call of the Mountains",
-      artists: ["Eluveitie"],
-      album: "Origins",
-      year: 2014,
-      genres: ["Folk Metal"],
-      duration: new Date("03:15"),
-      releaseDate: new Date("2014-01-01T00:00:00Z"),
-    },
-    {
-      id: 3,
-      title: "In Maidjan",
-      artists: ["Heilung"],
-      album: "Ofnir",
-      year: 2015,
-      genres: ["Neofolk"],
-      duration: new Date("05:39"),
-      releaseDate: new Date("2015-01-01T00:00:00Z"),
-    },
-    {
-      id: 4,
-      title: "Row Row",
-      artists: ["Zeal & Ardor"],
-      album: "Stranger Fruit",
-      year: 2018,
-      genres: ["Black Metal", "Gospel"],
-      duration: new Date("03:43"),
-      releaseDate: new Date("2018-01-01T00:00:00Z"),
-    },
-  ];
+  constructor(
+    @InjectModel(Song.name) private readonly songModel: Model<SongDocument>,
+  ) {}
 
-  findAll(): Array<Song> {
-    return this.songs;
+  async findAll(): Promise<SongEntity[]> {
+    const docs = await this.songModel.find().exec();
+    return docs.map((doc) => this.toSong(doc));
   }
 
-  findOne(id: number): Song | string {
-    const song = this.songs.find((song) => song.id === id);
-    if (!song) {
-      return "Not found";
-    }
-    return song;
-  }
-
-  create(dto: CreateSongDTO): ISong {
-    const song = plainToClass(Song, dto);
-    song.id = this.songs.length + 1;
-    this.songs.push(song);
-    this.songs = this.songs.map((song, index) => ({ ...song, id: index }));
-    return song;
-  }
-
-  update(id: number, song: Omit<Song, "id">): Song {
-    this.songs = this.songs.map((s) => {
-      if (s.id === id) {
-        return { ...s, ...song };
-      }
-      return s;
-    });
-    return { ...song, id };
-  }
-
-  replace(id: number, song: Song): Song {
-    this.songs = this.songs.map((s) => {
-      if (s.id === id) {
-        return song;
-      }
-      return s;
-    });
-    return song;
-  }
-
-  remove(id: number): number | null {
-    const song = this.songs.find((song) => song.id === id);
-    if (!song) {
+  async findOne(id: number): Promise<SongEntity | null> {
+    const stringId = id.toString();
+    if (!Types.ObjectId.isValid(stringId)) {
       return null;
     }
-    this.songs = this.songs
-      .filter((song) => song.id !== id)
-      .map((song, index) => ({ ...song, id: index }));
+    const doc = await this.songModel.findById(stringId).exec();
+    return doc ? this.toSong(doc) : null;
+  }
 
-    return song.id;
+  async create(dto: CreateSongDTO): Promise<SongEntity> {
+    const createdSong = new this.songModel(dto);
+    const doc = await createdSong.save();
+    return this.toSong(doc);
+  }
+
+  async update(
+    id: number,
+    song: Partial<CreateSongDTO>,
+  ): Promise<SongEntity | null> {
+    const stringId = id.toString();
+    if (!Types.ObjectId.isValid(stringId)) {
+      return null;
+    }
+    const doc = await this.songModel
+      .findByIdAndUpdate(stringId, song, { new: true })
+      .exec();
+    return doc ? this.toSong(doc) : null;
+  }
+
+  async replace(id: number, song: CreateSongDTO): Promise<SongEntity | null> {
+    const stringId = id.toString();
+    if (!Types.ObjectId.isValid(stringId)) {
+      return null;
+    }
+    const doc = await this.songModel
+      .findByIdAndUpdate(stringId, song, {
+        new: true,
+        overwrite: true,
+        runValidators: true,
+      })
+      .exec();
+    return doc ? this.toSong(doc) : null;
+  }
+
+  async remove(id: number): Promise<number | null> {
+    const stringId = id.toString();
+    if (!Types.ObjectId.isValid(stringId)) {
+      return null;
+    }
+    const result = await this.songModel.findByIdAndDelete(stringId).exec();
+    return result ? 1 : 0;
+  }
+
+  /**
+   * Converts a Mongoose document to a plain Song entity object
+   */
+  private toSong(doc: SongDocument): SongEntity {
+    const song = new SongEntity();
+    song.id = parseInt(doc._id.toString(), 10);
+    song.title = doc.title;
+    song.artists = doc.artists as any; // MongoDB stores as string[], entity expects Artist[]
+    song.album = doc.album;
+    song.year = doc.year;
+    song.genres = doc.genres as any; // MongoDB stores as string[], entity expects Genre[]
+    song.duration = doc.duration;
+    song.releaseDate = doc.releaseDate;
+    return song;
   }
 }

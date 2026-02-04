@@ -17,12 +17,16 @@ export class LogEntry implements ILogEntry {
     this.timestamp = new Date().toISOString();
     this.level = level;
     this.message = message;
-    this.requestId = requestId ? requestId : v4();
+    this.requestId = requestId || v4();
   }
 
   timestamp: string;
+
   level: LogLevel;
+
   message: string;
+
   requestId?: string;
+
   [key: string]: any;
 }

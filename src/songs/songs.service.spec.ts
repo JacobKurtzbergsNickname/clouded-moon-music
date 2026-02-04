@@ -3,7 +3,7 @@ import { CMLogger } from "src/common/logger";
 import { SongsService } from "./songs.service";
 import { SONGS_REPOSITORY } from "./repositories/songs.repository";
 
-describe('SongsService', () => {
+describe("SongsService", () => {
   let service: SongsService;
 
   beforeEach(async () => {
@@ -37,7 +37,7 @@ describe('SongsService', () => {
     service = module.get<SongsService>(SongsService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

@@ -1,7 +1,6 @@
 import {
   IsArray,
   IsDateString,
-  IsMilitaryTime,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -11,7 +10,7 @@ import {
 } from "class-validator";
 import { ISong } from "./song.interface";
 
-export class CreateSongDTO implements Omit<ISong, "id"> {
+export default class CreateSongDTO implements Omit<ISong, "id"> {
   @IsString()
   @IsNotEmpty()
   readonly title: string;
@@ -40,8 +39,8 @@ export class CreateSongDTO implements Omit<ISong, "id"> {
   @IsOptional()
   readonly genres: Array<string>;
 
-  @IsString()
-  @IsMilitaryTime()
+  @IsInt()
+  @Min(1)
   @IsNotEmpty()
-  readonly duration: Date;
+  readonly duration: number; // duration in seconds
 }
