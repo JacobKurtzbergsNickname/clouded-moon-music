@@ -30,7 +30,13 @@ export class SongsService {
   }
 
   async findOne(id: number): Promise<Song | null> {
-    console.log("Id: ", id);
+    const logEntry: ILogEntry = {
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: `Getting song with id: ${id}`,
+      context: "SongsService",
+    };
+    this.logger.info("Method: findOne()", logEntry);
     return await this.songsRepository.findOne(id);
   }
 
