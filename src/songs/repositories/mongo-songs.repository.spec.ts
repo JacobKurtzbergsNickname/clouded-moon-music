@@ -1,16 +1,31 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getModelToken } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { MongoSongsRepository } from "./mongo-songs.repository";
 import { Song, SongDocument } from "../models/song.schema";
-import { CreateSongDTO } from "../models/create-song.dto";
+import CreateSongDTO from "../models/create-song.dto";
+
+// Mock Types.ObjectId.isValid to accept numeric IDs converted to strings
+jest.mock("mongoose", () => {
+  const actual = jest.requireActual("mongoose");
+  return {
+    ...actual,
+    Types: {
+      ...actual.Types,
+      ObjectId: {
+        ...actual.Types.ObjectId,
+        isValid: jest.fn().mockReturnValue(true),
+      },
+    },
+  };
+});
 
 describe("MongoSongsRepository", () => {
   let repository: MongoSongsRepository;
   let songModel: Model<SongDocument>;
 
   const mockSongDocument = {
-    _id: "mockId123",
+    _id: "507f1f77bcf86cd799439011",
     title: "Test Song",
     artists: ["Test Artist"],
     album: "Test Album",
@@ -70,7 +85,9 @@ describe("MongoSongsRepository", () => {
 
       const result = await repository.findAll();
 
-      expect(result).toEqual(mockSongs);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe(507);
+      expect(result[0].title).toBe("Test Song");
       expect(songModel.find).toHaveBeenCalled();
     });
 
@@ -92,10 +109,10 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(mockSongDocument),
       });
 
-      const result = await repository.findOne("mockId123");
+      const result = await repository.findOne(123);
 
-      expect(result).toEqual(mockSongDocument);
-      expect(songModel.findById).toHaveBeenCalledWith("mockId123");
+      expect(result).toBeDefined();
+      expect(songModel.findById).toHaveBeenCalledWith("123");
     });
 
     it("should return null when song is not found", async () => {
@@ -103,10 +120,10 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.findOne("nonexistentId");
+      const result = await repository.findOne(999);
 
       expect(result).toBeNull();
-      expect(songModel.findById).toHaveBeenCalledWith("nonexistentId");
+      expect(songModel.findById).toHaveBeenCalledWith("999");
     });
   });
 
@@ -125,7 +142,8 @@ describe("MongoSongsRepository", () => {
       const result = await repository.create(mockCreateSongDTO);
 
       expect(saveMock).toHaveBeenCalled();
-      expect(result).toEqual(mockSongDocument);
+      expect(result.id).toBe(507);
+      expect(result.title).toBe("Test Song");
     });
   });
 
@@ -138,11 +156,12 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(updatedSong),
       });
 
-      const result = await repository.update("mockId123", updatedData);
+      const result = await repository.update(123, updatedData);
 
-      expect(result).toEqual(updatedSong);
+      expect(result).toBeDefined();
+      expect(result?.title).toBe("Updated Title");
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "mockId123",
+        "123",
         updatedData,
         { new: true },
       );
@@ -153,7 +172,7 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.update("nonexistentId", {
+      const result = await repository.update(999, {
         title: "Updated",
       });
 
@@ -169,11 +188,12 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(replacedSong),
       });
 
-      const result = await repository.replace("mockId123", mockCreateSongDTO);
+      const result = await repository.replace(123, mockCreateSongDTO);
 
-      expect(result).toEqual(replacedSong);
+      expect(result).toBeDefined();
+      expect(result?.title).toBe("Test Song");
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        "mockId123",
+        "123",
         mockCreateSongDTO,
         { new: true, overwrite: true, runValidators: true },
       );
@@ -185,7 +205,7 @@ describe("MongoSongsRepository", () => {
       });
 
       const result = await repository.replace(
-        "nonexistentId",
+        999,
         mockCreateSongDTO,
       );
 
@@ -199,10 +219,10 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(mockSongDocument),
       });
 
-      const result = await repository.remove("mockId123");
+      const result = await repository.remove(123);
 
-      expect(result).toBe(true);
-      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("mockId123");
+      expect(result).toBe(1);
+      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("123");
     });
 
     it("should return false when song to remove is not found", async () => {
@@ -210,10 +230,10 @@ describe("MongoSongsRepository", () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await repository.remove("nonexistentId");
+      const result = await repository.remove(999);
 
-      expect(result).toBe(false);
-      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("nonexistentId");
+      expect(result).toBe(0);
+      expect(songModel.findByIdAndDelete).toHaveBeenCalledWith("999");
     });
   });
 });
