@@ -3,7 +3,7 @@ import { getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { MongoSongsRepository } from "./mongo-songs.repository";
 import { Song, SongDocument } from "../models/song.schema";
-import { CreateSongDTO } from "../models/create-song.dto";
+import CreateSongDTO from "../models/create-song.dto";
 
 describe("MongoSongsRepository", () => {
   let repository: MongoSongsRepository;

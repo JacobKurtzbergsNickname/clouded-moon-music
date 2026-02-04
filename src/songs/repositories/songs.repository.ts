@@ -1,12 +1,12 @@
 import CreateSongDTO from "../models/create-song.dto";
-import { Song } from "../models/song.entity";
+import { SongDTO } from "../models/song.dto";
 
 export interface SongsRepository {
-  findAll(): Promise<Song[]>;
-  findOne(id: number): Promise<Song | null>;
-  create(dto: CreateSongDTO): Promise<Song>;
-  update(id: number, song: Partial<CreateSongDTO>): Promise<Song | null>;
-  replace(id: number, song: CreateSongDTO): Promise<Song | null>;
+  findAll(): Promise<SongDTO[]>;
+  findOne(id: number): Promise<SongDTO | null>;
+  create(dto: CreateSongDTO): Promise<SongDTO>;
+  update(id: number, song: Partial<CreateSongDTO>): Promise<SongDTO | null>;
+  replace(id: number, song: CreateSongDTO): Promise<SongDTO | null>;
   remove(id: number): Promise<number | null>;
 }
 

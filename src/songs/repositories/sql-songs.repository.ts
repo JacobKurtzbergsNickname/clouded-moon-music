@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Song } from "../models/song.entity";
+import { SongDTO } from "../models/song.dto";
 import { Artist } from "../models/artist.entity";
 import { Genre } from "../models/genre.entity";
 import { SongsRepository } from "./songs.repository";
@@ -18,21 +19,22 @@ export class SqlSongsRepository implements SongsRepository {
     private readonly genreRepository: Repository<Genre>,
   ) {}
 
-  async findAll(): Promise<Song[]> {
-    return this.songRepository.find({
+  async findAll(): Promise<SongDTO[]> {
+    const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
+    return songs.map((song) => this.toSongDTO(song));
   }
 
-  async findOne(id: number): Promise<Song | null> {
+  async findOne(id: number): Promise<SongDTO | null> {
     const song = await this.songRepository.findOne({
       where: { id },
       relations: ["artists", "genres"],
     });
-    return song || null;
+    return song ? this.toSongDTO(song) : null;
   }
 
-  async create(dto: CreateSongDTO): Promise<Song> {
+  async create(dto: CreateSongDTO): Promise<SongDTO> {
     // Find or create artists
     const artists = await Promise.all(
       dto.artists.map(async (artistName) => {
@@ -71,10 +73,11 @@ export class SqlSongsRepository implements SongsRepository {
       genres,
     });
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongDTO(savedSong);
   }
 
-  async update(id: number, dto: Partial<CreateSongDTO>): Promise<Song | null> {
+  async update(id: number, dto: Partial<CreateSongDTO>): Promise<SongDTO | null> {
     const song = await this.songRepository.findOne({
       where: { id },
       relations: ["artists", "genres"],
@@ -125,10 +128,11 @@ export class SqlSongsRepository implements SongsRepository {
       song.genres = genres;
     }
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongDTO(savedSong);
   }
 
-  async replace(id: number, dto: CreateSongDTO): Promise<Song | null> {
+  async replace(id: number, dto: CreateSongDTO): Promise<SongDTO | null> {
     const song = await this.songRepository.findOne({
       where: { id },
       relations: ["artists", "genres"],
@@ -175,7 +179,8 @@ export class SqlSongsRepository implements SongsRepository {
     song.artists = artists;
     song.genres = genres;
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return this.toSongDTO(savedSong);
   }
 
   async remove(id: number): Promise<number | null> {
@@ -187,5 +192,21 @@ export class SqlSongsRepository implements SongsRepository {
 
     await this.songRepository.remove(song);
     return id;
+  }
+
+  /**
+   * Converts a Song entity to a SongDTO
+   */
+  private toSongDTO(song: Song): SongDTO {
+    return {
+      id: song.id,
+      title: song.title,
+      artists: song.artists.map((artist) => artist.name),
+      album: song.album,
+      year: song.year,
+      genres: song.genres.map((genre) => genre.name),
+      duration: song.duration,
+      releaseDate: song.releaseDate,
+    };
   }
 }
