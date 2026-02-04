@@ -28,3 +28,15 @@ export class Song {
 }
 
 export const SongSchema = SchemaFactory.createForClass(Song);
+
+SongSchema.virtual("id").get(function (this: any) {
+  return this._id.toString();
+});
+
+SongSchema.set("toJSON", {
+  virtuals: true,
+});
+
+SongSchema.set("toObject", {
+  virtuals: true,
+});
