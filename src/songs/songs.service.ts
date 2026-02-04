@@ -1,10 +1,10 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CMLogger, ILogEntry } from "src/common/logger";
 import CreateSongDTO from "./models/create-song.dto";
-import { Song } from "./models/song.entity";
 import {
   SongsRepository,
   SONGS_REPOSITORY,
+  SongResponse,
 } from "./repositories/songs.repository";
 
 @Injectable()
@@ -18,7 +18,7 @@ export class SongsService {
     this.logger = logger;
   }
 
-  findAll(): Promise<Song[]> {
+  findAll(): Promise<SongResponse[]> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -29,20 +29,23 @@ export class SongsService {
     return this.songsRepository.findAll();
   }
 
-  findOne(id: string): Promise<Song | null> {
+  findOne(id: string): Promise<SongResponse | null> {
     console.log("Id: ", id);
     return this.songsRepository.findOne(id);
   }
 
-  create(dto: CreateSongDTO): Promise<Song> {
+  create(dto: CreateSongDTO): Promise<SongResponse> {
     return this.songsRepository.create(dto);
   }
 
-  update(id: string, song: Partial<CreateSongDTO>): Promise<Song | null> {
+  update(
+    id: string,
+    song: Partial<CreateSongDTO>,
+  ): Promise<SongResponse | null> {
     return this.songsRepository.update(id, song);
   }
 
-  replace(id: string, song: CreateSongDTO): Promise<Song | null> {
+  replace(id: string, song: CreateSongDTO): Promise<SongResponse | null> {
     return this.songsRepository.replace(id, song);
   }
 

@@ -2,9 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Song, SongDocument } from "../models/song.schema";
-import { Song as SongEntity } from "../models/song.entity";
 import CreateSongDTO from "../models/create-song.dto";
-import { SongsRepository } from "./songs.repository";
+import { SongsRepository, SongResponse } from "./songs.repository";
 
 @Injectable()
 export class MongoSongsRepository implements SongsRepository {
@@ -12,12 +11,12 @@ export class MongoSongsRepository implements SongsRepository {
     @InjectModel(Song.name) private readonly songModel: Model<SongDocument>,
   ) {}
 
-  async findAll(): Promise<SongEntity[]> {
+  async findAll(): Promise<SongResponse[]> {
     const docs = await this.songModel.find().exec();
     return docs.map((doc) => this.toSong(doc));
   }
 
-  async findOne(id: string): Promise<SongEntity | null> {
+  async findOne(id: string): Promise<SongResponse | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -25,7 +24,7 @@ export class MongoSongsRepository implements SongsRepository {
     return doc ? this.toSong(doc) : null;
   }
 
-  async create(dto: CreateSongDTO): Promise<SongEntity> {
+  async create(dto: CreateSongDTO): Promise<SongResponse> {
     const createdSong = new this.songModel(dto);
     const doc = await createdSong.save();
     return this.toSong(doc);
@@ -34,7 +33,7 @@ export class MongoSongsRepository implements SongsRepository {
   async update(
     id: string,
     song: Partial<CreateSongDTO>,
-  ): Promise<SongEntity | null> {
+  ): Promise<SongResponse | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -44,7 +43,7 @@ export class MongoSongsRepository implements SongsRepository {
     return doc ? this.toSong(doc) : null;
   }
 
-  async replace(id: string, song: CreateSongDTO): Promise<SongEntity | null> {
+  async replace(id: string, song: CreateSongDTO): Promise<SongResponse | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -67,18 +66,18 @@ export class MongoSongsRepository implements SongsRepository {
   }
 
   /**
-   * Converts a Mongoose document to a plain Song entity object
+   * Converts a Mongoose document to a plain Song response object
    */
-  private toSong(doc: SongDocument): SongEntity {
-    const song = new SongEntity();
-    song.id = doc._id.toString();
-    song.title = doc.title;
-    song.artists = doc.artists as any; // MongoDB stores as string[], entity expects Artist[]
-    song.album = doc.album;
-    song.year = doc.year;
-    song.genres = doc.genres as any; // MongoDB stores as string[], entity expects Genre[]
-    song.duration = doc.duration;
-    song.releaseDate = doc.releaseDate;
-    return song;
+  private toSong(doc: SongDocument): SongResponse {
+    return {
+      id: doc._id.toString(),
+      title: doc.title,
+      artists: doc.artists as any, // MongoDB stores as string[], entity expects Artist[]
+      album: doc.album,
+      year: doc.year,
+      genres: doc.genres as any, // MongoDB stores as string[], entity expects Genre[]
+      duration: doc.duration,
+      releaseDate: doc.releaseDate,
+    };
   }
 }

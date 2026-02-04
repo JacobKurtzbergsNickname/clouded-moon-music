@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { Song } from "../models/song.entity";
 import { Artist } from "../models/artist.entity";
 import { Genre } from "../models/genre.entity";
-import { SongsRepository } from "./songs.repository";
+import { SongsRepository, SongResponse } from "./songs.repository";
 import CreateSongDTO from "../models/create-song.dto";
 
 @Injectable()
@@ -18,26 +18,26 @@ export class SqlSongsRepository implements SongsRepository {
     private readonly genreRepository: Repository<Genre>,
   ) {}
 
-  async findAll(): Promise<Song[]> {
+  async findAll(): Promise<SongResponse[]> {
     const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
-    return songs.map((song) => this.toSongWithStringId(song as any));
+    return songs.map((song) => this.toSongWithStringId(song));
   }
 
-  async findOne(id: string): Promise<Song | null> {
+  async findOne(id: string): Promise<SongResponse | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId } as any,
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
-    return song ? this.toSongWithStringId(song as any) : null;
+    return song ? this.toSongWithStringId(song) : null;
   }
 
-  async create(dto: CreateSongDTO): Promise<Song> {
+  async create(dto: CreateSongDTO): Promise<SongResponse> {
     // Find or create artists
     const artists = await Promise.all(
       dto.artists.map(async (artistName) => {
@@ -77,16 +77,19 @@ export class SqlSongsRepository implements SongsRepository {
     });
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong as any);
+    return this.toSongWithStringId(savedSong);
   }
 
-  async update(id: string, dto: Partial<CreateSongDTO>): Promise<Song | null> {
+  async update(
+    id: string,
+    dto: Partial<CreateSongDTO>,
+  ): Promise<SongResponse | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId } as any,
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
 
@@ -136,16 +139,16 @@ export class SqlSongsRepository implements SongsRepository {
     }
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong as any);
+    return this.toSongWithStringId(savedSong);
   }
 
-  async replace(id: string, dto: CreateSongDTO): Promise<Song | null> {
+  async replace(id: string, dto: CreateSongDTO): Promise<SongResponse | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId } as any,
+      where: { id: numericId },
       relations: ["artists", "genres"],
     });
 
@@ -191,7 +194,7 @@ export class SqlSongsRepository implements SongsRepository {
     song.genres = genres;
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong as any);
+    return this.toSongWithStringId(savedSong);
   }
 
   async remove(id: string): Promise<string | null> {
@@ -200,7 +203,7 @@ export class SqlSongsRepository implements SongsRepository {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId } as any,
+      where: { id: numericId },
     });
 
     if (!song) {
@@ -214,7 +217,7 @@ export class SqlSongsRepository implements SongsRepository {
   /**
    * Converts a Song entity with numeric ID (from TypeORM) to one with string ID
    */
-  private toSongWithStringId(song: any): Song {
+  private toSongWithStringId(song: Song): SongResponse {
     return {
       ...song,
       id: String(song.id),
