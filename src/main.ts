@@ -1,9 +1,11 @@
-import { NestFactory } from "@nestjs/core";
-import * as dotenv from "dotenv";
-import { ValidationPipe } from "@nestjs/common";
-import { AppModule } from "./app.module";
-
+// Load environment variables FIRST, before any imports
+import dotenv from "dotenv";
 dotenv.config();
+
+// Now import everything else
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

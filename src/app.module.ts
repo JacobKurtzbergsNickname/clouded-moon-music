@@ -1,48 +1,47 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { Connection } from "mongoose";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
+
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { SongsModule } from "./songs/songs.module";
 import { LoggerMiddleware } from "./common/middleware/logger.middleware";
 import { LoggerModule } from "./common/logger/logger.module";
+import { SongsModule } from "./songs/songs.module";
 import { SongsController } from "./songs/songs.controller";
+import { getMongoDbUri } from "./config/mongodb.config";
+import { getPostgresConfig } from "./config/postgres.config";
+
+const mongoConnectionFactory = (connection: Connection) => {
+  connection.on("connected", () => {
+    winston.info("MongoDB connected successfully");
+  });
+
+  connection.on("error", (error: Error) => {
+    winston.error("MongoDB connection error:", error);
+  });
+
+  connection.on("disconnected", () => {
+    winston.warn("MongoDB disconnected");
+  });
+
+  return connection;
+};
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      process.env.MONGODB_URI ?? "mongodb://localhost:27017/clouded-moon-music",
-      {
-        retryAttempts: 3,
-        retryDelay: 1000,
-        connectionFactory: (connection) => {
-          connection.on("connected", () => {
-            winston.info("MongoDB connected successfully");
-          });
-          connection.on("error", (error) => {
-            winston.error("MongoDB connection error:", error);
-          });
-          connection.on("disconnected", () => {
-            winston.warn("MongoDB disconnected");
-          });
-          return connection;
-        },
-      },
-    ),
-    TypeOrmModule.forRoot({
-      type: "postgres",
-      host: process.env.POSTGRES_HOST ?? "localhost",
-      port: parseInt(process.env.POSTGRES_PORT ?? "5432", 10),
-      username: process.env.POSTGRES_USER ?? "admin",
-      password: process.env.POSTGRES_PASSWORD ?? "PreahChanTravPopookKrap2026!",
-      database: process.env.POSTGRES_DB ?? "clouded_moon_music",
-      entities: [__dirname + "/**/*.entity{.ts,.js}"],
-      synchronize: process.env.NODE_ENV !== "production",
-      logging: process.env.NODE_ENV !== "production",
+    MongooseModule.forRoot(getMongoDbUri(), {
+      retryAttempts: 3,
+      retryDelay: 1000,
+      connectionFactory: mongoConnectionFactory,
     }),
+
+    TypeOrmModule.forRoot(getPostgresConfig(__dirname)),
+
     SongsModule,
+
     WinstonModule.forRoot({
       transports: [
         new winston.transports.Console(),
@@ -50,9 +49,12 @@ import { SongsController } from "./songs/songs.controller";
           filename: "logs/error.log",
           level: "error",
         }),
-        new winston.transports.File({ filename: "logs/combined.log" }),
+        new winston.transports.File({
+          filename: "logs/combined.log",
+        }),
       ],
     }),
+
     LoggerModule,
   ],
   controllers: [AppController],
