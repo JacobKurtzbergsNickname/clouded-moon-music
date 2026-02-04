@@ -44,7 +44,7 @@ export class SongsController {
       album: "Runaljod - Yggdrasil",
       year: 2013,
       genres: ["Nordic Folk"],
-      duration: 561, // 9:21 in seconds
+      duration: 561, // 561 seconds (9:21)
       releaseDate: new Date("2013-01-01T00:00:00Z"),
     };
     return this.songsService.update(id, updatedSong);
@@ -58,7 +58,7 @@ export class SongsController {
       album: "Runaljod - Yggdrasil",
       year: 2013,
       genres: ["Nordic Folk"],
-      duration: 561, // 9:21 in seconds
+      duration: 561, // 561 seconds (9:21)
       releaseDate: new Date("2013-01-01T00:00:00Z"),
     };
     return this.songsService.replace(id, song);

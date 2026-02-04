@@ -80,7 +80,7 @@ export class MongoSongsRepository implements SongsRepository {
       artists: doc.artists,
       album: doc.album,
       year: doc.year,
-      genres: doc.genres || [],
+      genres: doc.genres || [], // genres is optional in the schema
       duration: doc.duration,
       releaseDate: doc.releaseDate,
     };
