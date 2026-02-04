@@ -2,7 +2,6 @@ import { Inject, Injectable } from "@nestjs/common";
 import { CMLogger, ILogEntry } from "src/common/logger";
 import { CreateSongDTO } from "./models/create-song.dto";
 import { Song } from "./models/song.entity";
-import { ISong } from "./models/song.interface";
 import {
   SongsRepository,
   SONGS_REPOSITORY,
@@ -19,7 +18,7 @@ export class SongsService {
     this.logger = logger;
   }
 
-  findAll(): Array<Song> {
+  async findAll(): Promise<Array<Song>> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -27,27 +26,27 @@ export class SongsService {
       context: "SongsService",
     };
     this.logger.info("Method: findAll()", logEntry);
-    return this.songsRepository.findAll();
+    return await this.songsRepository.findAll();
   }
 
-  findOne(id: number): Song | string {
+  async findOne(id: number): Promise<Song | null> {
     console.log("Id: ", id);
-    return this.songsRepository.findOne(id);
+    return await this.songsRepository.findOne(id);
   }
 
-  create(dto: CreateSongDTO): ISong {
-    return this.songsRepository.create(dto);
+  async create(dto: CreateSongDTO): Promise<Song> {
+    return await this.songsRepository.create(dto);
   }
 
-  update(id: number, song: Omit<Song, "id">): Song {
-    return this.songsRepository.update(id, song);
+  async update(id: number, song: Omit<Song, "id">): Promise<Song | null> {
+    return await this.songsRepository.update(id, song);
   }
 
-  replace(id: number, song: Song): Song {
-    return this.songsRepository.replace(id, song);
+  async replace(id: number, song: Song): Promise<Song | null> {
+    return await this.songsRepository.replace(id, song);
   }
 
-  remove(id: number): number | null {
-    return this.songsRepository.remove(id);
+  async remove(id: number): Promise<number | null> {
+    return await this.songsRepository.remove(id);
   }
 }
