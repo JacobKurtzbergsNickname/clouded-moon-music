@@ -34,7 +34,7 @@ export class MongoSongsRepository {
 
   async replace(id: string, song: CreateSongDTO): Promise<SongDocument | null> {
     return this.songModel
-      .findOneAndReplace({ _id: id }, song, { new: true })
+      .findByIdAndUpdate(id, song, { new: true, overwrite: true, runValidators: true })
       .exec();
   }
 
