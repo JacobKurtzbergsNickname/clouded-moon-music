@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { CreateSongDTO } from "../models/create-song.dto";
 import { Song, SongDocument } from "../models/song.schema";
 
@@ -15,6 +15,9 @@ export class MongoSongsRepository {
   }
 
   async findOne(id: string): Promise<SongDocument | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
     return this.songModel.findById(id).exec();
   }
 
@@ -27,18 +30,29 @@ export class MongoSongsRepository {
     id: string,
     song: Partial<CreateSongDTO>,
   ): Promise<SongDocument | null> {
-    return this.songModel
-      .findByIdAndUpdate(id, song, { new: true })
-      .exec();
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+    return this.songModel.findByIdAndUpdate(id, song, { new: true }).exec();
   }
 
   async replace(id: string, song: CreateSongDTO): Promise<SongDocument | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
     return this.songModel
-      .findByIdAndUpdate(id, song, { new: true, overwrite: true, runValidators: true })
+      .findByIdAndUpdate(id, song, {
+        new: true,
+        overwrite: true,
+        runValidators: true,
+      })
       .exec();
   }
 
   async remove(id: string): Promise<boolean> {
+    if (!Types.ObjectId.isValid(id)) {
+      return false;
+    }
     const result = await this.songModel.findByIdAndDelete(id).exec();
     return Boolean(result);
   }
