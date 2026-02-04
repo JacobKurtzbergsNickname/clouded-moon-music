@@ -26,6 +26,7 @@ describe('MongoSongsRepository', () => {
     album: 'Test Album',
     year: 2024,
     genres: ['Rock'],
+    // Note: duration is typed as Date in DTO but stored as string in schema
     duration: '03:45' as any,
     releaseDate: new Date('2024-01-01'),
   };
