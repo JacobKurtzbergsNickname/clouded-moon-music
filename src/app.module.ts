@@ -1,18 +1,37 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { WinstonModule } from "nest-winston";
+import winston from "winston";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { SongsModule } from "./songs/songs.module";
 import { LoggerMiddleware } from "./common/middleware/logger.middleware";
-import { WinstonModule } from "nest-winston";
 import { LoggerModule } from "./common/logger/logger.module";
-import winston from "winston";
 import { SongsController } from "./songs/songs.controller";
 
 @Module({
   imports: [
     MongooseModule.forRoot(
       process.env.MONGODB_URI ?? "mongodb://localhost:27017/clouded-moon-music",
+      {
+        retryAttempts: 3,
+        retryDelay: 1000,
+        connectionFactory: (connection) => {
+          connection.on("connected", () => {
+            // eslint-disable-next-line no-console
+            console.log("MongoDB connected successfully");
+          });
+          connection.on("error", (error) => {
+            // eslint-disable-next-line no-console
+            console.error("MongoDB connection error:", error);
+          });
+          connection.on("disconnected", () => {
+            // eslint-disable-next-line no-console
+            console.warn("MongoDB disconnected");
+          });
+          return connection;
+        },
+      },
     ),
     SongsModule,
     WinstonModule.forRoot({
