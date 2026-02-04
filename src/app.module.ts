@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
 import { AppController } from "./app.controller";
@@ -30,6 +31,17 @@ import { SongsController } from "./songs/songs.controller";
         },
       },
     ),
+    TypeOrmModule.forRoot({
+      type: "postgres",
+      host: process.env.POSTGRES_HOST ?? "localhost",
+      port: parseInt(process.env.POSTGRES_PORT ?? "5432", 10),
+      username: process.env.POSTGRES_USER ?? "admin",
+      password: process.env.POSTGRES_PASSWORD ?? "PreahChanTravPopookKrap2026!",
+      database: process.env.POSTGRES_DB ?? "clouded_moon_music",
+      entities: [__dirname + "/**/*.entity{.ts,.js}"],
+      synchronize: process.env.NODE_ENV !== "production",
+      logging: process.env.NODE_ENV !== "production",
+    }),
     SongsModule,
     WinstonModule.forRoot({
       transports: [

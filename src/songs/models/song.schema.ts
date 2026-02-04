@@ -21,7 +21,7 @@ export class Song {
   genres: string[];
 
   @Prop({ required: true })
-  duration: string;
+  duration: number;
 
   @Prop({ required: true })
   releaseDate: Date;

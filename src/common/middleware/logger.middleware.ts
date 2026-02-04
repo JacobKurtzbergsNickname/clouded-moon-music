@@ -3,14 +3,12 @@
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
-import { CMLogger, ILogEntry, LogEntry } from "../logger";
 import { v4 } from "uuid";
+import { CMLogger, ILogEntry, LogEntry } from "../logger";
 
-declare global {
-  namespace Express {
-    interface Request {
-      requestId?: string;
-    }
+declare module "express" {
+  export interface Request {
+    requestId?: string;
   }
 }
 
@@ -20,13 +18,11 @@ type TimeTuple = [number, number];
 const MORGAN_FORMAT =
   ":method :url :status :res[content-length] - :response-time ms - reqId=:reqId";
 
-const requestWas = (req: Request): string => {
-  return `Request: ${req.requestId} - ${req.method} ${req.originalUrl}`;
-};
+const requestWas = (req: Request): string =>
+  `Request: ${req.requestId} - ${req.method} ${req.originalUrl}`;
 
-const responseWas = (req: Request, res: Response, start: TimeTuple): string => {
-  return `Response: ${req.method} ${req.originalUrl} - ${res.statusCode} ${elpasedTime(start)}ms`;
-};
+const responseWas = (req: Request, res: Response, start: TimeTuple): string =>
+  `Response: ${req.method} ${req.originalUrl} - ${res.statusCode} ${elpasedTime(start)}ms`;
 
 const elpasedTime = (start: TimeTuple): string => {
   const elapsedHrTime = process.hrtime(start);

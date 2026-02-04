@@ -24,5 +24,32 @@ services:
     ports:
       - "8083:8081"
 
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: PreahChanTravPopookKrap2026!
+      POSTGRES_DB: clouded_moon_music
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cloudedmoon.com
+      PGADMIN_DEFAULT_PASSWORD: PreahChanTravPopookKrap2026!
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 volumes:
   mongo_data:
+  postgres_data:
+  pgadmin_data:

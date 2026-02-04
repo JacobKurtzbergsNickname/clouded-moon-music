@@ -1,9 +1,9 @@
 // src/common/logger/logger.module.ts
 
 import { Module } from "@nestjs/common";
-import { CMLogger } from "./logger.service";
 import { WinstonModule } from "nest-winston";
 import * as winston from "winston";
+import { CMLogger } from "./logger.service";
 
 @Module({
   imports: [

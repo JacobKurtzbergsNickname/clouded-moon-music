@@ -7,9 +7,10 @@ import "winston-daily-rotate-file";
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
 // Define a custom log format
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} [${level}]: ${stack || message}`;
-});
+const logFormat = printf(
+  ({ level, message, timestamp, stack }) =>
+    `${timestamp} [${level}]: ${stack || message}`,
+);
 
 // Define the logger configuration
 const winstonLogger: Logger = createLogger({
