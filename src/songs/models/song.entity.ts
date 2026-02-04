@@ -47,6 +47,7 @@ export class Song {
 
   /**
    * Converts the Song entity to a SongDTO
+   * Note: Requires artists and genres relations to be loaded (they are eager-loaded by default)
    */
   toDTO(): SongDTO {
     return {
