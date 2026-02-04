@@ -22,7 +22,7 @@ export class SqlSongsRepository implements SongsRepository {
     const songs = await this.songRepository.find({
       relations: ["artists", "genres"],
     });
-    return songs.map((song) => this.toSongWithStringId(song));
+    return songs.map((song) => this.toSongWithStringId(song as any));
   }
 
   async findOne(id: string): Promise<Song | null> {
@@ -31,10 +31,10 @@ export class SqlSongsRepository implements SongsRepository {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId },
+      where: { id: numericId } as any,
       relations: ["artists", "genres"],
     });
-    return song ? this.toSongWithStringId(song) : null;
+    return song ? this.toSongWithStringId(song as any) : null;
   }
 
   async create(dto: CreateSongDTO): Promise<Song> {
@@ -77,7 +77,7 @@ export class SqlSongsRepository implements SongsRepository {
     });
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong);
+    return this.toSongWithStringId(savedSong as any);
   }
 
   async update(id: string, dto: Partial<CreateSongDTO>): Promise<Song | null> {
@@ -86,7 +86,7 @@ export class SqlSongsRepository implements SongsRepository {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId },
+      where: { id: numericId } as any,
       relations: ["artists", "genres"],
     });
 
@@ -136,7 +136,7 @@ export class SqlSongsRepository implements SongsRepository {
     }
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong);
+    return this.toSongWithStringId(savedSong as any);
   }
 
   async replace(id: string, dto: CreateSongDTO): Promise<Song | null> {
@@ -145,7 +145,7 @@ export class SqlSongsRepository implements SongsRepository {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId },
+      where: { id: numericId } as any,
       relations: ["artists", "genres"],
     });
 
@@ -191,7 +191,7 @@ export class SqlSongsRepository implements SongsRepository {
     song.genres = genres;
 
     const savedSong = await this.songRepository.save(song);
-    return this.toSongWithStringId(savedSong);
+    return this.toSongWithStringId(savedSong as any);
   }
 
   async remove(id: string): Promise<string | null> {
@@ -200,7 +200,7 @@ export class SqlSongsRepository implements SongsRepository {
       return null;
     }
     const song = await this.songRepository.findOne({
-      where: { id: numericId },
+      where: { id: numericId } as any,
     });
 
     if (!song) {
@@ -212,12 +212,12 @@ export class SqlSongsRepository implements SongsRepository {
   }
 
   /**
-   * Converts a Song entity with numeric ID to one with string ID
+   * Converts a Song entity with numeric ID (from TypeORM) to one with string ID
    */
-  private toSongWithStringId(song: Song): Song {
+  private toSongWithStringId(song: any): Song {
     return {
       ...song,
-      id: song.id.toString(),
+      id: String(song.id),
     };
   }
 }
