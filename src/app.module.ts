@@ -13,6 +13,7 @@ import { SongsModule } from "./songs/songs.module";
 import { SongsController } from "./songs/songs.controller";
 import { getMongoDbUri } from "./config/mongodb.config";
 import { getPostgresConfig } from "./config/postgres.config";
+import { RedisModule } from "./redis/redis.module";
 
 const mongoConnectionFactory = (connection: Connection) => {
   connection.on("connected", () => {
@@ -41,6 +42,7 @@ const mongoConnectionFactory = (connection: Connection) => {
     TypeOrmModule.forRoot(getPostgresConfig(__dirname)),
 
     SongsModule,
+    RedisModule,
 
     WinstonModule.forRoot({
       transports: [
