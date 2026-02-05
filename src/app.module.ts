@@ -1,9 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Connection } from "mongoose";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
+import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
+import { join } from "path";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -13,6 +16,7 @@ import { SongsModule } from "./songs/songs.module";
 import { SongsController } from "./songs/songs.controller";
 import { getMongoDbUri } from "./config/mongodb.config";
 import { getPostgresConfig } from "./config/postgres.config";
+import { GraphqlModule } from "./graphql/graphql.module";
 
 const mongoConnectionFactory = (connection: Connection) => {
   connection.on("connected", () => {
@@ -38,9 +42,16 @@ const mongoConnectionFactory = (connection: Connection) => {
       connectionFactory: mongoConnectionFactory,
     }),
 
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+      sortSchema: true,
+    }),
+
     TypeOrmModule.forRoot(getPostgresConfig(__dirname)),
 
     SongsModule,
+    GraphqlModule,
 
     WinstonModule.forRoot({
       transports: [
