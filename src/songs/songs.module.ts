@@ -13,8 +13,8 @@ import { SongsService } from "./songs.service";
 import { Song, SongSchema } from "./models/song.schema";
 import { MongoSongsRepository } from "./repositories/mongo-songs.repository";
 import { Song as SqlSong } from "./models/song.entity";
-import { Artist } from "./models/artist.entity";
-import { Genre } from "./models/genre.entity";
+import { Artist } from "../artists/models/artist.entity";
+import { Genre } from "../genres/models/genre.entity";
 
 @Module({
   imports: [

@@ -5,8 +5,8 @@ import {
   ManyToMany,
   JoinTable,
 } from "typeorm";
-import { Artist } from "./artist.entity";
-import { Genre } from "./genre.entity";
+import { Artist } from "../../artists/models/artist.entity";
+import { Genre } from "../../genres/models/genre.entity";
 import { SongDTO } from "./song.dto";
 
 @Entity("songs")
