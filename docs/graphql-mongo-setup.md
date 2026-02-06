@@ -1,6 +1,7 @@
 # GraphQL + Mongo (NestJS) Structure
 
 ## What Changed
+
 - Added a GraphQL module with a resolver and service that expose the existing
   songs CRUD flows via GraphQL.
 - Introduced GraphQL types and inputs that map to existing `SongDTO` data
@@ -9,6 +10,7 @@
   generation.
 
 ## How It Fits the Current Mongo Structure
+
 - The GraphQL resolver delegates to a dedicated service, which delegates to the
   existing `SongsService`.
 - `SongsService` continues to use the Mongo-backed repository registered in the
@@ -16,7 +18,9 @@
   validation and repository boundaries.
 
 ## Potential Redis Integration (Not Implemented)
+
 Redis can be added later without altering the Mongo repository layer:
+
 - **Query caching**: Cache `songs` and `song(id)` query results, with TTLs for
   read-heavy traffic.
 - **Mutation invalidation**: Invalidate cached song queries when `createSong`,
@@ -27,6 +31,7 @@ Redis can be added later without altering the Mongo repository layer:
   gateway layer using a Redis-backed store.
 
 ## Notes
+
 - The schema is generated at `src/schema.gql` when the server runs in code-first
   mode.
 - Any Redis additions should live at the GraphQL gateway or service layer to
