@@ -16,9 +16,12 @@ Configure the Redis client with the following variables:
 - `REDIS_DB` (optional database index)
 - `REDIS_TLS` (`true` to enable TLS, otherwise disabled)
 
+## Current implementation
+
+- **Caching**: Implemented in `SongsService` for song queries (`findAll`, `findOne`) with cache-aside pattern. Cache is automatically invalidated on mutations (`create`, `update`, `replace`, `remove`).
+
 ## Potential usage areas (not yet implemented)
 
-- **Caching**: Cache frequently accessed data such as song metadata, query results, or external API calls.
 - **Rate limiting**: Store request counters to implement per-user or per-IP rate limits.
 - **Background jobs**: Use Redis-backed job queues for processing audio tasks or notifications.
 - **Pub/Sub**: Broadcast events when songs are added or updated.
