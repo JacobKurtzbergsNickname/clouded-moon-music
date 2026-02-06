@@ -10,14 +10,12 @@ import { SongsService } from "../../songs/songs.service";
 /**
  * Request-scoped service providing DataLoader instances for batch loading entities.
  * Prevents N+1 query problems by batching and caching entity lookups within a single request.
- * 
- * NOTE: Current implementation uses Promise.all with individual findOne calls for artist/genre
- * loaders, which doesn't perform true database-level batching. For optimal performance, 
- * the underlying repository layer should provide batch methods like:
- * - findByIds(ids: string[]): Promise<ArtistDTO[]>
- * - findByGenreIds(ids: string[]): Promise<SongDTO[]>
- * 
- * These would execute single database queries with IN clauses instead of multiple queries.
+ *
+ * This implementation uses true database-level batching via repository methods:
+ * - artistLoader/genreLoader: Uses findByIds() with SQL IN clause
+ * - songsByArtistLoader/songsByGenreLoader: Uses findByArtistIds()/findByGenreIds() with MongoDB $in operator
+ *
+ * Each DataLoader executes a single optimized database query per batch instead of N individual queries.
  */
 @Injectable({ scope: Scope.REQUEST })
 export class DataLoadersService {
@@ -30,44 +28,42 @@ export class DataLoadersService {
   /**
    * DataLoader for batching artist lookups by ID.
    * Caches results per-request to avoid duplicate fetches.
+   * Uses database-level batch query via findByIds for optimal performance.
    */
   readonly artistLoader = new DataLoader<string, ArtistType | null>(
     async (ids: readonly string[]) => {
-      // Fetch all artists in one batch
-      const artists = await Promise.all(
-        ids.map(async (id) => {
-          const artist = await this.artistsService.findOne(String(id));
-          if (!artist) return null;
-          // Convert DTO to GraphQL type (DataLoader will handle songs separately)
-          return {
-            id: String(artist.id),
-            name: artist.name,
-          } as ArtistType;
-        }),
-      );
-      return artists;
+      // Single database query with IN clause
+      const artists = await this.artistsService.findByIds(Array.from(ids));
+
+      // Convert DTOs to GraphQL types
+      return artists.map((artist) => {
+        if (!artist) return null;
+        return {
+          id: String(artist.id),
+          name: artist.name,
+        } as ArtistType;
+      });
     },
   );
 
   /**
    * DataLoader for batching genre lookups by ID.
    * Caches results per-request to avoid duplicate fetches.
+   * Uses database-level batch query via findByIds for optimal performance.
    */
   readonly genreLoader = new DataLoader<string, GenreType | null>(
     async (ids: readonly string[]) => {
-      // Fetch all genres in one batch
-      const genres = await Promise.all(
-        ids.map(async (id) => {
-          const genre = await this.genresService.findOne(String(id));
-          if (!genre) return null;
-          // Convert DTO to GraphQL type (DataLoader will handle songs separately)
-          return {
-            id: String(genre.id),
-            name: genre.name,
-          } as GenreType;
-        }),
-      );
-      return genres;
+      // Single database query with IN clause
+      const genres = await this.genresService.findByIds(Array.from(ids));
+
+      // Convert DTOs to GraphQL types
+      return genres.map((genre) => {
+        if (!genre) return null;
+        return {
+          id: String(genre.id),
+          name: genre.name,
+        } as GenreType;
+      });
     },
   );
 
@@ -92,42 +88,53 @@ export class DataLoadersService {
 
   /**
    * DataLoader for batching songs by artist ID.
-   * Fetches all songs for a given artist.
+   * Fetches all songs for given artists using database-level batching.
    */
   readonly songsByArtistLoader = new DataLoader<string, SongType[]>(
     async (artistIds: readonly string[]) => {
-      // Fetch all songs
-      const allSongs = await this.songsService.findAll();
+      // Single database query with $in operator
+      const songs = await this.songsService.findByArtistIds(
+        Array.from(artistIds),
+      );
 
-      // Group songs by artist ID
+      // Build a lookup map from artist ID to songs
+      const songsByArtistId = new Map<string, SongType[]>();
+
+      for (const song of songs) {
+        if (!song.artists || !Array.isArray(song.artists)) {
+          continue;
+        }
+        for (const artistId of song.artists) {
+          const key = String(artistId);
+          const bucket = songsByArtistId.get(key);
+          if (bucket) {
+            bucket.push(song as unknown as SongType);
+          } else {
+            songsByArtistId.set(key, [song as unknown as SongType]);
+          }
+        }
+      }
+
+      // Return results in the same order as the requested artist IDs
       return artistIds.map((artistId) => {
-        return allSongs.filter((song) =>
-          song.artists.includes(String(artistId)),
-        ) as unknown as SongType[];
+        const key = String(artistId);
+        return songsByArtistId.get(key) || [];
       });
     },
   );
 
   /**
    * DataLoader for batching songs by genre ID.
-   * Fetches all songs for a given genre.
+   * Fetches all songs for given genres using database-level batching.
    */
   readonly songsByGenreLoader = new DataLoader<string, SongType[]>(
     async (genreIds: readonly string[]) => {
-      // Try to use an optimized batched query if available on the service.
-      // Fallback to findAll() to preserve existing behavior if not present.
-      const service: any = this.songsService;
-      const genreIdArray = Array.from(genreIds);
+      // Single database query with $in operator
+      const songs = await this.songsService.findByGenreIds(
+        Array.from(genreIds),
+      );
 
-      let songs: SongType[];
-      if (typeof service.findByGenreIds === "function") {
-        songs = (await service.findByGenreIds(genreIdArray)) as SongType[];
-      } else {
-        songs = (await this.songsService.findAll()) as unknown as SongType[];
-      }
-
-      // Build a lookup map from genre ID to songs.
-      const genreIdSet = new Set(genreIdArray.map((id) => String(id)));
+      // Build a lookup map from genre ID to songs
       const songsByGenreId = new Map<string, SongType[]>();
 
       for (const song of songs) {
@@ -135,23 +142,20 @@ export class DataLoadersService {
           continue;
         }
         for (const genreId of song.genres) {
-          if (!genreIdSet.has(String(genreId))) {
-            continue;
-          }
           const key = String(genreId);
           const bucket = songsByGenreId.get(key);
           if (bucket) {
-            bucket.push(song as SongType);
+            bucket.push(song as unknown as SongType);
           } else {
-            songsByGenreId.set(key, [song as SongType]);
+            songsByGenreId.set(key, [song as unknown as SongType]);
           }
         }
       }
 
-      // Return results in the same order as the requested genre IDs.
+      // Return results in the same order as the requested genre IDs
       return genreIds.map((genreId) => {
         const key = String(genreId);
-        return (songsByGenreId.get(key) || []) as SongType[];
+        return songsByGenreId.get(key) || [];
       });
     },
   );

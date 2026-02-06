@@ -1,4 +1,10 @@
-import { Field, GraphQLISODateTime, ID, Int, ObjectType } from "@nestjs/graphql";
+import {
+  Field,
+  GraphQLISODateTime,
+  ID,
+  Int,
+  ObjectType,
+} from "@nestjs/graphql";
 import { ArtistType } from "./artist.type";
 import { GenreType } from "./genre.type";
 

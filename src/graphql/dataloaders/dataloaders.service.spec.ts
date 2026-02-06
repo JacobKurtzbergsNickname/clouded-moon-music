@@ -12,16 +12,17 @@ describe("DataLoadersService", () => {
 
   beforeEach(async () => {
     const mockArtistsService = {
-      findOne: jest.fn(),
+      findByIds: jest.fn(),
     };
 
     const mockGenresService = {
-      findOne: jest.fn(),
+      findByIds: jest.fn(),
     };
 
     const mockSongsService = {
       findOne: jest.fn(),
-      findAll: jest.fn(),
+      findByArtistIds: jest.fn(),
+      findByGenreIds: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -42,7 +43,8 @@ describe("DataLoadersService", () => {
       ],
     }).compile();
 
-    service = module.get<DataLoadersService>(DataLoadersService);
+    // Use resolve() instead of get() for request-scoped providers
+    service = await module.resolve<DataLoadersService>(DataLoadersService);
     artistsService = module.get<ArtistsService>(ArtistsService);
     genresService = module.get<GenresService>(GenresService);
     songsService = module.get<SongsService>(SongsService);
@@ -59,19 +61,20 @@ describe("DataLoadersService", () => {
         { id: "2", name: "Artist 2" },
       ];
 
-      jest.spyOn(artistsService, "findOne")
-        .mockResolvedValueOnce(mockArtists[0] as any)
-        .mockResolvedValueOnce(mockArtists[1] as any);
+      jest
+        .spyOn(artistsService, "findByIds")
+        .mockResolvedValue(mockArtists as any);
 
       const results = await service.artistLoader.loadMany(["1", "2"]);
-      
+
+      expect(artistsService.findByIds).toHaveBeenCalledWith(["1", "2"]);
       expect(results).toHaveLength(2);
       expect(results[0]).toEqual({ id: "1", name: "Artist 1" });
       expect(results[1]).toEqual({ id: "2", name: "Artist 2" });
     });
 
     it("should return null for non-existent artists", async () => {
-      jest.spyOn(artistsService, "findOne").mockResolvedValue(null);
+      jest.spyOn(artistsService, "findByIds").mockResolvedValue([null]);
 
       const result = await service.artistLoader.load("999");
       expect(result).toBeNull();
@@ -85,12 +88,13 @@ describe("DataLoadersService", () => {
         { id: "2", name: "Genre 2" },
       ];
 
-      jest.spyOn(genresService, "findOne")
-        .mockResolvedValueOnce(mockGenres[0] as any)
-        .mockResolvedValueOnce(mockGenres[1] as any);
+      jest
+        .spyOn(genresService, "findByIds")
+        .mockResolvedValue(mockGenres as any);
 
       const results = await service.genreLoader.loadMany(["1", "2"]);
-      
+
+      expect(genresService.findByIds).toHaveBeenCalledWith(["1", "2"]);
       expect(results).toHaveLength(2);
       expect(results[0]).toEqual({ id: "1", name: "Genre 1" });
       expect(results[1]).toEqual({ id: "2", name: "Genre 2" });
@@ -120,12 +124,13 @@ describe("DataLoadersService", () => {
         },
       ];
 
-      jest.spyOn(songsService, "findOne")
+      jest
+        .spyOn(songsService, "findOne")
         .mockResolvedValueOnce(mockSongs[0] as any)
         .mockResolvedValueOnce(mockSongs[1] as any);
 
       const results = await service.songLoader.loadMany(["1", "2"]);
-      
+
       expect(results).toHaveLength(2);
     });
   });
@@ -162,10 +167,19 @@ describe("DataLoadersService", () => {
         },
       ];
 
-      jest.spyOn(songsService, "findAll").mockResolvedValue(mockSongs as any);
+      jest
+        .spyOn(songsService, "findByArtistIds")
+        .mockResolvedValue(mockSongs as any);
 
-      const results = await service.songsByArtistLoader.loadMany(["artist1", "artist2"]);
-      
+      const results = await service.songsByArtistLoader.loadMany([
+        "artist1",
+        "artist2",
+      ]);
+
+      expect(songsService.findByArtistIds).toHaveBeenCalledWith([
+        "artist1",
+        "artist2",
+      ]);
       expect(results).toHaveLength(2);
       expect((results[0] as any).length).toBe(2); // artist1 has 2 songs
       expect((results[1] as any).length).toBe(1); // artist2 has 1 song
@@ -195,10 +209,19 @@ describe("DataLoadersService", () => {
         },
       ];
 
-      jest.spyOn(songsService, "findAll").mockResolvedValue(mockSongs as any);
+      jest
+        .spyOn(songsService, "findByGenreIds")
+        .mockResolvedValue(mockSongs as any);
 
-      const results = await service.songsByGenreLoader.loadMany(["genre1", "genre2"]);
-      
+      const results = await service.songsByGenreLoader.loadMany([
+        "genre1",
+        "genre2",
+      ]);
+
+      expect(songsService.findByGenreIds).toHaveBeenCalledWith([
+        "genre1",
+        "genre2",
+      ]);
       expect(results).toHaveLength(2);
       expect((results[0] as any).length).toBe(1); // genre1 has 1 song
       expect((results[1] as any).length).toBe(1); // genre2 has 1 song

@@ -13,7 +13,6 @@ import { ArtistType } from "../models/artist.type";
 import { GenreType } from "../models/genre.type";
 import { CreateSongInput, UpdateSongInput } from "../models/song.input";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
-import { SongDTO } from "../../songs/models/song.dto";
 
 /**
  * Runtime structure of parent object in field resolvers.
@@ -51,7 +50,9 @@ export class SongsResolver {
     const songRuntime = song as unknown as SongDTORuntime;
     const artistIds = songRuntime.artists || [];
     const artists = await Promise.all(
-      artistIds.map((id: string) => this.dataLoadersService.artistLoader.load(id)),
+      artistIds.map((id: string) =>
+        this.dataLoadersService.artistLoader.load(id),
+      ),
     );
     // Filter out nulls
     return artists.filter((artist): artist is ArtistType => artist !== null);
@@ -67,7 +68,9 @@ export class SongsResolver {
 
     // Use DataLoader to batch-load genres from string IDs
     const genres = await Promise.all(
-      genreIds.map((id: string) => this.dataLoadersService.genreLoader.load(id)),
+      genreIds.map((id: string) =>
+        this.dataLoadersService.genreLoader.load(id),
+      ),
     );
     // Filter out nulls
     return genres.filter((genre): genre is GenreType => genre !== null);

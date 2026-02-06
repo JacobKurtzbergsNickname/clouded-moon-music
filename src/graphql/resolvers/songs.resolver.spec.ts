@@ -101,7 +101,8 @@ describe("SongsResolver", () => {
         { id: "artist2", name: "Artist 2" },
       ];
 
-      jest.spyOn(dataLoadersService.artistLoader, "load")
+      jest
+        .spyOn(dataLoadersService.artistLoader, "load")
         .mockResolvedValueOnce(mockArtists[0] as any)
         .mockResolvedValueOnce(mockArtists[1] as any);
 
@@ -116,12 +117,10 @@ describe("SongsResolver", () => {
         artists: ["artist1", "artist2"],
       };
 
-      const mockArtists = [
-        { id: "artist1", name: "Artist 1" },
-        null,
-      ];
+      const mockArtists = [{ id: "artist1", name: "Artist 1" }, null];
 
-      jest.spyOn(dataLoadersService.artistLoader, "load")
+      jest
+        .spyOn(dataLoadersService.artistLoader, "load")
         .mockResolvedValueOnce(mockArtists[0] as any)
         .mockResolvedValueOnce(null);
 
@@ -142,7 +141,8 @@ describe("SongsResolver", () => {
         { id: "genre2", name: "Genre 2" },
       ];
 
-      jest.spyOn(dataLoadersService.genreLoader, "load")
+      jest
+        .spyOn(dataLoadersService.genreLoader, "load")
         .mockResolvedValueOnce(mockGenres[0] as any)
         .mockResolvedValueOnce(mockGenres[1] as any);
 
@@ -174,9 +174,11 @@ describe("SongsResolver", () => {
       const mockCreatedSong = {
         id: "1",
         ...input,
-      } as SongType;
+      } as unknown as SongType;
 
-      jest.spyOn(graphqlSongsService, "create").mockResolvedValue(mockCreatedSong);
+      jest
+        .spyOn(graphqlSongsService, "create")
+        .mockResolvedValue(mockCreatedSong);
 
       const result = await resolver.create(input as any);
       expect(result).toEqual(mockCreatedSong);
@@ -197,7 +199,9 @@ describe("SongsResolver", () => {
         releaseDate: new Date(),
       } as SongType;
 
-      jest.spyOn(graphqlSongsService, "update").mockResolvedValue(mockUpdatedSong);
+      jest
+        .spyOn(graphqlSongsService, "update")
+        .mockResolvedValue(mockUpdatedSong);
 
       const result = await resolver.update("1", input as any);
       expect(result).toEqual(mockUpdatedSong);

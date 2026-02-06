@@ -1,5 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { GraphqlSongsService, GraphqlArtistsService, GraphqlGenresService } from "./graphql.service";
+import {
+  GraphqlSongsService,
+  GraphqlArtistsService,
+  GraphqlGenresService,
+} from "./graphql.service";
 import { SongsService } from "../songs/songs.service";
 import { ArtistsService } from "../artists/artists.service";
 import { GenresService } from "../genres/genres.service";
@@ -122,7 +126,9 @@ describe("GraphqlArtistsService", () => {
         { id: "2", name: "Artist 2" },
       ];
 
-      jest.spyOn(artistsService, "findAll").mockResolvedValue(mockArtists as any);
+      jest
+        .spyOn(artistsService, "findAll")
+        .mockResolvedValue(mockArtists as any);
 
       const result = await service.findAll();
       expect(result).toEqual([
@@ -136,7 +142,9 @@ describe("GraphqlArtistsService", () => {
     it("should return an artist by id", async () => {
       const mockArtist = { id: "1", name: "Artist 1" };
 
-      jest.spyOn(artistsService, "findOne").mockResolvedValue(mockArtist as any);
+      jest
+        .spyOn(artistsService, "findOne")
+        .mockResolvedValue(mockArtist as any);
 
       const result = await service.findOne("1");
       expect(result).toEqual({ id: "1", name: "Artist 1" });
