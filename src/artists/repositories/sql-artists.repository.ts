@@ -17,6 +17,12 @@ export class SqlArtistsRepository implements ArtistsRepository {
     return artists.map((artist) => this.mapToDTO(artist));
   }
 
+  /**
+   * Find an artist by ID.
+   * @param id - The artist ID as a string. Must be a valid numeric string.
+   * @returns ArtistDTO if found, null if not found or if ID format is invalid (non-numeric).
+   *          Invalid ID formats are treated as "not found" rather than throwing an error.
+   */
   async findOne(id: string): Promise<ArtistDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {

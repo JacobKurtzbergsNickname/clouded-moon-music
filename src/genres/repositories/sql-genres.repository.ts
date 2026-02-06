@@ -17,6 +17,12 @@ export class SqlGenresRepository implements GenresRepository {
     return genres.map((genre) => this.mapToDTO(genre));
   }
 
+  /**
+   * Find a genre by ID.
+   * @param id - The genre ID as a string. Must be a valid numeric string.
+   * @returns GenreDTO if found, null if not found or if ID format is invalid (non-numeric).
+   *          Invalid ID formats are treated as "not found" rather than throwing an error.
+   */
   async findOne(id: string): Promise<GenreDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
