@@ -288,6 +288,65 @@ describe("SongsService", () => {
     });
   });
 
+  describe("replace", () => {
+    const replaceDto: CreateSongDTO = {
+      title: "Replaced Song",
+      artists: ["New Artist"],
+      album: "New Album",
+      year: 2025,
+      genres: ["Jazz"],
+      duration: 200,
+      releaseDate: new Date("2025-01-01"),
+    };
+
+    const mockReplacedSong: SongDTO = {
+      id: "123",
+      title: "Replaced Song",
+      artists: ["New Artist"],
+      album: "New Album",
+      year: 2025,
+      genres: ["Jazz"],
+      duration: 200,
+      releaseDate: new Date("2025-01-01"),
+    };
+
+    it("should replace song and invalidate caches", async () => {
+      mockRepository.replace.mockResolvedValue(mockReplacedSong);
+
+      const result = await service.replace("123", replaceDto);
+
+      expect(result).toEqual(mockReplacedSong);
+      expect(mockRedisService.del).toHaveBeenCalledWith(
+        "song:123",
+        "songs:list:all",
+      );
+      expect(mockRedisService.deletePattern).toHaveBeenCalledWith(
+        "songs:list:filtered:*",
+      );
+    });
+
+    it("should not invalidate cache if song not found", async () => {
+      mockRepository.replace.mockResolvedValue(null);
+
+      const result = await service.replace("999", replaceDto);
+
+      expect(result).toBeNull();
+      expect(mockRedisService.del).not.toHaveBeenCalled();
+    });
+
+    it("should handle cache invalidation failure gracefully", async () => {
+      mockRepository.replace.mockResolvedValue(mockReplacedSong);
+      mockRedisService.del.mockRejectedValue(new Error("Redis failed"));
+
+      const result = await service.replace("123", replaceDto);
+
+      expect(result).toEqual(mockReplacedSong);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("Cache invalidation failed"),
+      );
+    });
+  });
+
   describe("remove", () => {
     it("should remove song and invalidate caches", async () => {
       mockRepository.remove.mockResolvedValue("123");

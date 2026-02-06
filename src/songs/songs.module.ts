@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { CMLogger } from "src/common/logger";
-import { RedisModule } from "src/redis/redis.module";
 import {
   MONGO_SONGS_REPOSITORY,
   SONGS_REPOSITORY,
@@ -21,7 +20,6 @@ import { Genre } from "./models/genre.entity";
   imports: [
     MongooseModule.forFeature([{ name: Song.name, schema: SongSchema }]),
     TypeOrmModule.forFeature([SqlSong, Artist, Genre]),
-    RedisModule,
   ],
   controllers: [SongsController],
   providers: [

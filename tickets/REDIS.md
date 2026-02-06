@@ -16,9 +16,9 @@ Configure the Redis client with the following variables:
 - `REDIS_DB` (optional database index)
 - `REDIS_TLS` (`true` to enable TLS, otherwise disabled)
 
-## Usage areas
+## Current implementation
 
-- **Caching** ✓ *Implemented*: Song queries (`findAll`, `findOne`) are cached with automatic invalidation on mutations (`create`, `update`, `replace`, `remove`). Cache keys and TTL values are defined in `redis.constants.ts`.
+- **Caching**: Implemented in `SongsService` for song queries (`findAll`, `findOne`) with cache-aside pattern. Cache is automatically invalidated on mutations (`create`, `update`, `replace`, `remove`).
 
 ## Potential usage areas (not yet implemented)
 
