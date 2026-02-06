@@ -4,7 +4,7 @@
 GET http://localhost:3456/songs
 
 ### GET SONG BY ID
-GET http://localhost:3456/songs/1
+GET http://localhost:3456/songs/6985c5fc6d0dd8d64dd98556
 
 ### CREATE SONG
 POST http://localhost:3456/songs
@@ -16,11 +16,11 @@ Content-Type: application/json
     "album": "GREIF",
     "genres": ["Black Metal", "Gospel"],
     "releaseDate": "2021-01-01",
-    "duration": "03:30"
+    "duration": 210
 }
 
 ### UPDATE SONG
-PATCH http://localhost:3456/songs/4
+PATCH http://localhost:3456/songs/6985c5fc6d0dd8d64dd98556
 Content-Type: application/json
 
 {
@@ -29,10 +29,10 @@ Content-Type: application/json
     "album": "GREIF",
     "genres": ["Black Metal", "Gospel"],
     "releaseDate": "2021-01-01",
-    "duration": "03:30"
+    "duration": 210
 }
 ### REPLACE SONG
-PUT http://localhost:3456/songs/4
+PUT http://localhost:3456/songs/6985c5fc6d0dd8d64dd98556
 Content-Type: application/json
 
 {
@@ -41,8 +41,8 @@ Content-Type: application/json
     "album": "GREIF",
     "genres": ["Black Metal", "Gospel"],
     "releaseDate": "2021-01-01",
-    "duration": "03:30"
+    "duration": 210
 }
 ### DELETE SONG
-DELETE http://localhost:3456/songs/4
+DELETE http://localhost:3456/songs/6985c5fc6d0dd8d64dd98556
 
