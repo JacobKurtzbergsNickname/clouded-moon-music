@@ -1,0 +1,9 @@
+import { ArtistDTO } from "../models/artist.dto";
+
+export interface ArtistsRepository {
+  findAll(): Promise<ArtistDTO[]>;
+  findOne(id: string): Promise<ArtistDTO | null>;
+}
+
+export const ARTISTS_REPOSITORY = Symbol("ARTISTS_REPOSITORY");
+export const SQL_ARTISTS_REPOSITORY = Symbol("SQL_ARTISTS_REPOSITORY");
