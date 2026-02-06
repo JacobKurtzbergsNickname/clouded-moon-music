@@ -17,6 +17,9 @@ import { SongsController } from "./songs/songs.controller";
 import { getMongoDbUri } from "./config/mongodb.config";
 import { getPostgresConfig } from "./config/postgres.config";
 import { GraphqlModule } from "./graphql/graphql.module";
+import { ArtistsModule } from "./artists/artists.module";
+import { GenresModule } from "./genres/genres.module";
+import { RedisModule } from "./redis/redis.module";
 
 const mongoConnectionFactory = (connection: Connection) => {
   connection.on("connected", () => {
@@ -52,6 +55,9 @@ const mongoConnectionFactory = (connection: Connection) => {
 
     SongsModule,
     GraphqlModule,
+    ArtistsModule,
+    GenresModule,
+    RedisModule,
 
     WinstonModule.forRoot({
       transports: [
