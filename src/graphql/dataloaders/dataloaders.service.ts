@@ -106,14 +106,44 @@ export class DataLoadersService {
    */
   readonly songsByGenreLoader = new DataLoader<number, SongType[]>(
     async (genreIds: readonly number[]) => {
-      // Fetch all songs
-      const allSongs = await this.songsService.findAll();
+      // Try to use an optimized batched query if available on the service.
+      // Fallback to findAll() to preserve existing behavior if not present.
+      const service: any = this.songsService;
+      const genreIdArray = Array.from(genreIds);
 
-      // Group songs by genre ID
+      let songs: SongType[];
+      if (typeof service.findByGenreIds === "function") {
+        songs = (await service.findByGenreIds(genreIdArray)) as SongType[];
+      } else {
+        songs = (await this.songsService.findAll()) as unknown as SongType[];
+      }
+
+      // Build a lookup map from genre ID to songs.
+      const genreIdSet = new Set(genreIdArray.map((id) => String(id)));
+      const songsByGenreId = new Map<string, SongType[]>();
+
+      for (const song of songs) {
+        if (!song.genres || !Array.isArray(song.genres)) {
+          continue;
+        }
+        for (const genreId of song.genres) {
+          if (!genreIdSet.has(String(genreId))) {
+            continue;
+          }
+          const key = String(genreId);
+          const bucket = songsByGenreId.get(key);
+          if (bucket) {
+            bucket.push(song as SongType);
+          } else {
+            songsByGenreId.set(key, [song as SongType]);
+          }
+        }
+      }
+
+      // Return results in the same order as the requested genre IDs.
       return genreIds.map((genreId) => {
-        return allSongs.filter(
-          (song) => song.genres && song.genres.includes(String(genreId)),
-        ) as unknown as SongType[];
+        const key = String(genreId);
+        return (songsByGenreId.get(key) || []) as SongType[];
       });
     },
   );
