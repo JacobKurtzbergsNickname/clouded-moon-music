@@ -10,6 +10,14 @@ import { SongsService } from "../../songs/songs.service";
 /**
  * Request-scoped service providing DataLoader instances for batch loading entities.
  * Prevents N+1 query problems by batching and caching entity lookups within a single request.
+ * 
+ * NOTE: Current implementation uses Promise.all with individual findOne calls for artist/genre
+ * loaders, which doesn't perform true database-level batching. For optimal performance, 
+ * the underlying repository layer should provide batch methods like:
+ * - findByIds(ids: string[]): Promise<ArtistDTO[]>
+ * - findByGenreIds(ids: string[]): Promise<SongDTO[]>
+ * 
+ * These would execute single database queries with IN clauses instead of multiple queries.
  */
 @Injectable({ scope: Scope.REQUEST })
 export class DataLoadersService {
