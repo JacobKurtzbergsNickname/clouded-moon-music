@@ -16,6 +16,11 @@ import {
 } from "class-validator";
 
 /**
+ * Minimum valid year for songs
+ */
+const MIN_VALID_YEAR = 1900;
+
+/**
  * Custom validator to check if year is not in the future
  */
 @ValidatorConstraint({ name: "isNotFutureYear", async: false })
@@ -63,7 +68,7 @@ export class CreateSongInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  @Min(1900)
+  @Min(MIN_VALID_YEAR)
   @IsNotFutureYear()
   year?: number;
 
@@ -105,7 +110,7 @@ export class UpdateSongInput {
   @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsInt()
-  @Min(1900)
+  @Min(MIN_VALID_YEAR)
   @IsNotFutureYear()
   year?: number;
 

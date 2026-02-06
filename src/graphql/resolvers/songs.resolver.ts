@@ -15,6 +15,16 @@ import { CreateSongInput, UpdateSongInput } from "../models/song.input";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
 import { SongDTO } from "../../songs/models/song.dto";
 
+/**
+ * Runtime structure of parent object in field resolvers.
+ * Represents the DTO structure with string arrays for relationships,
+ * which will be resolved to proper GraphQL types by @ResolveField.
+ */
+type SongDTORuntime = Omit<SongType, "artists" | "genres"> & {
+  artists?: string[];
+  genres?: string[];
+};
+
 @Resolver(() => SongType)
 export class SongsResolver {
   constructor(
@@ -37,9 +47,9 @@ export class SongsResolver {
   @ResolveField(() => [ArtistType], { name: "artists" })
   async artists(@Parent() song: SongType): Promise<ArtistType[]> {
     // Parent receives DTO structure from service with artists as string[]
-    // Type cast is necessary because GraphQL type system expects SongType
-    // but runtime data is still DTO until field resolvers complete
-    const artistIds = (song as any).artists || [];
+    // Cast to SongDTORuntime to maintain type safety while accessing DTO fields
+    const songRuntime = song as unknown as SongDTORuntime;
+    const artistIds = songRuntime.artists || [];
     const artists = await Promise.all(
       artistIds.map((id: string) => this.dataLoadersService.artistLoader.load(id)),
     );
@@ -50,9 +60,9 @@ export class SongsResolver {
   @ResolveField(() => [GenreType], { name: "genres", nullable: true })
   async genres(@Parent() song: SongType): Promise<GenreType[] | null> {
     // Parent receives DTO structure from service with genres as string[] | undefined
-    // Type cast is necessary because GraphQL type system expects SongType
-    // but runtime data is still DTO until field resolvers complete
-    const genreIds = (song as any).genres;
+    // Cast to SongDTORuntime to maintain type safety while accessing DTO fields
+    const songRuntime = song as unknown as SongDTORuntime;
+    const genreIds = songRuntime.genres;
     if (!genreIds) return null;
 
     // Use DataLoader to batch-load genres from string IDs
