@@ -45,6 +45,22 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## API Documentation
+
+This project includes Swagger/OpenAPI documentation for all API endpoints.
+
+Once the application is running, you can access the interactive API documentation at:
+
+```
+http://localhost:3456/api
+```
+
+The Swagger UI provides:
+- Complete API endpoint documentation
+- Request/response schemas with examples
+- Interactive testing interface (Try it out feature)
+- Support for all CRUD operations on songs
+
 ## Run tests
 
 ```bash
