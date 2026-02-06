@@ -13,13 +13,15 @@ import { SongsService } from "./songs.service";
 import { Song, SongSchema } from "./models/song.schema";
 import { MongoSongsRepository } from "./repositories/mongo-songs.repository";
 import { Song as SqlSong } from "./models/song.entity";
-import { Artist } from "../artists/models/artist.entity";
-import { Genre } from "../genres/models/genre.entity";
+import { ArtistsModule } from "../artists/artists.module";
+import { GenresModule } from "../genres/genres.module";
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Song.name, schema: SongSchema }]),
-    TypeOrmModule.forFeature([SqlSong, Artist, Genre]),
+    TypeOrmModule.forFeature([SqlSong]),
+    ArtistsModule, // Import ArtistsModule to get access to Artist entity repository
+    GenresModule, // Import GenresModule to get access to Genre entity repository
   ],
   controllers: [SongsController],
   providers: [
