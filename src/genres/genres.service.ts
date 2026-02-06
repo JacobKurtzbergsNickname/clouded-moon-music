@@ -117,4 +117,22 @@ export class GenresService extends CachedServiceBase {
 
     return genre;
   }
+
+  /**
+   * Find multiple genres by IDs using database-level batching.
+   * This method bypasses caching to ensure optimal batch query performance.
+   * @param ids - Array of genre IDs
+   * @returns Array of GenreDTO or null, in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(GenreDTO | null)[]> {
+    const logEntry: ILogEntry = {
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: `Batch finding ${ids.length} genres`,
+      context: "GenresService",
+    };
+    this.logger.info("Method: findByIds()", logEntry);
+
+    return this.genresRepository.findByIds(ids);
+  }
 }

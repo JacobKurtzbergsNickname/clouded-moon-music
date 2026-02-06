@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { Artist } from "../models/artist.entity";
 import { ArtistDTO } from "../models/artist.dto";
 import { ArtistsRepository } from "./artists.repository";
@@ -35,6 +35,46 @@ export class SqlArtistsRepository implements ArtistsRepository {
     });
 
     return artist ? this.mapToDTO(artist) : null;
+  }
+
+  /**
+   * Find multiple artists by IDs in a single database query using IN clause.
+   * @param ids - Array of artist IDs as strings
+   * @returns Array of ArtistDTO or null in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(ArtistDTO | null)[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    // Parse and filter valid numeric IDs
+    const numericIds = ids
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
+
+    if (numericIds.length === 0) {
+      return ids.map(() => null);
+    }
+
+    // Single database query with IN clause
+    const artists = await this.artistRepository.find({
+      where: { id: In(numericIds) },
+      relations: ["songs"],
+    });
+
+    // Create a map for O(1) lookup
+    const artistMap = new Map<number, Artist>();
+    artists.forEach((artist) => artistMap.set(artist.id, artist));
+
+    // Return results in the same order as input IDs
+    return ids.map((id) => {
+      const numericId = parseInt(id, 10);
+      if (isNaN(numericId)) {
+        return null;
+      }
+      const artist = artistMap.get(numericId);
+      return artist ? this.mapToDTO(artist) : null;
+    });
   }
 
   private mapToDTO(artist: Artist): ArtistDTO {

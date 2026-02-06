@@ -117,4 +117,22 @@ export class ArtistsService extends CachedServiceBase {
 
     return artist;
   }
+
+  /**
+   * Find multiple artists by IDs using database-level batching.
+   * This method bypasses caching to ensure optimal batch query performance.
+   * @param ids - Array of artist IDs
+   * @returns Array of ArtistDTO or null, in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(ArtistDTO | null)[]> {
+    const logEntry: ILogEntry = {
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: `Batch finding ${ids.length} artists`,
+      context: "ArtistsService",
+    };
+    this.logger.info("Method: findByIds()", logEntry);
+
+    return this.artistsRepository.findByIds(ids);
+  }
 }

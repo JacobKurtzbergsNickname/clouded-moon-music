@@ -42,5 +42,6 @@ import { GenresModule } from "../genres/genres.module";
       useExisting: SqlSongsRepository,
     },
   ],
+  exports: [SongsService], // Export for GraphQLModule
 })
 export class SongsModule {}

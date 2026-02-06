@@ -26,6 +26,6 @@ import { SqlArtistsRepository } from "./repositories/sql-artists.repository";
       useExisting: SqlArtistsRepository,
     },
   ],
-  exports: [TypeOrmModule], // Export TypeOrmModule to allow other modules to inject Artist repository
+  exports: [TypeOrmModule, ArtistsService], // Export TypeOrmModule to allow other modules to inject Artist repository
 })
 export class ArtistsModule {}

@@ -119,6 +119,42 @@ export class SongsService extends CachedServiceBase {
     return song;
   }
 
+  /**
+   * Find songs by artist IDs using database-level batching.
+   * This method bypasses caching to ensure optimal batch query performance.
+   * @param artistIds - Array of artist IDs to filter by
+   * @returns Array of SongDTO objects containing any of the specified artists
+   */
+  async findByArtistIds(artistIds: string[]): Promise<SongDTO[]> {
+    const logEntry: ILogEntry = {
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: `Finding songs for ${artistIds.length} artists`,
+      context: "SongsService",
+    };
+    this.logger.info("Method: findByArtistIds()", logEntry);
+
+    return this.songsRepository.findByArtistIds(artistIds);
+  }
+
+  /**
+   * Find songs by genre IDs using database-level batching.
+   * This method bypasses caching to ensure optimal batch query performance.
+   * @param genreIds - Array of genre IDs to filter by
+   * @returns Array of SongDTO objects containing any of the specified genres
+   */
+  async findByGenreIds(genreIds: string[]): Promise<SongDTO[]> {
+    const logEntry: ILogEntry = {
+      timestamp: new Date().toISOString(),
+      level: "info",
+      message: `Finding songs for ${genreIds.length} genres`,
+      context: "SongsService",
+    };
+    this.logger.info("Method: findByGenreIds()", logEntry);
+
+    return this.songsRepository.findByGenreIds(genreIds);
+  }
+
   async create(dto: CreateSongDTO): Promise<SongDTO> {
     const song = await this.songsRepository.create(dto);
 
