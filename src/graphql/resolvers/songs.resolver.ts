@@ -13,7 +13,9 @@ export class SongsResolver {
   }
 
   @Query(() => SongType, { name: "song", nullable: true })
-  findOne(@Args("id", { type: () => ID }) id: string): Promise<SongType | null> {
+  findOne(
+    @Args("id", { type: () => ID }) id: string,
+  ): Promise<SongType | null> {
     return this.graphqlSongsService.findOne(id);
   }
 
