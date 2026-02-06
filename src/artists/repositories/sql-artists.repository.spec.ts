@@ -88,9 +88,7 @@ describe("SqlArtistsRepository", () => {
     });
 
     it("should handle database errors", async () => {
-      mockArtistRepository.find.mockRejectedValue(
-        new Error("Database error"),
-      );
+      mockArtistRepository.find.mockRejectedValue(new Error("Database error"));
 
       await expect(repository.findAll()).rejects.toThrow("Database error");
     });
