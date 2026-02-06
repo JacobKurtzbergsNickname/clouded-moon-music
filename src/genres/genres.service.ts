@@ -7,7 +7,7 @@ import {
   GenresRepository,
   GENRES_REPOSITORY,
 } from "./repositories/genres.repository";
-import { Genre } from "./models/genre.entity";
+import { GenreDTO } from "./models/genre.dto";
 
 @Injectable()
 export class GenresService extends CachedServiceBase {
@@ -20,7 +20,7 @@ export class GenresService extends CachedServiceBase {
     super(redisService, logger);
   }
 
-  async findAll(): Promise<Genre[]> {
+  async findAll(): Promise<GenreDTO[]> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -32,7 +32,7 @@ export class GenresService extends CachedServiceBase {
     const cacheKey = CACHE_KEYS.GENRES_LIST_ALL;
 
     // Try cache first
-    const cachedResult = await this.getCached<Genre[]>(cacheKey);
+    const cachedResult = await this.getCached<GenreDTO[]>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
@@ -68,7 +68,7 @@ export class GenresService extends CachedServiceBase {
     return genres;
   }
 
-  async findOne(id: string): Promise<Genre | null> {
+  async findOne(id: string): Promise<GenreDTO | null> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -80,7 +80,7 @@ export class GenresService extends CachedServiceBase {
     const cacheKey = `${CACHE_KEYS.GENRE}${id}`;
 
     // Try cache first
-    const cachedResult = await this.getCached<Genre>(cacheKey);
+    const cachedResult = await this.getCached<GenreDTO>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {

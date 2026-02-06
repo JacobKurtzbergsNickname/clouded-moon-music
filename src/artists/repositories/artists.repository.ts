@@ -1,8 +1,8 @@
-import { Artist } from "../models/artist.entity";
+import { ArtistDTO } from "../models/artist.dto";
 
 export interface ArtistsRepository {
-  findAll(): Promise<Artist[]>;
-  findOne(id: string): Promise<Artist | null>;
+  findAll(): Promise<ArtistDTO[]>;
+  findOne(id: string): Promise<ArtistDTO | null>;
 }
 
 export const ARTISTS_REPOSITORY = Symbol("ARTISTS_REPOSITORY");

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Genre } from "../models/genre.entity";
+import { GenreDTO } from "../models/genre.dto";
 import { GenresRepository } from "./genres.repository";
 
 @Injectable()
@@ -11,19 +12,30 @@ export class SqlGenresRepository implements GenresRepository {
     private readonly genreRepository: Repository<Genre>,
   ) {}
 
-  findAll(): Promise<Genre[]> {
-    return this.genreRepository.find({ relations: ["songs"] });
+  async findAll(): Promise<GenreDTO[]> {
+    const genres = await this.genreRepository.find({ relations: ["songs"] });
+    return genres.map((genre) => this.mapToDTO(genre));
   }
 
-  async findOne(id: string): Promise<Genre | null> {
+  async findOne(id: string): Promise<GenreDTO | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {
       return null;
     }
 
-    return this.genreRepository.findOne({
+    const genre = await this.genreRepository.findOne({
       where: { id: numericId },
       relations: ["songs"],
     });
+
+    return genre ? this.mapToDTO(genre) : null;
+  }
+
+  private mapToDTO(genre: Genre): GenreDTO {
+    return {
+      id: genre.id.toString(),
+      name: genre.name,
+      songs: genre.songs ? genre.songs.map((song) => song.title) : [],
+    };
   }
 }
