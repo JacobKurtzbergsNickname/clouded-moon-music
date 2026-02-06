@@ -70,7 +70,10 @@ describe("RedisService", () => {
 
       const result = await service.set("test-key", "test-value");
 
-      expect(mockRedisClient.set).toHaveBeenCalledWith("test-key", "test-value");
+      expect(mockRedisClient.set).toHaveBeenCalledWith(
+        "test-key",
+        "test-value",
+      );
       expect(result).toBe("OK");
     });
 
