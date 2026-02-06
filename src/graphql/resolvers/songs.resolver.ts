@@ -36,7 +36,9 @@ export class SongsResolver {
 
   @ResolveField(() => [ArtistType], { name: "artists" })
   async artists(@Parent() song: SongType): Promise<ArtistType[]> {
-    // Use DataLoader to batch-load artists from string IDs
+    // Parent receives DTO structure from service with artists as string[]
+    // Type cast is necessary because GraphQL type system expects SongType
+    // but runtime data is still DTO until field resolvers complete
     const artistIds = (song as any).artists || [];
     const artists = await Promise.all(
       artistIds.map((id: string) => this.dataLoadersService.artistLoader.load(id)),
@@ -47,6 +49,9 @@ export class SongsResolver {
 
   @ResolveField(() => [GenreType], { name: "genres", nullable: true })
   async genres(@Parent() song: SongType): Promise<GenreType[] | null> {
+    // Parent receives DTO structure from service with genres as string[] | undefined
+    // Type cast is necessary because GraphQL type system expects SongType
+    // but runtime data is still DTO until field resolvers complete
     const genreIds = (song as any).genres;
     if (!genreIds) return null;
 

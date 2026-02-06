@@ -9,7 +9,38 @@ import {
   IsString,
   Max,
   Min,
+  registerDecorator,
+  ValidationOptions,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from "class-validator";
+
+/**
+ * Custom validator to check if year is not in the future
+ */
+@ValidatorConstraint({ name: "isNotFutureYear", async: false })
+class IsNotFutureYearConstraint implements ValidatorConstraintInterface {
+  validate(year: number): boolean {
+    const currentYear = new Date().getFullYear();
+    return year <= currentYear;
+  }
+
+  defaultMessage(): string {
+    return "Year cannot be in the future";
+  }
+}
+
+function IsNotFutureYear(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsNotFutureYearConstraint,
+    });
+  };
+}
 
 @InputType()
 export class CreateSongInput {
@@ -33,7 +64,7 @@ export class CreateSongInput {
   @IsOptional()
   @IsInt()
   @Min(1900)
-  @Max(new Date().getFullYear())
+  @IsNotFutureYear()
   year?: number;
 
   @Field(() => GraphQLISODateTime)
@@ -75,7 +106,7 @@ export class UpdateSongInput {
   @IsOptional()
   @IsInt()
   @Min(1900)
-  @Max(new Date().getFullYear())
+  @IsNotFutureYear()
   year?: number;
 
   @Field(() => GraphQLISODateTime, { nullable: true })
