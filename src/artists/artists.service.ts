@@ -7,7 +7,7 @@ import {
   ArtistsRepository,
   ARTISTS_REPOSITORY,
 } from "./repositories/artists.repository";
-import { Artist } from "./models/artist.entity";
+import { ArtistDTO } from "./models/artist.dto";
 
 @Injectable()
 export class ArtistsService extends CachedServiceBase {
@@ -20,7 +20,7 @@ export class ArtistsService extends CachedServiceBase {
     super(redisService, logger);
   }
 
-  async findAll(): Promise<Artist[]> {
+  async findAll(): Promise<ArtistDTO[]> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -32,7 +32,7 @@ export class ArtistsService extends CachedServiceBase {
     const cacheKey = CACHE_KEYS.ARTISTS_LIST_ALL;
 
     // Try cache first
-    const cachedResult = await this.getCached<Artist[]>(cacheKey);
+    const cachedResult = await this.getCached<ArtistDTO[]>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
@@ -68,7 +68,7 @@ export class ArtistsService extends CachedServiceBase {
     return artists;
   }
 
-  async findOne(id: string): Promise<Artist | null> {
+  async findOne(id: string): Promise<ArtistDTO | null> {
     const logEntry: ILogEntry = {
       timestamp: new Date().toISOString(),
       level: "info",
@@ -80,7 +80,7 @@ export class ArtistsService extends CachedServiceBase {
     const cacheKey = `${CACHE_KEYS.ARTIST}${id}`;
 
     // Try cache first
-    const cachedResult = await this.getCached<Artist>(cacheKey);
+    const cachedResult = await this.getCached<ArtistDTO>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {

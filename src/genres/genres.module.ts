@@ -26,5 +26,6 @@ import { SqlGenresRepository } from "./repositories/sql-genres.repository";
       useExisting: SqlGenresRepository,
     },
   ],
+  exports: [TypeOrmModule], // Export TypeOrmModule to allow other modules to inject Genre repository
 })
 export class GenresModule {}

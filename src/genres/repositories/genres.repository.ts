@@ -1,8 +1,8 @@
-import { Genre } from "../models/genre.entity";
+import { GenreDTO } from "../models/genre.dto";
 
 export interface GenresRepository {
-  findAll(): Promise<Genre[]>;
-  findOne(id: string): Promise<Genre | null>;
+  findAll(): Promise<GenreDTO[]>;
+  findOne(id: string): Promise<GenreDTO | null>;
 }
 
 export const GENRES_REPOSITORY = Symbol("GENRES_REPOSITORY");

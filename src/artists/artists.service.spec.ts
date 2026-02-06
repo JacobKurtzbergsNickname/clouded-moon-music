@@ -3,7 +3,7 @@ import { CMLogger } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { ArtistsService } from "./artists.service";
 import { ARTISTS_REPOSITORY } from "./repositories/artists.repository";
-import { Artist } from "./models/artist.entity";
+import { ArtistDTO } from "./models/artist.dto";
 
 describe("ArtistsService", () => {
   let service: ArtistsService;
@@ -56,8 +56,8 @@ describe("ArtistsService", () => {
   });
 
   describe("findOne", () => {
-    const mockArtist: Artist = {
-      id: 1,
+    const mockArtist: ArtistDTO = {
+      id: "1",
       name: "Test Artist",
       songs: [],
     };
@@ -124,14 +124,14 @@ describe("ArtistsService", () => {
   });
 
   describe("findAll", () => {
-    const mockArtists: Artist[] = [
+    const mockArtists: ArtistDTO[] = [
       {
-        id: 1,
+        id: "1",
         name: "Artist 1",
         songs: [],
       },
       {
-        id: 2,
+        id: "2",
         name: "Artist 2",
         songs: [],
       },

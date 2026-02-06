@@ -3,7 +3,7 @@ import { CMLogger } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { GenresService } from "./genres.service";
 import { GENRES_REPOSITORY } from "./repositories/genres.repository";
-import { Genre } from "./models/genre.entity";
+import { GenreDTO } from "./models/genre.dto";
 
 describe("GenresService", () => {
   let service: GenresService;
@@ -56,8 +56,8 @@ describe("GenresService", () => {
   });
 
   describe("findOne", () => {
-    const mockGenre: Genre = {
-      id: 1,
+    const mockGenre: GenreDTO = {
+      id: "1",
       name: "Rock",
       songs: [],
     };
@@ -124,14 +124,14 @@ describe("GenresService", () => {
   });
 
   describe("findAll", () => {
-    const mockGenres: Genre[] = [
+    const mockGenres: GenreDTO[] = [
       {
-        id: 1,
+        id: "1",
         name: "Rock",
         songs: [],
       },
       {
-        id: 2,
+        id: "2",
         name: "Jazz",
         songs: [],
       },
