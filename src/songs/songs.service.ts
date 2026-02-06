@@ -28,9 +28,21 @@ export class SongsService {
     return ResultAsync.fromPromise(
       this.redisService.get(cacheKey),
       (error) => error as Error,
-    ).andThen((cached) =>
-      cached ? ok(JSON.parse(cached)) : err(new Error("Cache miss")),
-    );
+    ).andThen((cached) => {
+      if (!cached) {
+        return err(new Error("Cache miss"));
+      }
+
+      try {
+        return ok(JSON.parse(cached));
+      } catch (parseError) {
+        return err(
+          new Error(
+            `Cache data corrupted for key ${cacheKey}: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+          ),
+        );
+      }
+    });
   }
 
   private async getCachedSong(
@@ -39,9 +51,21 @@ export class SongsService {
     return ResultAsync.fromPromise(
       this.redisService.get(cacheKey),
       (error) => error as Error,
-    ).andThen((cached) =>
-      cached ? ok(JSON.parse(cached)) : err(new Error("Cache miss")),
-    );
+    ).andThen((cached) => {
+      if (!cached) {
+        return err(new Error("Cache miss"));
+      }
+
+      try {
+        return ok(JSON.parse(cached));
+      } catch (parseError) {
+        return err(
+          new Error(
+            `Cache data corrupted for key ${cacheKey}: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+          ),
+        );
+      }
+    });
   }
 
   private async setCached(
