@@ -3,7 +3,6 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SqlGenresRepository } from "./sql-genres.repository";
 import { Genre } from "../models/genre.entity";
-import { GenreDTO } from "../models/genre.dto";
 
 describe("SqlGenresRepository", () => {
   let repository: SqlGenresRepository;

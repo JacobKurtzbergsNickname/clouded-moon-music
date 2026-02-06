@@ -3,7 +3,6 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SqlArtistsRepository } from "./sql-artists.repository";
 import { Artist } from "../models/artist.entity";
-import { ArtistDTO } from "../models/artist.dto";
 
 describe("SqlArtistsRepository", () => {
   let repository: SqlArtistsRepository;
