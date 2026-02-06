@@ -67,6 +67,38 @@ export class MongoSongsRepository implements SongsRepository {
   }
 
   /**
+   * Find all songs that have any of the specified artist IDs in a single database query.
+   * @param artistIds - Array of artist IDs to filter by
+   * @returns Array of SongDTO objects containing any of the specified artists
+   */
+  async findByArtistIds(artistIds: string[]): Promise<SongDTO[]> {
+    if (artistIds.length === 0) {
+      return [];
+    }
+    // Single MongoDB query using $in operator
+    const docs = await this.songModel
+      .find({ artists: { $in: artistIds } })
+      .exec();
+    return docs.map((doc) => this.toSong(doc));
+  }
+
+  /**
+   * Find all songs that have any of the specified genre IDs in a single database query.
+   * @param genreIds - Array of genre IDs to filter by
+   * @returns Array of SongDTO objects containing any of the specified genres
+   */
+  async findByGenreIds(genreIds: string[]): Promise<SongDTO[]> {
+    if (genreIds.length === 0) {
+      return [];
+    }
+    // Single MongoDB query using $in operator
+    const docs = await this.songModel
+      .find({ genres: { $in: genreIds } })
+      .exec();
+    return docs.map((doc) => this.toSong(doc));
+  }
+
+  /**
    * Converts a Mongoose document to a plain Song DTO object
    */
   private toSong(doc: SongDocument): SongDTO {

@@ -13,16 +13,22 @@ export class GraphqlSongsService {
 
   async findAll(): Promise<SongType[]> {
     const songs = await this.songsService.findAll();
+    // Safe cast: SongDTO structure matches SongType for scalar fields.
+    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
     return songs as unknown as SongType[];
   }
 
   async findOne(id: string): Promise<SongType | null> {
     const song = await this.songsService.findOne(id);
+    // Safe cast: SongDTO structure matches SongType for scalar fields.
+    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
     return song as unknown as SongType | null;
   }
 
   async create(input: Partial<CreateSongDTO>): Promise<SongType> {
     const song = await this.songsService.create(input as CreateSongDTO);
+    // Safe cast: SongDTO structure matches SongType for scalar fields.
+    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
     return song as unknown as SongType;
   }
 
@@ -31,6 +37,8 @@ export class GraphqlSongsService {
     input: Partial<CreateSongDTO>,
   ): Promise<SongType | null> {
     const song = await this.songsService.update(id, input);
+    // Safe cast: SongDTO structure matches SongType for scalar fields.
+    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
     return song as unknown as SongType | null;
   }
 
@@ -46,7 +54,7 @@ export class GraphqlArtistsService {
   async findAll(): Promise<ArtistType[]> {
     const artists = await this.artistsService.findAll();
     return artists.map((a) => ({
-      id: Number(a.id),
+      id: String(a.id),
       name: a.name,
     })) as ArtistType[];
   }
@@ -55,7 +63,7 @@ export class GraphqlArtistsService {
     const artist = await this.artistsService.findOne(id);
     if (!artist) return null;
     return {
-      id: Number(artist.id),
+      id: String(artist.id),
       name: artist.name,
     } as ArtistType;
   }
@@ -68,7 +76,7 @@ export class GraphqlGenresService {
   async findAll(): Promise<GenreType[]> {
     const genres = await this.genresService.findAll();
     return genres.map((g) => ({
-      id: Number(g.id),
+      id: String(g.id),
       name: g.name,
     })) as GenreType[];
   }
@@ -77,7 +85,7 @@ export class GraphqlGenresService {
     const genre = await this.genresService.findOne(id);
     if (!genre) return null;
     return {
-      id: Number(genre.id),
+      id: String(genre.id),
       name: genre.name,
     } as GenreType;
   }

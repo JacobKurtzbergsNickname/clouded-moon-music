@@ -4,7 +4,7 @@ import { SongType } from "./song.type";
 @ObjectType("Genre")
 export class GenreType {
   @Field(() => ID)
-  id: number;
+  id: string;
 
   @Field()
   name: string;

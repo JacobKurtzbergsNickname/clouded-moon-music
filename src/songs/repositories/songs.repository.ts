@@ -8,6 +8,8 @@ export interface SongsRepository {
   update(id: string, song: Partial<CreateSongDTO>): Promise<SongDTO | null>;
   replace(id: string, song: CreateSongDTO): Promise<SongDTO | null>;
   remove(id: string): Promise<string | null>;
+  findByArtistIds(artistIds: string[]): Promise<SongDTO[]>;
+  findByGenreIds(genreIds: string[]): Promise<SongDTO[]>;
 }
 
 export const SONGS_REPOSITORY = Symbol("SONGS_REPOSITORY");
