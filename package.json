@@ -20,7 +20,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:pg": "node ./scripts/test-postgres.js"
+    "test:pg": "node ./scripts/test-postgres.js",
+    "seed": "ts-node -r tsconfig-paths/register scripts/seed-database.ts",
+    "seed:dry": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --dry-run",
+    "seed:postgres": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --postgres-only",
+    "seed:mongo": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --mongo-only",
+    "seed:clear": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --clear"
   },
   "dependencies": {
     "@nestjs/apollo": "^12.2.1",
