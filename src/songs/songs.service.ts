@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Result, ok, err, ResultAsync } from "neverthrow";
+import { Result, err, ResultAsync } from "neverthrow";
 import { CMLogger, ILogEntry } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
@@ -22,6 +22,16 @@ export class SongsService {
     this.logger = logger;
   }
 
+  private parseJson<T>(cached: string, cacheKey: string): Result<T, Error> {
+    return Result.fromThrowable(
+      () => JSON.parse(cached) as T,
+      (error) =>
+        new Error(
+          `Cache data corrupted for key ${cacheKey}: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+    )();
+  }
+
   private async getCachedSongs(
     cacheKey: string,
   ): Promise<Result<SongDTO[], Error>> {
@@ -32,16 +42,7 @@ export class SongsService {
       if (!cached) {
         return err(new Error("Cache miss"));
       }
-
-      try {
-        return ok(JSON.parse(cached));
-      } catch (parseError) {
-        return err(
-          new Error(
-            `Cache data corrupted for key ${cacheKey}: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-          ),
-        );
-      }
+      return this.parseJson<SongDTO[]>(cached, cacheKey);
     });
   }
 
@@ -55,16 +56,7 @@ export class SongsService {
       if (!cached) {
         return err(new Error("Cache miss"));
       }
-
-      try {
-        return ok(JSON.parse(cached));
-      } catch (parseError) {
-        return err(
-          new Error(
-            `Cache data corrupted for key ${cacheKey}: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-          ),
-        );
-      }
+      return this.parseJson<SongDTO>(cached, cacheKey);
     });
   }
 
