@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Result, err, ResultAsync } from "neverthrow";
 import { CMLogger, ILogEntry } from "../common/logger";
+import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
 import {
@@ -10,65 +10,14 @@ import {
 import { Genre } from "./models/genre.entity";
 
 @Injectable()
-export class GenresService {
-  private readonly logger: CMLogger;
-
+export class GenresService extends CachedServiceBase {
   constructor(
     @Inject(GENRES_REPOSITORY)
     private readonly genresRepository: GenresRepository,
     logger: CMLogger,
-    private readonly redisService: RedisService,
+    redisService: RedisService,
   ) {
-    this.logger = logger;
-  }
-
-  private parseJson<T>(cached: string, cacheKey: string): Result<T, Error> {
-    return Result.fromThrowable(
-      () => JSON.parse(cached) as T,
-      (error) =>
-        new Error(
-          `Cache data corrupted for key ${cacheKey}: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-    )();
-  }
-
-  private async getCachedGenres(
-    cacheKey: string,
-  ): Promise<Result<Genre[], Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<Genre[]>(cached, cacheKey);
-    });
-  }
-
-  private async getCachedGenre(
-    cacheKey: string,
-  ): Promise<Result<Genre, Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<Genre>(cached, cacheKey);
-    });
-  }
-
-  private async setCached(
-    cacheKey: string,
-    data: unknown,
-    ttl: number,
-  ): Promise<Result<"OK", Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.set(cacheKey, JSON.stringify(data), ttl),
-      (error) => error as Error,
-    );
+    super(redisService, logger);
   }
 
   async findAll(): Promise<Genre[]> {
@@ -83,7 +32,7 @@ export class GenresService {
     const cacheKey = CACHE_KEYS.GENRES_LIST_ALL;
 
     // Try cache first
-    const cachedResult = await this.getCachedGenres(cacheKey);
+    const cachedResult = await this.getCached<Genre[]>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
@@ -131,7 +80,7 @@ export class GenresService {
     const cacheKey = `${CACHE_KEYS.GENRE}${id}`;
 
     // Try cache first
-    const cachedResult = await this.getCachedGenre(cacheKey);
+    const cachedResult = await this.getCached<Genre>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {

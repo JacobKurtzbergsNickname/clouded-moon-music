@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Result, err, ResultAsync } from "neverthrow";
+import { Result } from "neverthrow";
 import { CMLogger, ILogEntry } from "../common/logger";
+import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
 import CreateSongDTO from "./models/create-song.dto";
@@ -11,82 +12,13 @@ import {
 import { SongDTO } from "./models/song.dto";
 
 @Injectable()
-export class SongsService {
-  private readonly logger: CMLogger;
-
+export class SongsService extends CachedServiceBase {
   constructor(
     @Inject(SONGS_REPOSITORY) private readonly songsRepository: SongsRepository,
     logger: CMLogger,
-    private readonly redisService: RedisService,
+    redisService: RedisService,
   ) {
-    this.logger = logger;
-  }
-
-  private parseJson<T>(cached: string, cacheKey: string): Result<T, Error> {
-    return Result.fromThrowable(
-      () => JSON.parse(cached) as T,
-      (error) =>
-        new Error(
-          `Cache data corrupted for key ${cacheKey}: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-    )();
-  }
-
-  private async getCachedSongs(
-    cacheKey: string,
-  ): Promise<Result<SongDTO[], Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<SongDTO[]>(cached, cacheKey);
-    });
-  }
-
-  private async getCachedSong(
-    cacheKey: string,
-  ): Promise<Result<SongDTO, Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<SongDTO>(cached, cacheKey);
-    });
-  }
-
-  private async setCached(
-    cacheKey: string,
-    data: unknown,
-    ttl: number,
-  ): Promise<Result<"OK", Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.set(cacheKey, JSON.stringify(data), ttl),
-      (error) => error as Error,
-    );
-  }
-
-  private async invalidateCache(
-    ...keys: string[]
-  ): Promise<Result<number, Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.del(...keys),
-      (error) => error as Error,
-    );
-  }
-
-  private async invalidateCachePattern(
-    pattern: string,
-  ): Promise<Result<number, Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.deletePattern(pattern),
-      (error) => error as Error,
-    );
+    super(redisService, logger);
   }
 
   async findAll(): Promise<SongDTO[]> {
@@ -101,7 +33,7 @@ export class SongsService {
     const cacheKey = CACHE_KEYS.SONGS_LIST_ALL;
 
     // Try cache first
-    const cachedResult = await this.getCachedSongs(cacheKey);
+    const cachedResult = await this.getCached<SongDTO[]>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
@@ -149,7 +81,7 @@ export class SongsService {
     const cacheKey = `${CACHE_KEYS.SONG}${id}`;
 
     // Try cache first
-    const cachedResult = await this.getCachedSong(cacheKey);
+    const cachedResult = await this.getCached<SongDTO>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {

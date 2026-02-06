@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Result, err, ResultAsync } from "neverthrow";
 import { CMLogger, ILogEntry } from "../common/logger";
+import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
 import {
@@ -10,65 +10,14 @@ import {
 import { Artist } from "./models/artist.entity";
 
 @Injectable()
-export class ArtistsService {
-  private readonly logger: CMLogger;
-
+export class ArtistsService extends CachedServiceBase {
   constructor(
     @Inject(ARTISTS_REPOSITORY)
     private readonly artistsRepository: ArtistsRepository,
     logger: CMLogger,
-    private readonly redisService: RedisService,
+    redisService: RedisService,
   ) {
-    this.logger = logger;
-  }
-
-  private parseJson<T>(cached: string, cacheKey: string): Result<T, Error> {
-    return Result.fromThrowable(
-      () => JSON.parse(cached) as T,
-      (error) =>
-        new Error(
-          `Cache data corrupted for key ${cacheKey}: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-    )();
-  }
-
-  private async getCachedArtists(
-    cacheKey: string,
-  ): Promise<Result<Artist[], Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<Artist[]>(cached, cacheKey);
-    });
-  }
-
-  private async getCachedArtist(
-    cacheKey: string,
-  ): Promise<Result<Artist, Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.get(cacheKey),
-      (error) => error as Error,
-    ).andThen((cached) => {
-      if (!cached) {
-        return err(new Error("Cache miss"));
-      }
-      return this.parseJson<Artist>(cached, cacheKey);
-    });
-  }
-
-  private async setCached(
-    cacheKey: string,
-    data: unknown,
-    ttl: number,
-  ): Promise<Result<"OK", Error>> {
-    return ResultAsync.fromPromise(
-      this.redisService.set(cacheKey, JSON.stringify(data), ttl),
-      (error) => error as Error,
-    );
+    super(redisService, logger);
   }
 
   async findAll(): Promise<Artist[]> {
@@ -83,7 +32,7 @@ export class ArtistsService {
     const cacheKey = CACHE_KEYS.ARTISTS_LIST_ALL;
 
     // Try cache first
-    const cachedResult = await this.getCachedArtists(cacheKey);
+    const cachedResult = await this.getCached<Artist[]>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
@@ -131,7 +80,7 @@ export class ArtistsService {
     const cacheKey = `${CACHE_KEYS.ARTIST}${id}`;
 
     // Try cache first
-    const cachedResult = await this.getCachedArtist(cacheKey);
+    const cachedResult = await this.getCached<Artist>(cacheKey);
 
     if (cachedResult.isOk()) {
       this.logger.info("Cache hit", {
