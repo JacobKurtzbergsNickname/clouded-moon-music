@@ -7,6 +7,9 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
 import { join } from "path";
+import depthLimit from "graphql-depth-limit";
+import { createComplexityRule } from "graphql-query-complexity";
+import { GraphQLError } from "graphql";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -49,6 +52,27 @@ const mongoConnectionFactory = (connection: Connection) => {
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
       sortSchema: true,
+      validationRules: [
+        // Limit query depth to prevent excessively nested queries
+        depthLimit(5),
+        // Add complexity analysis to prevent expensive queries
+        createComplexityRule({
+          maximumComplexity: 1000,
+          variables: {},
+          estimators: [
+            // Default complexity of 1 per field
+            () => 1,
+          ],
+          onComplete: (complexity: number) => {
+            winston.debug(`GraphQL query complexity: ${complexity}`);
+          },
+          createError: (max: number, actual: number) => {
+            return new GraphQLError(
+              `Query is too complex: ${actual}. Maximum allowed complexity: ${max}`,
+            );
+          },
+        }),
+      ],
     }),
 
     TypeOrmModule.forRoot(getPostgresConfig(__dirname)),
