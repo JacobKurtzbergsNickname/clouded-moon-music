@@ -24,4 +24,5 @@ import { DataLoadersService } from "./dataloaders/dataloaders.service";
     DataLoadersService,
   ],
 })
-export class GraphqlModule {}
+export class GraphQLModule {}
+export { GraphQLModule as GraphqlModule };
