@@ -26,7 +26,10 @@ export class GraphqlSongsService {
     return song as unknown as SongType;
   }
 
-  async update(id: string, input: Partial<CreateSongDTO>): Promise<SongType | null> {
+  async update(
+    id: string,
+    input: Partial<CreateSongDTO>,
+  ): Promise<SongType | null> {
     const song = await this.songsService.update(id, input);
     return song as unknown as SongType | null;
   }

@@ -13,6 +13,7 @@ This document outlines planned enhancements for the GraphQL API to support advan
 Add filtering arguments to all list queries to enable client-side data refinement:
 
 **Artists Query:**
+
 ```graphql
 query {
   artists(name: "Beatles", nameContains: "beat") {
@@ -23,6 +24,7 @@ query {
 ```
 
 **Genres Query:**
+
 ```graphql
 query {
   genres(name: "Rock", nameStartsWith: "R") {
@@ -33,6 +35,7 @@ query {
 ```
 
 **Songs Query:**
+
 ```graphql
 query {
   songs(
@@ -47,7 +50,9 @@ query {
   ) {
     id
     title
-    artists { name }
+    artists {
+      name
+    }
   }
 }
 ```
@@ -121,16 +126,19 @@ query {
 ```
 
 **Pros:**
+
 - Simple to implement
 - Familiar to REST API users
 - Easy to jump to specific pages
 
 **Cons:**
+
 - Performance degrades with large offsets
 - Inconsistent results if data changes between queries
 - Not ideal for real-time data
 
 **Implementation:**
+
 ```typescript
 @Query(() => SongPaginatedResponse, { name: "songs" })
 findAll(
@@ -184,17 +192,20 @@ query {
 ```
 
 **Pros:**
+
 - Consistent results even as data changes
 - Excellent performance at any page depth
 - Standardized pattern (Relay spec)
 - Supports bidirectional pagination
 
 **Cons:**
+
 - More complex to implement
 - Cannot jump to arbitrary pages
 - Requires stable sort order
 
 **Implementation:**
+
 ```typescript
 @ObjectType()
 export class SongEdge {
@@ -236,6 +247,7 @@ export class SongConnection {
 ### Recommended Approach
 
 **Use cursor-based pagination** (Relay spec) for the following reasons:
+
 1. Better scalability for large datasets
 2. Consistent with GraphQL best practices
 3. Prevents "page drift" issues
@@ -248,21 +260,24 @@ export class SongConnection {
 ### 1. DataLoader Enhancements
 
 **Current State:**
+
 - DataLoader implemented for artists, genres, and songs
 - Request-scoped caching prevents duplicate fetches within a single query
 
 **Future Improvements:**
+
 - **Batch lookup optimization**: Instead of fetching songs one-by-one in `songsByArtistLoader`, create a repository method that fetches songs for multiple artists in a single database query
 - **Prime cache**: When fetching a list of songs, prime the `songLoader` cache with individual song entities to avoid duplicate lookups
 - **Custom cache keys**: Allow TTL configuration per DataLoader instance
 
 Example optimized batch loader:
+
 ```typescript
 readonly songsByArtistLoader = new DataLoader<number, SongDTO[]>(
   async (artistIds: readonly number[]) => {
     // Single query: fetch all songs for ALL artists at once
     const songs = await this.songsRepository.findByArtistIds([...artistIds]);
-    
+
     // Group by artist ID
     return artistIds.map((artistId) =>
       songs.filter((song) => song.artists.includes(String(artistId)))
@@ -278,16 +293,19 @@ readonly songsByArtistLoader = new DataLoader<number, SongDTO[]>(
 **Solutions:**
 
 **Option A: Cache Full Lists + Client-Side Pagination**
+
 - Cache complete `findAll()` results in Redis
 - Perform pagination in resolver layer after fetching from cache
 - Best for small-to-medium datasets (< 10,000 items)
 
 **Option B: Cache Individual Pages**
+
 - Cache keys include pagination params: `songs:page:${limit}:${offset}`
 - TTL should be shorter than full list cache (e.g., 60s vs 300s)
 - Trade-off between cache hit rate and memory usage
 
 **Option C: Hybrid Approach**
+
 - Cache full list for first N items (e.g., first 1000)
 - Fall back to database for deep pagination
 - Combine with cursor-based pagination for consistency
@@ -295,15 +313,18 @@ readonly songsByArtistLoader = new DataLoader<number, SongDTO[]>(
 ### 3. Query Complexity Tuning
 
 **Current Configuration:**
+
 - Max depth: 5 levels
 - Max complexity: 1000 points
 
 **Future Tuning:**
+
 - Assign higher complexity costs to relationship fields (e.g., `songs.artists` costs 10 points vs `songs.title` costs 1 point)
 - Dynamically calculate complexity based on pagination limits (e.g., `first: 100` costs more than `first: 10`)
 - Add per-user complexity budgets for rate limiting
 
 Example configuration:
+
 ```typescript
 createComplexityRule({
   maximumComplexity: 1000,
@@ -314,13 +335,17 @@ createComplexityRule({
     // Custom estimator for relationships
     (options) => {
       const { field } = options;
-      if (field.name === 'songs' || field.name === 'artists' || field.name === 'genres') {
+      if (
+        field.name === "songs" ||
+        field.name === "artists" ||
+        field.name === "genres"
+      ) {
         return 10; // Relationships cost 10x more
       }
       return 1;
     },
   ],
-})
+});
 ```
 
 ---
@@ -328,6 +353,7 @@ createComplexityRule({
 ## Implementation Roadmap
 
 ### Phase 1: Basic Filtering (Priority: High)
+
 - [ ] Add filter input types for all entities
 - [ ] Implement filtering in service layer
 - [ ] Update repository interfaces
@@ -335,6 +361,7 @@ createComplexityRule({
 - [ ] Test filtering with complex queries
 
 ### Phase 2: Cursor-Based Pagination (Priority: High)
+
 - [ ] Implement Relay connection types
 - [ ] Add cursor encoding/decoding utilities
 - [ ] Update resolvers to support `first`, `after`, `last`, `before` args
@@ -343,18 +370,21 @@ createComplexityRule({
 - [ ] Test bidirectional pagination
 
 ### Phase 3: DataLoader Optimizations (Priority: Medium)
+
 - [ ] Create batch repository methods for relationships
 - [ ] Implement cache priming strategy
 - [ ] Add DataLoader metrics/logging
 - [ ] Benchmark N+1 query elimination
 
 ### Phase 4: Advanced Caching (Priority: Medium)
+
 - [ ] Implement hybrid caching strategy for pagination
 - [ ] Add cache invalidation hooks
 - [ ] Monitor cache hit rates and adjust TTLs
 - [ ] Document caching patterns
 
 ### Phase 5: Query Complexity Refinement (Priority: Low)
+
 - [ ] Tune complexity weights based on real-world usage
 - [ ] Add per-user complexity budgets
 - [ ] Implement query cost analysis dashboard
@@ -365,6 +395,7 @@ createComplexityRule({
 ## Testing Strategy
 
 ### Filtering Tests
+
 - Query with single filter parameter
 - Query with multiple filter parameters
 - Query with invalid filter values
@@ -372,6 +403,7 @@ createComplexityRule({
 - Test cache hit/miss for filtered queries
 
 ### Pagination Tests
+
 - Forward pagination (`first`, `after`)
 - Backward pagination (`last`, `before`)
 - Edge cases: empty results, single item
@@ -379,6 +411,7 @@ createComplexityRule({
 - Performance test: compare cursor vs offset pagination
 
 ### Performance Tests
+
 - Measure query time with/without DataLoader
 - Benchmark cache hit rates for various query patterns
 - Stress test: 1000+ concurrent queries with deep nesting

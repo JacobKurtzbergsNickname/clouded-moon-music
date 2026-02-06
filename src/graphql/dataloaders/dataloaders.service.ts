@@ -112,8 +112,7 @@ export class DataLoadersService {
       // Group songs by genre ID
       return genreIds.map((genreId) => {
         return allSongs.filter(
-          (song) =>
-            song.genres && song.genres.includes(String(genreId)),
+          (song) => song.genres && song.genres.includes(String(genreId)),
         ) as unknown as SongType[];
       });
     },
