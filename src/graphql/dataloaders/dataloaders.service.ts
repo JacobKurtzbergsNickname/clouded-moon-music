@@ -23,8 +23,8 @@ export class DataLoadersService {
    * DataLoader for batching artist lookups by ID.
    * Caches results per-request to avoid duplicate fetches.
    */
-  readonly artistLoader = new DataLoader<number, ArtistType | null>(
-    async (ids: readonly number[]) => {
+  readonly artistLoader = new DataLoader<string, ArtistType | null>(
+    async (ids: readonly string[]) => {
       // Fetch all artists in one batch
       const artists = await Promise.all(
         ids.map(async (id) => {
@@ -32,7 +32,7 @@ export class DataLoadersService {
           if (!artist) return null;
           // Convert DTO to GraphQL type (DataLoader will handle songs separately)
           return {
-            id: Number(artist.id),
+            id: String(artist.id),
             name: artist.name,
           } as ArtistType;
         }),
@@ -45,8 +45,8 @@ export class DataLoadersService {
    * DataLoader for batching genre lookups by ID.
    * Caches results per-request to avoid duplicate fetches.
    */
-  readonly genreLoader = new DataLoader<number, GenreType | null>(
-    async (ids: readonly number[]) => {
+  readonly genreLoader = new DataLoader<string, GenreType | null>(
+    async (ids: readonly string[]) => {
       // Fetch all genres in one batch
       const genres = await Promise.all(
         ids.map(async (id) => {
@@ -54,7 +54,7 @@ export class DataLoadersService {
           if (!genre) return null;
           // Convert DTO to GraphQL type (DataLoader will handle songs separately)
           return {
-            id: Number(genre.id),
+            id: String(genre.id),
             name: genre.name,
           } as GenreType;
         }),
@@ -86,8 +86,8 @@ export class DataLoadersService {
    * DataLoader for batching songs by artist ID.
    * Fetches all songs for a given artist.
    */
-  readonly songsByArtistLoader = new DataLoader<number, SongType[]>(
-    async (artistIds: readonly number[]) => {
+  readonly songsByArtistLoader = new DataLoader<string, SongType[]>(
+    async (artistIds: readonly string[]) => {
       // Fetch all songs
       const allSongs = await this.songsService.findAll();
 
@@ -104,8 +104,8 @@ export class DataLoadersService {
    * DataLoader for batching songs by genre ID.
    * Fetches all songs for a given genre.
    */
-  readonly songsByGenreLoader = new DataLoader<number, SongType[]>(
-    async (genreIds: readonly number[]) => {
+  readonly songsByGenreLoader = new DataLoader<string, SongType[]>(
+    async (genreIds: readonly string[]) => {
       // Try to use an optimized batched query if available on the service.
       // Fallback to findAll() to preserve existing behavior if not present.
       const service: any = this.songsService;

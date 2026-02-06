@@ -25,13 +25,13 @@ export class ArtistsResolver {
 
   @Query(() => ArtistType, { name: "artist", nullable: true })
   findOne(
-    @Args("id", { type: () => ID }) id: number,
+    @Args("id", { type: () => ID }) id: string,
   ): Promise<ArtistType | null> {
-    return this.graphqlArtistsService.findOne(String(id));
+    return this.graphqlArtistsService.findOne(id);
   }
 
   @ResolveField(() => [SongType], { name: "songs" })
-  async songs(@Parent() artist: ArtistType): Promise<SongType[]> {
+  async songs(@Parent() artist: Pick<ArtistType, "id">): Promise<SongType[]> {
     // Use DataLoader to batch-load songs for this artist
     return this.dataLoadersService.songsByArtistLoader.load(artist.id);
   }

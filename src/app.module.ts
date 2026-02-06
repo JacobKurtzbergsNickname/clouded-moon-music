@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { Logger, MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Connection } from "mongoose";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
@@ -64,7 +64,10 @@ const mongoConnectionFactory = (connection: Connection) => {
             () => 1,
           ],
           onComplete: (complexity: number) => {
-            winston.debug(`GraphQL query complexity: ${complexity}`);
+            Logger.debug(
+              `GraphQL query complexity: ${complexity}`,
+              "GraphQLComplexity",
+            );
           },
           createError: (max: number, actual: number) => {
             return new GraphQLError(

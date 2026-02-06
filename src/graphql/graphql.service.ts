@@ -46,7 +46,7 @@ export class GraphqlArtistsService {
   async findAll(): Promise<ArtistType[]> {
     const artists = await this.artistsService.findAll();
     return artists.map((a) => ({
-      id: Number(a.id),
+      id: String(a.id),
       name: a.name,
     })) as ArtistType[];
   }
@@ -55,7 +55,7 @@ export class GraphqlArtistsService {
     const artist = await this.artistsService.findOne(id);
     if (!artist) return null;
     return {
-      id: Number(artist.id),
+      id: String(artist.id),
       name: artist.name,
     } as ArtistType;
   }
@@ -68,7 +68,7 @@ export class GraphqlGenresService {
   async findAll(): Promise<GenreType[]> {
     const genres = await this.genresService.findAll();
     return genres.map((g) => ({
-      id: Number(g.id),
+      id: String(g.id),
       name: g.name,
     })) as GenreType[];
   }
@@ -77,7 +77,7 @@ export class GraphqlGenresService {
     const genre = await this.genresService.findOne(id);
     if (!genre) return null;
     return {
-      id: Number(genre.id),
+      id: String(genre.id),
       name: genre.name,
     } as GenreType;
   }

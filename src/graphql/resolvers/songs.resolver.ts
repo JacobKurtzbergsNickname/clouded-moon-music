@@ -35,24 +35,24 @@ export class SongsResolver {
   }
 
   @ResolveField(() => [ArtistType], { name: "artists" })
-  async artists(@Parent() song: SongDTO): Promise<ArtistType[]> {
+  async artists(@Parent() song: SongType): Promise<ArtistType[]> {
     // Use DataLoader to batch-load artists from string IDs
-    const artistIds = song.artists.map((id) => Number(id));
+    const artistIds = (song as any).artists || [];
     const artists = await Promise.all(
-      artistIds.map((id) => this.dataLoadersService.artistLoader.load(id)),
+      artistIds.map((id: string) => this.dataLoadersService.artistLoader.load(id)),
     );
     // Filter out nulls
     return artists.filter((artist): artist is ArtistType => artist !== null);
   }
 
   @ResolveField(() => [GenreType], { name: "genres", nullable: true })
-  async genres(@Parent() song: SongDTO): Promise<GenreType[] | null> {
-    if (!song.genres) return null;
+  async genres(@Parent() song: SongType): Promise<GenreType[] | null> {
+    const genreIds = (song as any).genres;
+    if (!genreIds) return null;
 
     // Use DataLoader to batch-load genres from string IDs
-    const genreIds = song.genres.map((id) => Number(id));
     const genres = await Promise.all(
-      genreIds.map((id) => this.dataLoadersService.genreLoader.load(id)),
+      genreIds.map((id: string) => this.dataLoadersService.genreLoader.load(id)),
     );
     // Filter out nulls
     return genres.filter((genre): genre is GenreType => genre !== null);
