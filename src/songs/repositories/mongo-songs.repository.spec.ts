@@ -272,4 +272,72 @@ describe("MongoSongsRepository", () => {
       expect(songModel.findByIdAndDelete).not.toHaveBeenCalled();
     });
   });
+
+  describe("findByArtistIds", () => {
+    it("should return empty array when artistIds is empty", async () => {
+      const result = await repository.findByArtistIds([]);
+
+      expect(result).toEqual([]);
+      expect(songModel.find).not.toHaveBeenCalled();
+    });
+
+    it("should return songs matching given artist ids", async () => {
+      const mockSongs = [mockSongDocument];
+      mockSongModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockSongs),
+      });
+
+      const result = await repository.findByArtistIds([TEST_OBJECT_ID]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(TEST_OBJECT_ID);
+      expect(songModel.find).toHaveBeenCalledWith({
+        artists: { $in: [TEST_OBJECT_ID] },
+      });
+    });
+
+    it("should return empty array when no songs match", async () => {
+      mockSongModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      });
+
+      const result = await repository.findByArtistIds([TEST_OBJECT_ID]);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("findByGenreIds", () => {
+    it("should return empty array when genreIds is empty", async () => {
+      const result = await repository.findByGenreIds([]);
+
+      expect(result).toEqual([]);
+      expect(songModel.find).not.toHaveBeenCalled();
+    });
+
+    it("should return songs matching given genre ids", async () => {
+      const mockSongs = [mockSongDocument];
+      mockSongModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockSongs),
+      });
+
+      const result = await repository.findByGenreIds([TEST_OBJECT_ID]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(TEST_OBJECT_ID);
+      expect(songModel.find).toHaveBeenCalledWith({
+        genres: { $in: [TEST_OBJECT_ID] },
+      });
+    });
+
+    it("should return empty array when no songs match", async () => {
+      mockSongModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      });
+
+      const result = await repository.findByGenreIds([TEST_OBJECT_ID]);
+
+      expect(result).toEqual([]);
+    });
+  });
 });
