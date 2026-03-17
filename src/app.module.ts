@@ -21,6 +21,7 @@ import { getMongoDbUri } from "./config/mongodb.config";
 import { getPostgresConfig } from "./config/postgres.config";
 import { GraphQLModule as CloudedMoonGraphQLModule } from "./graphql/graphql.module";
 import { ArtistsModule } from "./artists/artists.module";
+import { AlbumsModule } from "./albums/albums.module";
 import { GenresModule } from "./genres/genres.module";
 import { RedisModule } from "./redis/redis.module";
 import { TracksModule } from "./tracks/tracks.module";
@@ -84,6 +85,7 @@ const mongoConnectionFactory = (connection: Connection) => {
     SongsModule,
     CloudedMoonGraphQLModule,
     ArtistsModule,
+    AlbumsModule,
     GenresModule,
     RedisModule,
     TracksModule,

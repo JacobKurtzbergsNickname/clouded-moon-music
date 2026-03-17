@@ -10,6 +10,7 @@ export interface SongsRepository {
   remove(id: string): Promise<string | null>;
   findByArtistIds(artistIds: string[]): Promise<SongDTO[]>;
   findByGenreIds(genreIds: string[]): Promise<SongDTO[]>;
+  findByAlbumIds(albumIds: string[]): Promise<SongDTO[]>;
 }
 
 export const SONGS_REPOSITORY = Symbol("SONGS_REPOSITORY");

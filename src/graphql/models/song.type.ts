@@ -7,6 +7,7 @@ import {
 } from "@nestjs/graphql";
 import { ArtistType } from "./artist.type";
 import { GenreType } from "./genre.type";
+import { AlbumType } from "./album.type";
 
 @ObjectType("Song")
 export class SongType {
@@ -20,8 +21,9 @@ export class SongType {
   @Field(() => [ArtistType])
   artists?: ArtistType[];
 
-  @Field()
-  album: string;
+  // Resolved via @ResolveField in resolver, not from DTO
+  @Field(() => AlbumType, { nullable: true })
+  album?: AlbumType;
 
   @Field(() => Int, { nullable: true })
   year?: number;

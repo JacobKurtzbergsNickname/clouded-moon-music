@@ -1,9 +1,11 @@
 import { Injectable, Scope } from "@nestjs/common";
 import DataLoader from "dataloader";
 import { ArtistType } from "../models/artist.type";
+import { AlbumType } from "../models/album.type";
 import { GenreType } from "../models/genre.type";
 import { SongType } from "../models/song.type";
 import { ArtistsService } from "../../artists/artists.service";
+import { AlbumsService } from "../../albums/albums.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
 
@@ -21,6 +23,7 @@ import { SongsService } from "../../songs/songs.service";
 export class DataLoadersService {
   constructor(
     private readonly artistsService: ArtistsService,
+    private readonly albumsService: AlbumsService,
     private readonly genresService: GenresService,
     private readonly songsService: SongsService,
   ) {}
@@ -63,6 +66,63 @@ export class DataLoadersService {
           id: String(genre.id),
           name: genre.name,
         } as GenreType;
+      });
+    },
+  );
+
+  /**
+   * DataLoader for batching album lookups by ID.
+   * Caches results per-request to avoid duplicate fetches.
+   * Uses database-level batch query via findByIds for optimal performance.
+   */
+  readonly albumLoader = new DataLoader<string, AlbumType | null>(
+    async (ids: readonly string[]) => {
+      // Single database query with IN clause
+      const albums = await this.albumsService.findByIds(Array.from(ids));
+
+      // Convert DTOs to GraphQL types
+      return albums.map((album) => {
+        if (!album) return null;
+        return {
+          id: String(album.id),
+          title: album.title,
+          releaseYear: album.releaseYear,
+        } as AlbumType;
+      });
+    },
+  );
+
+  /**
+   * DataLoader for batching songs by album ID.
+   * Fetches all songs for given albums using database-level batching.
+   */
+  readonly songsByAlbumLoader = new DataLoader<string, SongType[]>(
+    async (albumIds: readonly string[]) => {
+      // Single database query with $in operator
+      const songs = await this.songsService.findByAlbumIds(
+        Array.from(albumIds),
+      );
+
+      // Build a lookup map from album ID to songs
+      const songsByAlbumId = new Map<string, SongType[]>();
+
+      for (const song of songs) {
+        if (!song.album || typeof song.album !== "string") {
+          continue;
+        }
+        const key = String(song.album);
+        const bucket = songsByAlbumId.get(key);
+        if (bucket) {
+          bucket.push(song as unknown as SongType);
+        } else {
+          songsByAlbumId.set(key, [song as unknown as SongType]);
+        }
+      }
+
+      // Return results in the same order as the requested album IDs
+      return albumIds.map((albumId) => {
+        const key = String(albumId);
+        return songsByAlbumId.get(key) || [];
       });
     },
   );

@@ -10,6 +10,7 @@ import {
 import { GraphqlSongsService } from "../graphql.service";
 import { SongType } from "../models/song.type";
 import { ArtistType } from "../models/artist.type";
+import { AlbumType } from "../models/album.type";
 import { GenreType } from "../models/genre.type";
 import { CreateSongInput, UpdateSongInput } from "../models/song.input";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
@@ -19,9 +20,10 @@ import { DataLoadersService } from "../dataloaders/dataloaders.service";
  * Represents the DTO structure with string arrays for relationships,
  * which will be resolved to proper GraphQL types by @ResolveField.
  */
-type SongDTORuntime = Omit<SongType, "artists" | "genres"> & {
+type SongDTORuntime = Omit<SongType, "artists" | "genres" | "album"> & {
   artists?: string[];
   genres?: string[];
+  album?: string;
 };
 
 @Resolver(() => SongType)
@@ -41,6 +43,14 @@ export class SongsResolver {
     @Args("id", { type: () => ID }) id: string,
   ): Promise<SongType | null> {
     return this.graphqlSongsService.findOne(id);
+  }
+
+  @ResolveField(() => AlbumType, { name: "album", nullable: true })
+  async album(@Parent() song: SongType): Promise<AlbumType | null> {
+    const songRuntime = song as unknown as SongDTORuntime;
+    const albumId = songRuntime.album;
+    if (!albumId) return null;
+    return this.dataLoadersService.albumLoader.load(albumId);
   }
 
   @ResolveField(() => [ArtistType], { name: "artists" })
