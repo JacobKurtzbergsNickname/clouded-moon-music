@@ -36,3 +36,14 @@ export class SongType {
   @Field(() => GraphQLISODateTime)
   releaseDate: Date;
 }
+
+/**
+ * Represents the raw payload shape returned by services before relationship
+ * fields (artists, genres) are resolved via @ResolveField.
+ * Use this type in the GraphQL service layer and DataLoaders to avoid
+ * unsound `as unknown as SongType` casts.
+ */
+export type SongRawGqlType = Omit<SongType, "artists" | "genres"> & {
+  artists?: string[];
+  genres?: string[];
+};

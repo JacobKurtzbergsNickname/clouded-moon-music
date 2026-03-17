@@ -25,6 +25,31 @@ export class MongoSongsRepository implements SongsRepository {
     return doc ? this.toSong(doc) : null;
   }
 
+  /**
+   * Find multiple songs by IDs in a single database query.
+   * @param ids - Array of song IDs
+   * @returns Array of SongDTO or null in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(SongDTO | null)[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const validIds = ids.filter((id) => Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return ids.map(() => null);
+    }
+
+    const docs = await this.songModel
+      .find({ _id: { $in: validIds } })
+      .exec();
+
+    const songMap = new Map<string, SongDTO>();
+    docs.forEach((doc) => songMap.set(doc._id.toString(), this.toSong(doc)));
+
+    return ids.map((id) => songMap.get(id) ?? null);
+  }
+
   async create(dto: CreateSongDTO): Promise<SongDTO> {
     const createdSong = new this.songModel(dto);
     const doc = await createdSong.save();

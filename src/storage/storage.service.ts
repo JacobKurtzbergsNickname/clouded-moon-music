@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotImplementedException } from "@nestjs/common";
 import { createHmac, timingSafeEqual } from "crypto";
 import { StorageConfig, getStorageConfig } from "./storage.config";
 
@@ -96,34 +96,36 @@ export class StorageService {
   }
 
   private buildS3CompatibleSignedUrl(
-    storageKey: string,
-    ttlSeconds: number,
+    _storageKey: string,
+    _ttlSeconds: number,
   ): SignedUrlResult {
-    // Real implementation would use @aws-sdk/s3-request-presigner or the R2/B2 equivalent.
-    // Stub kept intentionally thin — swap in the real SDK call here.
-    const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
-    const url = `${this.config.cdnBaseUrl}/${storageKey}`;
-    this.logger.warn(
-      "S3-compatible signed URL generation is not fully wired — configure STORAGE_* env vars.",
+    throw new NotImplementedException(
+      "S3-compatible signed download URL is not implemented. " +
+        "Configure STORAGE_PROVIDER=local for development or implement " +
+        "@aws-sdk/s3-request-presigner / equivalent for production.",
     );
-    return { url, expiresAt };
   }
 
   private buildS3CompatibleSignedUploadUrl(
-    storageKey: string,
-    ttlSeconds: number,
+    _storageKey: string,
+    _ttlSeconds: number,
   ): SignedUrlResult {
-    const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
-    const url = `${this.config.endpoint}/${this.config.bucketName}/${storageKey}`;
-    this.logger.warn(
-      "S3-compatible signed upload URL generation is not fully wired — configure STORAGE_* env vars.",
+    throw new NotImplementedException(
+      "S3-compatible signed upload URL is not implemented. " +
+        "Configure STORAGE_PROVIDER=local for development or implement " +
+        "@aws-sdk/s3-request-presigner / equivalent for production.",
     );
-    return { url, expiresAt };
   }
 
   private hmacSign(payload: string): string {
-    const secret =
-      this.config.secretAccessKey || "dev-secret-do-not-use-in-production";
-    return createHmac("sha256", secret).update(payload).digest("hex");
+    if (!this.config.secretAccessKey) {
+      throw new Error(
+        "STORAGE_SECRET_ACCESS_KEY must be configured for HMAC signing. " +
+          "Set this environment variable before starting the application.",
+      );
+    }
+    return createHmac("sha256", this.config.secretAccessKey)
+      .update(payload)
+      .digest("hex");
   }
 }

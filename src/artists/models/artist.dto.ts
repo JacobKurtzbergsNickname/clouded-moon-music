@@ -1,9 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 /**
- * Data Transfer Object for Artist
+ * Data Transfer Object for Artist.
  * Flattens the songs relation to avoid circular references during JSON serialization.
- * Returns song titles as a simple array instead of full Song entities.
+ * The `songs` array contains song titles sourced from the relational (SQL) store.
+ * For full song objects, use the GraphQL `artists { songs { ... } }` query instead.
  */
 export class ArtistDTO {
   @ApiProperty({
@@ -19,7 +20,9 @@ export class ArtistDTO {
   name: string;
 
   @ApiProperty({
-    description: "List of song titles by this artist",
+    description:
+      "Titles of songs associated with this artist (from the relational store). " +
+      "Use the GraphQL API for full song objects.",
     example: ["Bohemian Rhapsody", "We Will Rock You"],
     type: [String],
   })

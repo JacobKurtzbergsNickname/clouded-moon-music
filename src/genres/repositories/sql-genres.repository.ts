@@ -77,6 +77,38 @@ export class SqlGenresRepository implements GenresRepository {
     });
   }
 
+  async create(name: string): Promise<GenreDTO> {
+    const genre = this.genreRepository.create({ name });
+    const saved = await this.genreRepository.save(genre);
+    return this.mapToDTO(saved);
+  }
+
+  async update(id: string, name: string): Promise<GenreDTO | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
+    const genre = await this.genreRepository.findOne({
+      where: { id: numericId },
+      relations: ["songs"],
+    });
+    if (!genre) {
+      return null;
+    }
+    genre.name = name;
+    const saved = await this.genreRepository.save(genre);
+    return this.mapToDTO(saved);
+  }
+
+  async remove(id: string): Promise<string | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
+    const result = await this.genreRepository.delete(numericId);
+    return result.affected ? id : null;
+  }
+
   private mapToDTO(genre: Genre): GenreDTO {
     return {
       id: genre.id.toString(),

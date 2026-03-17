@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsInt,
+  MaxLength,
   Min,
   Max,
 } from "class-validator";
@@ -17,6 +18,7 @@ export default class CreateSongDTO {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   readonly title: string;
 
   @ApiProperty({
@@ -35,6 +37,7 @@ export default class CreateSongDTO {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   readonly album: string;
 
   @ApiProperty({
@@ -75,6 +78,7 @@ export default class CreateSongDTO {
   })
   @IsInt()
   @Min(1)
+  @Max(86400)
   @IsNotEmpty()
   readonly duration: number; // duration in seconds
 }

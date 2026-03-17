@@ -8,7 +8,7 @@ export class Song {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ type: [String], required: true })
+  @Prop({ type: [String], required: true, index: true })
   artists: string[];
 
   @Prop({ required: true })
@@ -17,7 +17,7 @@ export class Song {
   @Prop()
   year: number;
 
-  @Prop({ type: [String] })
+  @Prop({ type: [String], index: true })
   genres: string[];
 
   @Prop({ required: true })
@@ -29,7 +29,7 @@ export class Song {
 
 export const SongSchema = SchemaFactory.createForClass(Song);
 
-SongSchema.virtual("id").get(function (this: any) {
+SongSchema.virtual("id").get(function (this: SongDocument) {
   return this._id.toString();
 });
 

@@ -7,6 +7,8 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
+  MaxLength,
   Min,
   registerDecorator,
   ValidationOptions,
@@ -51,6 +53,7 @@ export class CreateSongInput {
   @Field()
   @IsNotEmpty()
   @IsString()
+  @MaxLength(255)
   title: string;
 
   @Field(() => [String])
@@ -62,6 +65,7 @@ export class CreateSongInput {
   @Field()
   @IsNotEmpty()
   @IsString()
+  @MaxLength(255)
   album: string;
 
   @Field(() => Int, { nullable: true })
@@ -85,6 +89,7 @@ export class CreateSongInput {
   @Field(() => Int)
   @IsInt()
   @Min(1)
+  @Max(86400)
   duration: number;
 }
 
@@ -93,6 +98,7 @@ export class UpdateSongInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   title?: string;
 
   @Field(() => [String], { nullable: true })
@@ -104,6 +110,7 @@ export class UpdateSongInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   album?: string;
 
   @Field(() => Int, { nullable: true })
@@ -128,5 +135,6 @@ export class UpdateSongInput {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(86400)
   duration?: number;
 }

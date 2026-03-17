@@ -20,7 +20,7 @@ describe("DataLoadersService", () => {
     };
 
     const mockSongsService = {
-      findOne: jest.fn(),
+      findByIds: jest.fn(),
       findByArtistIds: jest.fn(),
       findByGenreIds: jest.fn(),
     };
@@ -102,7 +102,7 @@ describe("DataLoadersService", () => {
   });
 
   describe("songLoader", () => {
-    it("should batch load songs", async () => {
+    it("should batch load songs using a single findByIds call", async () => {
       const mockSongs = [
         {
           id: "1",
@@ -125,13 +125,23 @@ describe("DataLoadersService", () => {
       ];
 
       jest
-        .spyOn(songsService, "findOne")
-        .mockResolvedValueOnce(mockSongs[0] as any)
-        .mockResolvedValueOnce(mockSongs[1] as any);
+        .spyOn(songsService, "findByIds")
+        .mockResolvedValue(mockSongs as never[]);
 
       const results = await service.songLoader.loadMany(["1", "2"]);
 
+      // Verify batch method is called instead of individual findOne calls
+      expect(songsService.findByIds).toHaveBeenCalledWith(["1", "2"]);
       expect(results).toHaveLength(2);
+      expect((results[0] as { id: string }).id).toBe("1");
+      expect((results[1] as { id: string }).id).toBe("2");
+    });
+
+    it("should return null for non-existent songs", async () => {
+      jest.spyOn(songsService, "findByIds").mockResolvedValue([null]);
+
+      const result = await service.songLoader.load("999");
+      expect(result).toBeNull();
     });
   });
 

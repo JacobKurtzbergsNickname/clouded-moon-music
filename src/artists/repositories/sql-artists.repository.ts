@@ -77,6 +77,38 @@ export class SqlArtistsRepository implements ArtistsRepository {
     });
   }
 
+  async create(name: string): Promise<ArtistDTO> {
+    const artist = this.artistRepository.create({ name });
+    const saved = await this.artistRepository.save(artist);
+    return this.mapToDTO(saved);
+  }
+
+  async update(id: string, name: string): Promise<ArtistDTO | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
+    const artist = await this.artistRepository.findOne({
+      where: { id: numericId },
+      relations: ["songs"],
+    });
+    if (!artist) {
+      return null;
+    }
+    artist.name = name;
+    const saved = await this.artistRepository.save(artist);
+    return this.mapToDTO(saved);
+  }
+
+  async remove(id: string): Promise<string | null> {
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
+      return null;
+    }
+    const result = await this.artistRepository.delete(numericId);
+    return result.affected ? id : null;
+  }
+
   private mapToDTO(artist: Artist): ArtistDTO {
     return {
       id: artist.id.toString(),

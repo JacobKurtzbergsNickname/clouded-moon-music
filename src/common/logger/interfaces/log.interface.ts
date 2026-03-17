@@ -5,11 +5,13 @@ import { v4 } from "uuid";
 export type LogLevel = "info" | "error" | "warn" | "debug" | "verbose";
 
 export interface ILogEntry {
+  /** ISO timestamp — set automatically by LogEntry constructor; callers should not set this manually. */
   timestamp: string;
   level: LogLevel;
   message: string;
+  context?: string;
   requestId?: string;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 export class LogEntry implements ILogEntry {
