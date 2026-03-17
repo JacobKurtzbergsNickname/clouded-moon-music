@@ -62,11 +62,14 @@ docker-compose up -d
 
 This starts all required services:
 
-| Service    | Port  | Admin UI                | Credentials                                           |
-| ---------- | ----- | ----------------------- | ----------------------------------------------------- |
-| MongoDB    | 27019 | <http://localhost:8083> | admin / PreahChanTravPopookKrap2026                   |
-| PostgreSQL | 5433  | <http://localhost:5050> | <admin@cloudedmoon.com> / PreahChanTravPopookKrap2026 |
-| Redis      | 6380  | -                       | No auth                                               |
+| Service    | Port  | Admin UI                |
+| ---------- | ----- | ----------------------- |
+| MongoDB    | 27019 | <http://localhost:8083> |
+| PostgreSQL | 5433  | <http://localhost:5050> |
+| Redis      | 6380  | _(no UI)_               |
+
+> **Default credentials:** `admin` / `PreahChanTravPopookKrap2026`
+> PostgreSQL admin login: `admin@cloudedmoon.com`
 
 ### 3. Configure Environment Variables
 
@@ -93,19 +96,19 @@ REDIS_PORT=6380
 
 ## 🌍 Environment Variables Reference
 
-| Variable            | Description               | Default            | Required |
-| ------------------- | ------------------------- | ------------------ | -------- |
-| `PORT`              | Application server port   | 3456               | No       |
-| `MONGO_URI`         | MongoDB connection string | See above          | Yes      |
-| `POSTGRES_HOST`     | PostgreSQL host           | localhost          | Yes      |
-| `POSTGRES_PORT`     | PostgreSQL port           | 5433               | Yes      |
-| `POSTGRES_USER`     | PostgreSQL username       | admin              | Yes      |
-| `POSTGRES_PASSWORD` | PostgreSQL password       | -                  | Yes      |
-| `POSTGRES_DATABASE` | PostgreSQL database name  | clouded_moon_music | Yes      |
-| `REDIS_HOST`        | Redis host                | localhost          | Yes      |
-| `REDIS_PORT`        | Redis port                | 6380               | Yes      |
+> When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
 
-**Note:** When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
+| Variable            | Default / Notes           |
+| ------------------- | ------------------------- |
+| `PORT`              | `3456`                    |
+| `MONGO_URI`         | See `.env` example above  |
+| `POSTGRES_HOST`     | `localhost`               |
+| `POSTGRES_PORT`     | `5433`                    |
+| `POSTGRES_USER`     | `admin`                   |
+| `POSTGRES_PASSWORD` | _(required)_              |
+| `POSTGRES_DATABASE` | `clouded_moon_music`      |
+| `REDIS_HOST`        | `localhost`               |
+| `REDIS_PORT`        | `6380`                    |
 
 ## 🏃 Running the Application
 
@@ -245,7 +248,8 @@ See [docs/database-level-batching-implementation.md](docs/database-level-batchin
 
 ## 🏗️ Architecture
 
-### Module Structure
+<details>
+<summary><strong>Module Structure</strong></summary>
 
 ```folder
 src/
@@ -277,7 +281,10 @@ src/
     └── middleware/  # Request logging
 ```
 
-### Database Strategy
+</details>
+
+<details>
+<summary><strong>Database Strategy</strong></summary>
 
 #### MongoDB (Songs)
 
@@ -299,7 +306,10 @@ src/
 - Artists/Genres require relational integrity and referential consistency
 - Demonstrates polyglot persistence patterns
 
-### Caching Layer
+</details>
+
+<details>
+<summary><strong>Caching Layer</strong></summary>
 
 **Redis Implementation:**
 
@@ -320,7 +330,10 @@ class SongsService extends CachedServiceBase {
 }
 ```
 
-### GraphQL Optimization
+</details>
+
+<details>
+<summary><strong>GraphQL Optimization</strong></summary>
 
 **DataLoader Integration:**
 
@@ -335,7 +348,12 @@ class SongsService extends CachedServiceBase {
 - Complexity analysis (max 1000 points) prevents expensive operations
 - Real-time complexity logging for monitoring
 
+</details>
+
 ## 🔧 Technical Stack
+
+<details>
+<summary><strong>Full stack details</strong></summary>
 
 ### Core Framework
 
@@ -369,6 +387,8 @@ class SongsService extends CachedServiceBase {
 - **ESLint** with Airbnb config - Code quality
 - **Prettier** - Code formatting
 - **Docker Compose** - Local development infrastructure
+
+</details>
 
 ## 🧪 Testing
 
@@ -439,7 +459,8 @@ MongoDB integration specifics:
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+<details>
+<summary><strong>Common Issues</strong></summary>
 
 #### Port Conflicts
 
@@ -516,7 +537,12 @@ Application logs are stored in the `logs/` directory:
 - `logs/combined.log` - All log levels
 - Automatic daily rotation with timestamps
 
+</details>
+
 ## 🚢 Deployment Considerations
+
+<details>
+<summary><strong>Production setup notes</strong></summary>
 
 ### Environment Security
 
@@ -545,6 +571,8 @@ Application logs are stored in the `logs/` directory:
 - Monitor Redis memory usage and eviction policies
 - Track GraphQL query complexity patterns
 - Set up application performance monitoring (APM)
+
+</details>
 
 ## 👥 Contributing
 
