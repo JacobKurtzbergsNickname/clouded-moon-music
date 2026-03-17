@@ -23,6 +23,7 @@ import { GraphQLModule as CloudedMoonGraphQLModule } from "./graphql/graphql.mod
 import { ArtistsModule } from "./artists/artists.module";
 import { GenresModule } from "./genres/genres.module";
 import { RedisModule } from "./redis/redis.module";
+import { TracksModule } from "./tracks/tracks.module";
 
 const mongoConnectionFactory = (connection: Connection) => {
   connection.on("connected", () => {
@@ -85,6 +86,7 @@ const mongoConnectionFactory = (connection: Connection) => {
     ArtistsModule,
     GenresModule,
     RedisModule,
+    TracksModule,
 
     WinstonModule.forRoot({
       transports: [
