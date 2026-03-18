@@ -131,12 +131,7 @@ describe("SongsService", () => {
       });
       expect(mockRedisService.get).toHaveBeenCalledWith("song:123");
       expect(mockRepository.findOne).not.toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Cache hit",
-        expect.objectContaining({
-          message: "Cache hit for song 123",
-        }),
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Cache hit: song:123");
     });
 
     it("should fetch from repository on cache miss and populate cache", async () => {
@@ -166,7 +161,7 @@ describe("SongsService", () => {
       expect(result).toEqual(mockSong);
       expect(mockRepository.findOne).toHaveBeenCalledWith("123");
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("Cache read failed, falling back to DB"),
+        expect.stringContaining("Cache miss for song:123, falling back to DB"),
       );
     });
 
@@ -426,8 +421,10 @@ describe("SongsService", () => {
 
       expect(result).toBe("123");
       expect(mockRedisService.del).toHaveBeenCalledWith(
-        "song:123",
         "songs:list:all",
+        "artists:list:all",
+        "genres:list:all",
+        "song:123",
       );
       expect(mockRedisService.deletePattern).toHaveBeenCalledWith(
         "songs:list:filtered:*",

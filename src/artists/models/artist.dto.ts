@@ -13,14 +13,14 @@ export class ArtistDTO {
     description: "The unique identifier of the artist",
     example: "1",
   })
-  id: string;
+  id!: string;
 
   @Expose()
   @ApiProperty({
     description: "The name of the artist",
     example: "Queen",
   })
-  name: string;
+  name!: string;
 
   @Expose()
   @ApiProperty({
@@ -30,5 +30,5 @@ export class ArtistDTO {
     example: ["Bohemian Rhapsody", "We Will Rock You"],
     type: [String],
   })
-  songs: string[];
+  songs!: string[];
 }

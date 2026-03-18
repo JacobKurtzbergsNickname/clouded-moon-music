@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SongsResolver } from "./songs.resolver";
 import { GraphqlSongsService } from "../graphql.service";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
-import { SongType } from "../models/song.type";
+import { SongType, SongRawGqlType } from "../models/song.type";
 
 describe("SongsResolver", () => {
   let resolver: SongsResolver;
@@ -52,7 +52,7 @@ describe("SongsResolver", () => {
 
   describe("findAll", () => {
     it("should return all songs", async () => {
-      const mockSongs: SongType[] = [
+      const mockSongs: SongRawGqlType[] = [
         {
           id: "1",
           title: "Test Song",
@@ -60,7 +60,7 @@ describe("SongsResolver", () => {
           year: 2020,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as SongRawGqlType,
       ];
 
       jest.spyOn(graphqlSongsService, "findAll").mockResolvedValue(mockSongs);
@@ -72,14 +72,14 @@ describe("SongsResolver", () => {
 
   describe("findOne", () => {
     it("should return a song by id", async () => {
-      const mockSong: SongType = {
+      const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
         album: "Test Album",
         year: 2020,
         duration: 180,
         releaseDate: new Date(),
-      } as SongType;
+      } as SongRawGqlType;
 
       jest.spyOn(graphqlSongsService, "findOne").mockResolvedValue(mockSong);
 
@@ -171,10 +171,10 @@ describe("SongsResolver", () => {
         releaseDate: new Date(),
       };
 
-      const mockCreatedSong = {
+      const mockCreatedSong: SongRawGqlType = {
         id: "1",
         ...input,
-      } as unknown as SongType;
+      } as SongRawGqlType;
 
       jest
         .spyOn(graphqlSongsService, "create")
@@ -191,13 +191,13 @@ describe("SongsResolver", () => {
         title: "Updated Song",
       };
 
-      const mockUpdatedSong = {
+      const mockUpdatedSong: SongRawGqlType = {
         id: "1",
         title: "Updated Song",
         album: "Album",
         duration: 200,
         releaseDate: new Date(),
-      } as SongType;
+      } as SongRawGqlType;
 
       jest
         .spyOn(graphqlSongsService, "update")

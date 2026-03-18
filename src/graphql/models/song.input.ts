@@ -54,19 +54,19 @@ export class CreateSongInput {
   @IsNotEmpty()
   @IsString()
   @MaxLength(255)
-  title: string;
+  title!: string;
 
   @Field(() => [String])
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  artists: string[];
+  artists!: string[];
 
   @Field()
   @IsNotEmpty()
   @IsString()
   @MaxLength(255)
-  album: string;
+  album!: string;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
@@ -78,7 +78,7 @@ export class CreateSongInput {
   @Field(() => GraphQLISODateTime)
   @IsNotEmpty()
   @IsDateString()
-  releaseDate: Date;
+  releaseDate!: Date;
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
@@ -90,7 +90,7 @@ export class CreateSongInput {
   @IsInt()
   @Min(1)
   @Max(86400)
-  duration: number;
+  duration!: number;
 }
 
 @InputType()

@@ -15,14 +15,14 @@ export class SongDTO {
     description: "The unique identifier of the song",
     example: "507f1f77bcf86cd799439011",
   })
-  id: string;
+  id!: string;
 
   @Expose()
   @ApiProperty({
     description: "The title of the song",
     example: "Bohemian Rhapsody",
   })
-  title: string;
+  title!: string;
 
   @Expose()
   @ApiProperty({
@@ -30,21 +30,21 @@ export class SongDTO {
     example: ["Queen"],
     type: [String],
   })
-  artists: string[];
+  artists!: string[];
 
   @Expose()
   @ApiProperty({
     description: "The album name",
     example: "A Night at the Opera",
   })
-  album: string;
+  album!: string;
 
   @Expose()
   @ApiProperty({
     description: "The year the song was released",
     example: 1975,
   })
-  year: number;
+  year!: number;
 
   @Expose()
   @ApiProperty({
@@ -52,19 +52,19 @@ export class SongDTO {
     example: ["Rock", "Progressive Rock"],
     type: [String],
   })
-  genres: string[];
+  genres!: string[];
 
   @Expose()
   @ApiProperty({
     description: "Duration of the song in seconds",
     example: 354,
   })
-  duration: number;
+  duration!: number;
 
   @Expose()
   @ApiProperty({
     description: "The release date of the song",
     example: "1975-10-31T00:00:00.000Z",
   })
-  releaseDate: Date;
+  releaseDate!: Date;
 }

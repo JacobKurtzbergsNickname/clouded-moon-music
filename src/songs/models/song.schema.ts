@@ -6,25 +6,25 @@ export type SongDocument = HydratedDocument<Song>;
 @Schema({ timestamps: true })
 export class Song {
   @Prop({ required: true })
-  title: string;
+  title!: string;
 
   @Prop({ type: [String], required: true, index: true })
-  artists: string[];
+  artists!: string[];
 
   @Prop({ required: true })
-  album: string;
+  album!: string;
 
   @Prop()
-  year: number;
+  year!: number;
 
   @Prop({ type: [String], index: true })
-  genres: string[];
+  genres!: string[];
 
   @Prop({ required: true })
-  duration: number;
+  duration!: number;
 
   @Prop({ required: true })
-  releaseDate: Date;
+  releaseDate!: Date;
 }
 
 export const SongSchema = SchemaFactory.createForClass(Song);

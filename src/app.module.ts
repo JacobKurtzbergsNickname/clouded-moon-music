@@ -8,7 +8,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
 import { join } from "path";
-import depthLimit from "graphql-depth-limit";
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+const depthLimit = require("graphql-depth-limit") as (n: number) => any;
 import { createComplexityRule } from "graphql-query-complexity";
 import { GraphQLError } from "graphql";
 

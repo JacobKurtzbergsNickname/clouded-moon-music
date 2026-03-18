@@ -70,12 +70,7 @@ describe("GenresService", () => {
       expect(result).toEqual(mockGenre);
       expect(mockRedisService.get).toHaveBeenCalledWith("genre:1");
       expect(mockRepository.findOne).not.toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Cache hit",
-        expect.objectContaining({
-          message: "Cache hit for genre 1",
-        }),
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Cache hit: genre:1");
     });
 
     it("should fetch from repository on cache miss and populate cache", async () => {
@@ -105,7 +100,7 @@ describe("GenresService", () => {
       expect(result).toEqual(mockGenre);
       expect(mockRepository.findOne).toHaveBeenCalledWith("1");
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("Cache read failed, falling back to DB"),
+        expect.stringContaining("Cache miss for genre:1, falling back to DB"),
       );
     });
 

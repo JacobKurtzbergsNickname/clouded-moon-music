@@ -109,9 +109,9 @@ describe("SqlTracksRepository", () => {
     it("should handle nullable optional fields", async () => {
       const minimalTrack: Track = {
         ...mockTrackEntity,
-        album: null,
-        bitrate: null,
-        sampleRate: null,
+        album: null as unknown as string,
+        bitrate: null as unknown as number,
+        sampleRate: null as unknown as number,
       };
       mockTypeormRepo.find.mockResolvedValue([minimalTrack]);
 

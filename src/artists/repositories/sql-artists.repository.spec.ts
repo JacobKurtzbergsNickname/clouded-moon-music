@@ -140,8 +140,8 @@ describe("SqlArtistsRepository", () => {
 
       const result = await repository.findByIds(["1", "2"]);
 
-      expect(result[0].name).toBe("Artist 1");
-      expect(result[1].name).toBe("Artist 2");
+      expect(result[0]!.name).toBe("Artist 1");
+      expect(result[1]!.name).toBe("Artist 2");
     });
   });
 

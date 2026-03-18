@@ -350,7 +350,7 @@ describe("TracksService", () => {
 
       const result = await service.getPlayUrl("uuid-2");
 
-      expect(result.streamUrl).toContain("stream");
+      expect(result!.streamUrl).toContain("stream");
     });
 
     it("should return null when track does not exist", async () => {

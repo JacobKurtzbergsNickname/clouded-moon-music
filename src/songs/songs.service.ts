@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Result } from "neverthrow";
 import { CMLogger } from "../common/logger";
+import { ILogEntry } from "../common/logger/interfaces/log.interface";
 import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";

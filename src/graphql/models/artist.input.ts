@@ -7,7 +7,7 @@ export class CreateArtistInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  name: string;
+  name!: string;
 }
 
 @InputType()
@@ -16,5 +16,5 @@ export class UpdateArtistInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  name: string;
+  name!: string;
 }

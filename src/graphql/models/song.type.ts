@@ -11,17 +11,17 @@ import { GenreType } from "./genre.type";
 @ObjectType("Song")
 export class SongType {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  title: string;
+  title!: string;
 
   // Resolved via @ResolveField in resolver, not from DTO
   @Field(() => [ArtistType])
   artists?: ArtistType[];
 
   @Field()
-  album: string;
+  album!: string;
 
   @Field(() => Int, { nullable: true })
   year?: number;
@@ -31,10 +31,10 @@ export class SongType {
   genres?: GenreType[];
 
   @Field(() => Int)
-  duration: number;
+  duration!: number;
 
   @Field(() => GraphQLISODateTime)
-  releaseDate: Date;
+  releaseDate!: Date;
 }
 
 /**

@@ -138,8 +138,8 @@ describe("SqlGenresRepository", () => {
 
       const result = await repository.findByIds(["1", "2"]);
 
-      expect(result[0].name).toBe("Rock");
-      expect(result[1].name).toBe("Pop");
+      expect(result[0]!.name).toBe("Rock");
+      expect(result[1]!.name).toBe("Pop");
     });
   });
 

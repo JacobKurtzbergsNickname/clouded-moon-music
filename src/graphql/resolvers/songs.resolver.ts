@@ -54,7 +54,7 @@ export class SongsResolver {
   }
 
   @Mutation(() => SongType, { name: "createSong" })
-  create(@Args("input") input: CreateSongInput): Promise<SongType> {
+  create(@Args("input") input: CreateSongInput): Promise<SongRawGqlType> {
     return this.graphqlSongsService.create(input);
   }
 
@@ -62,7 +62,7 @@ export class SongsResolver {
   update(
     @Args("id", { type: () => ID }) id: string,
     @Args("input") input: UpdateSongInput,
-  ): Promise<SongType | null> {
+  ): Promise<SongRawGqlType | null> {
     return this.graphqlSongsService.update(id, input);
   }
 

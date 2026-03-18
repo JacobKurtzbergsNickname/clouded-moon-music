@@ -196,31 +196,25 @@ describe("StorageService", () => {
   // Non-local provider (stub path)
   // ---------------------------------------------------------------------------
   describe("non-local provider (stub)", () => {
-    it("should return a URL from getSignedDownloadUrl even without real credentials", () => {
+    it("should throw NotImplementedException for getSignedDownloadUrl with non-local provider", () => {
       process.env.STORAGE_PROVIDER = "r2";
       process.env.CDN_BASE_URL = "https://cdn.example.com";
       const service = new StorageService();
 
-      const { url, expiresAt } = service.getSignedDownloadUrl(
-        "tracks/uuid-1/master.flac",
-        "uuid-1",
-      );
-
-      expect(url).toBeDefined();
-      expect(typeof url).toBe("string");
-      expect(expiresAt).toBeInstanceOf(Date);
+      expect(() =>
+        service.getSignedDownloadUrl("tracks/uuid-1/master.flac", "uuid-1"),
+      ).toThrow("not implemented");
     });
 
-    it("should return a URL from getSignedUploadUrl even without real credentials", () => {
+    it("should throw NotImplementedException for getSignedUploadUrl with non-local provider", () => {
       process.env.STORAGE_PROVIDER = "s3";
       process.env.STORAGE_ENDPOINT = "https://s3.us-east-1.amazonaws.com";
       process.env.STORAGE_BUCKET = "music-assets";
       const service = new StorageService();
 
-      const { url } = service.getSignedUploadUrl("tracks/uuid-1/master.wav");
-
-      expect(url).toBeDefined();
-      expect(typeof url).toBe("string");
+      expect(() =>
+        service.getSignedUploadUrl("tracks/uuid-1/master.wav"),
+      ).toThrow("not implemented");
     });
   });
 
@@ -232,6 +226,7 @@ describe("StorageService", () => {
       process.env.STORAGE_PROVIDER = "local";
       process.env.SIGNED_URL_EXPIRY = "300";
       process.env.CDN_BASE_URL = "http://localhost:3456";
+      process.env.STORAGE_SECRET_ACCESS_KEY = "test-secret-key";
       const service = new StorageService();
 
       const before = Date.now();

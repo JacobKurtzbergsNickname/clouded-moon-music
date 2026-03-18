@@ -60,7 +60,7 @@ export abstract class CachedServiceBase {
     return ResultAsync.fromPromise(
       this.redisService.set(cacheKey, JSON.stringify(data), ttl),
       (error) => error as Error,
-    );
+    ).map((result) => (result ?? "OK") as "OK");
   }
 
   /**

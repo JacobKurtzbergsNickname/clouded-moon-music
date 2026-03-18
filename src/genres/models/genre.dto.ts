@@ -13,14 +13,14 @@ export class GenreDTO {
     description: "The unique identifier of the genre",
     example: "1",
   })
-  id: string;
+  id!: string;
 
   @Expose()
   @ApiProperty({
     description: "The name of the genre",
     example: "Rock",
   })
-  name: string;
+  name!: string;
 
   @Expose()
   @ApiProperty({
@@ -30,5 +30,5 @@ export class GenreDTO {
     example: ["Bohemian Rhapsody", "Stairway to Heaven"],
     type: [String],
   })
-  songs: string[];
+  songs!: string[];
 }

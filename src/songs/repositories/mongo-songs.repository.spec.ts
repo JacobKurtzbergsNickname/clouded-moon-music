@@ -110,8 +110,8 @@ describe("MongoSongsRepository", () => {
       const result = await repository.findOne(TEST_OBJECT_ID);
 
       expect(result).toBeDefined();
-      expect(result.id).toBe(TEST_OBJECT_ID);
-      expect(result.title).toBe(TEST_SONG_TITLE);
+      expect(result!.id).toBe(TEST_OBJECT_ID);
+      expect(result!.title).toBe(TEST_SONG_TITLE);
       expect(songModel.findById).toHaveBeenCalledWith(TEST_OBJECT_ID);
     });
 
@@ -149,8 +149,8 @@ describe("MongoSongsRepository", () => {
       const result = await repository.create(mockCreateSongDTO);
 
       expect(saveMock).toHaveBeenCalled();
-      expect(result.id).toBe(TEST_OBJECT_ID);
-      expect(result.title).toBe(TEST_SONG_TITLE);
+      expect(result!.id).toBe(TEST_OBJECT_ID);
+      expect(result!.title).toBe(TEST_SONG_TITLE);
     });
   });
 
@@ -165,8 +165,8 @@ describe("MongoSongsRepository", () => {
 
       const result = await repository.update(TEST_OBJECT_ID, updatedData);
 
-      expect(result.id).toBe(TEST_OBJECT_ID);
-      expect(result.title).toBe(TEST_UPDATED_TITLE);
+      expect(result!.id).toBe(TEST_OBJECT_ID);
+      expect(result!.title).toBe(TEST_UPDATED_TITLE);
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
         TEST_OBJECT_ID,
         updatedData,
@@ -209,8 +209,8 @@ describe("MongoSongsRepository", () => {
         mockCreateSongDTO,
       );
 
-      expect(result.id).toBe(TEST_OBJECT_ID);
-      expect(result.title).toBe(TEST_SONG_TITLE);
+      expect(result!.id).toBe(TEST_OBJECT_ID);
+      expect(result!.title).toBe(TEST_SONG_TITLE);
       expect(songModel.findByIdAndUpdate).toHaveBeenCalledWith(
         TEST_OBJECT_ID,
         mockCreateSongDTO,

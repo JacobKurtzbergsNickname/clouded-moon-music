@@ -7,7 +7,7 @@ export class CreateGenreInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  name: string;
+  name!: string;
 }
 
 @InputType()
@@ -16,5 +16,5 @@ export class UpdateGenreInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  name: string;
+  name!: string;
 }
