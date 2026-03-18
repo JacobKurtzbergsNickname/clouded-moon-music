@@ -3,6 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -17,6 +20,7 @@ import {
 } from "@nestjs/swagger";
 import { SongsService } from "./songs.service";
 import CreateSongDTO from "./models/create-song.dto";
+import { ParseObjectIdPipe } from "../common/pipes/parse-object-id.pipe";
 
 @ApiTags("songs")
 @Controller("songs")
@@ -44,8 +48,12 @@ export class SongsController {
   @ApiParam({ name: "id", description: "Song ID" })
   @ApiResponse({ status: 200, description: "Returns the song" })
   @ApiResponse({ status: 404, description: "Song not found" })
-  findOne(@Param("id") id: string) {
-    return this.songsService.findOne(id);
+  async findOne(@Param("id", ParseObjectIdPipe) id: string) {
+    const song = await this.songsService.findOne(id);
+    if (!song) {
+      throw new NotFoundException(`Song with id ${id} not found`);
+    }
+    return song;
   }
 
   @Patch(":id")
@@ -54,8 +62,15 @@ export class SongsController {
   @ApiBody({ type: CreateSongDTO })
   @ApiResponse({ status: 200, description: "Song updated successfully" })
   @ApiResponse({ status: 404, description: "Song not found" })
-  update(@Param("id") id: string, @Body() song: Partial<CreateSongDTO>) {
-    return this.songsService.update(id, song);
+  async update(
+    @Param("id", ParseObjectIdPipe) id: string,
+    @Body() song: Partial<CreateSongDTO>,
+  ) {
+    const updated = await this.songsService.update(id, song);
+    if (!updated) {
+      throw new NotFoundException(`Song with id ${id} not found`);
+    }
+    return updated;
   }
 
   @Put(":id")
@@ -64,16 +79,27 @@ export class SongsController {
   @ApiBody({ type: CreateSongDTO })
   @ApiResponse({ status: 200, description: "Song replaced successfully" })
   @ApiResponse({ status: 404, description: "Song not found" })
-  replace(@Param("id") id: string, @Body() song: CreateSongDTO) {
-    return this.songsService.replace(id, song);
+  async replace(
+    @Param("id", ParseObjectIdPipe) id: string,
+    @Body() song: CreateSongDTO,
+  ) {
+    const replaced = await this.songsService.replace(id, song);
+    if (!replaced) {
+      throw new NotFoundException(`Song with id ${id} not found`);
+    }
+    return replaced;
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a song" })
   @ApiParam({ name: "id", description: "Song ID" })
-  @ApiResponse({ status: 200, description: "Song deleted successfully" })
+  @ApiResponse({ status: 204, description: "Song deleted successfully" })
   @ApiResponse({ status: 404, description: "Song not found" })
-  remove(@Param("id") id: string) {
-    return this.songsService.remove(id);
+  async remove(@Param("id", ParseObjectIdPipe) id: string) {
+    const removed = await this.songsService.remove(id);
+    if (!removed) {
+      throw new NotFoundException(`Song with id ${id} not found`);
+    }
   }
 }

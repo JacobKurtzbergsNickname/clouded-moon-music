@@ -1,4 +1,9 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+} from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { GenresService } from "./genres.service";
 import { GenreDTO } from "./models/genre.dto";
@@ -27,7 +32,11 @@ export class GenresController {
     type: GenreDTO,
   })
   @ApiResponse({ status: 404, description: "Genre not found" })
-  findOne(@Param("id") id: string) {
-    return this.genresService.findOne(id);
+  async findOne(@Param("id") id: string) {
+    const genre = await this.genresService.findOne(id);
+    if (!genre) {
+      throw new NotFoundException(`Genre with id ${id} not found`);
+    }
+    return genre;
   }
 }

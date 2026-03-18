@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { plainToInstance } from "class-transformer";
 import { Repository, In } from "typeorm";
 import { Genre } from "../models/genre.entity";
 import { GenreDTO } from "../models/genre.dto";
@@ -110,10 +111,10 @@ export class SqlGenresRepository implements GenresRepository {
   }
 
   private mapToDTO(genre: Genre): GenreDTO {
-    return {
+    return plainToInstance(GenreDTO, {
       id: genre.id.toString(),
       name: genre.name,
       songs: genre.songs ? genre.songs.map((song) => song.title) : [],
-    };
+    });
   }
 }

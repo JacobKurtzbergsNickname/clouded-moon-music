@@ -1,4 +1,9 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+} from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ArtistsService } from "./artists.service";
 import { ArtistDTO } from "./models/artist.dto";
@@ -27,7 +32,11 @@ export class ArtistsController {
     type: ArtistDTO,
   })
   @ApiResponse({ status: 404, description: "Artist not found" })
-  findOne(@Param("id") id: string) {
-    return this.artistsService.findOne(id);
+  async findOne(@Param("id") id: string) {
+    const artist = await this.artistsService.findOne(id);
+    if (!artist) {
+      throw new NotFoundException(`Artist with id ${id} not found`);
+    }
+    return artist;
   }
 }

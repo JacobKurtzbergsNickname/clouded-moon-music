@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { plainToInstance } from "class-transformer";
 import { Repository, In } from "typeorm";
 import { Artist } from "../models/artist.entity";
 import { ArtistDTO } from "../models/artist.dto";
@@ -110,10 +111,10 @@ export class SqlArtistsRepository implements ArtistsRepository {
   }
 
   private mapToDTO(artist: Artist): ArtistDTO {
-    return {
+    return plainToInstance(ArtistDTO, {
       id: artist.id.toString(),
       name: artist.name,
       songs: artist.songs ? artist.songs.map((song) => song.title) : [],
-    };
+    });
   }
 }

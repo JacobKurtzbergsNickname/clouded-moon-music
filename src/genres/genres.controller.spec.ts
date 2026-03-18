@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { GenresController } from "./genres.controller";
 import { GenresService } from "./genres.service";
@@ -59,12 +60,10 @@ describe("GenresController", () => {
       expect(service.findOne).toHaveBeenCalledWith("1");
     });
 
-    it("should return null if genre not found", async () => {
+    it("should throw NotFoundException when genre not found", async () => {
       jest.spyOn(service, "findOne").mockResolvedValue(null);
 
-      const result = await controller.findOne("999");
-
-      expect(result).toBeNull();
+      await expect(controller.findOne("999")).rejects.toThrow(NotFoundException);
       expect(service.findOne).toHaveBeenCalledWith("999");
     });
   });

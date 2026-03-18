@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
+import { plainToInstance } from "class-transformer";
 import { Model, Types } from "mongoose";
 import { Song, SongDocument } from "../models/song.schema";
 import CreateSongDTO from "../models/create-song.dto";
@@ -127,7 +128,7 @@ export class MongoSongsRepository implements SongsRepository {
    * Converts a Mongoose document to a plain Song DTO object
    */
   private toSong(doc: SongDocument): SongDTO {
-    return {
+    return plainToInstance(SongDTO, {
       id: doc._id.toString(),
       title: doc.title,
       artists: doc.artists,
@@ -136,6 +137,6 @@ export class MongoSongsRepository implements SongsRepository {
       genres: doc.genres,
       duration: doc.duration,
       releaseDate: doc.releaseDate,
-    };
+    });
   }
 }
