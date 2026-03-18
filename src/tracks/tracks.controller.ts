@@ -129,8 +129,8 @@ export class TracksController {
       },
     },
   })
-  requestUpload(@Query("key") storageKey: string) {
-    const { url, expiresAt } = this.tracksService.getUploadUrl(storageKey);
+  async requestUpload(@Query("key") storageKey: string) {
+    const { url, expiresAt } = await this.tracksService.getUploadUrl(storageKey);
     return { uploadUrl: url, expiresAt };
   }
 

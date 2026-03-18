@@ -322,7 +322,7 @@ describe("TracksService", () => {
     it("should return a signed stream URL for an existing FLAC track", async () => {
       mockRedisService.get.mockResolvedValue(null);
       mockRepository.findOne.mockResolvedValue(mockTrack);
-      mockStorageService.getSignedDownloadUrl.mockReturnValue({
+      mockStorageService.getSignedDownloadUrl.mockResolvedValue({
         url: "https://cdn.example.com/tracks/uuid-1/master.flac?sig=abc",
         expiresAt,
       });
@@ -343,7 +343,7 @@ describe("TracksService", () => {
       const wavTrack: TrackDTO = { ...mockTrack, format: "wav", storageKey: "tracks/uuid-2/master.wav" };
       mockRedisService.get.mockResolvedValue(null);
       mockRepository.findOne.mockResolvedValue(wavTrack);
-      mockStorageService.getSignedDownloadUrl.mockReturnValue({
+      mockStorageService.getSignedDownloadUrl.mockResolvedValue({
         url: "http://localhost:3456/tracks/uuid-2/stream?expires=123&sig=xyz",
         expiresAt,
       });
@@ -368,14 +368,14 @@ describe("TracksService", () => {
   // getUploadUrl
   // ---------------------------------------------------------------------------
   describe("getUploadUrl", () => {
-    it("should delegate to StorageService and return an upload URL", () => {
+    it("should delegate to StorageService and return an upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockStorageService.getSignedUploadUrl.mockReturnValue({
+      mockStorageService.getSignedUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/bucket/tracks/uuid-5/master.flac?sig=upload",
         expiresAt,
       });
 
-      const result = service.getUploadUrl("tracks/uuid-5/master.flac");
+      const result = await service.getUploadUrl("tracks/uuid-5/master.flac");
 
       expect(mockStorageService.getSignedUploadUrl).toHaveBeenCalledWith(
         "tracks/uuid-5/master.flac",
