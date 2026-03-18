@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-} from "@nestjs/common";
+import { Controller, Get, NotFoundException, Param } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { GenresService } from "./genres.service";
 import { GenreDTO } from "./models/genre.dto";

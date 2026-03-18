@@ -121,7 +121,9 @@ export abstract class CachedServiceBase {
     writeResult.match(
       () => this.logger.info(`Cache populated: ${cacheKey}`),
       (error) =>
-        this.logger.warn(`Cache write failed for ${cacheKey}: ${error.message}`),
+        this.logger.warn(
+          `Cache write failed for ${cacheKey}: ${error.message}`,
+        ),
     );
 
     return items;

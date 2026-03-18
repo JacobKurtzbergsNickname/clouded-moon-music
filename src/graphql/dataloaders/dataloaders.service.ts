@@ -76,9 +76,7 @@ export class DataLoadersService {
     async (ids: readonly string[]) => {
       // Single database query with $in operator — no N+1
       const songs = await this.songsService.findByIds(Array.from(ids));
-      return songs.map((song) =>
-        song ? (song as unknown as SongType) : null,
-      );
+      return songs.map((song) => (song ? (song as unknown as SongType) : null));
     },
   );
 

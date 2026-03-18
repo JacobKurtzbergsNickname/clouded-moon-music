@@ -413,7 +413,10 @@ describe("SqlSongsRepository", () => {
       mockArtistRepository.findOne.mockResolvedValue(mockArtist);
       mockSongRepository.save.mockResolvedValue({ ...mockSong });
 
-      await repository.replace("1", replaceDtoNoGenres as unknown as CreateSongDTO);
+      await repository.replace(
+        "1",
+        replaceDtoNoGenres as unknown as CreateSongDTO,
+      );
 
       expect(genreRepository.findOne).not.toHaveBeenCalled();
     });

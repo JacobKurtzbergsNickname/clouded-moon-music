@@ -46,7 +46,11 @@ export class ArtistsService extends CachedServiceBase {
     const artist = await this.artistsRepository.findOne(id);
 
     if (artist) {
-      const cacheWriteResult = await this.setCached(cacheKey, artist, CACHE_TTL.ARTIST);
+      const cacheWriteResult = await this.setCached(
+        cacheKey,
+        artist,
+        CACHE_TTL.ARTIST,
+      );
       cacheWriteResult.match(
         () => this.logger.info(`Cache populated: ${cacheKey}`),
         (error) => this.logger.warn(`Cache write failed: ${error.message}`),
@@ -63,15 +67,15 @@ export class ArtistsService extends CachedServiceBase {
    * @returns Array of ArtistDTO or null, in the same order as input IDs
    */
   async findByIds(ids: string[]): Promise<(ArtistDTO | null)[]> {
-    this.logger.info(`Method: findByIds() — batch finding ${ids.length} artists`);
+    this.logger.info(
+      `Method: findByIds() — batch finding ${ids.length} artists`,
+    );
     return this.artistsRepository.findByIds(ids);
   }
 
   async create(name: string): Promise<ArtistDTO> {
     const artist = await this.artistsRepository.create(name);
-    await this.invalidateCache(
-      CACHE_KEYS.ARTISTS_LIST_ALL,
-    );
+    await this.invalidateCache(CACHE_KEYS.ARTISTS_LIST_ALL);
     return artist;
   }
 
@@ -79,7 +83,10 @@ export class ArtistsService extends CachedServiceBase {
     const artist = await this.artistsRepository.update(id, name);
     if (artist) {
       await Promise.all([
-        this.invalidateCache(CACHE_KEYS.ARTISTS_LIST_ALL, `${CACHE_KEYS.ARTIST}${id}`),
+        this.invalidateCache(
+          CACHE_KEYS.ARTISTS_LIST_ALL,
+          `${CACHE_KEYS.ARTIST}${id}`,
+        ),
       ]);
     }
     return artist;
