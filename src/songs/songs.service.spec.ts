@@ -16,7 +16,10 @@ describe("SongsService", () => {
     findOne: (id: string) => Promise<SongDTO | null>;
     findByIds: (ids: string[]) => Promise<(SongDTO | null)[]>;
     create: (dto: CreateSongDTO) => Promise<SongDTO>;
-    update: (id: string, song: Partial<CreateSongDTO>) => Promise<SongDTO | null>;
+    update: (
+      id: string,
+      song: Partial<CreateSongDTO>,
+    ) => Promise<SongDTO | null>;
     replace: (id: string, song: CreateSongDTO) => Promise<SongDTO | null>;
     remove: (id: string) => Promise<string | null>;
     findByArtistIds: (ids: string[]) => Promise<SongDTO[]>;
@@ -248,10 +251,10 @@ describe("SongsService", () => {
   describe("create", () => {
     const createDto: CreateSongDTO = {
       title: "New Song",
-      artists: ["artist-1"],
+      artists: ["101"],
       album: "New Album",
       year: 2024,
-      genres: ["genre-1"],
+      genres: ["202"],
       duration: 240,
       releaseDate: new Date("2024-02-01"),
     };
@@ -262,8 +265,12 @@ describe("SongsService", () => {
     };
 
     it("should create song and invalidate list caches", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "202", name: "Jazz", songs: [] },
+      ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
 
       const result = await service.create(createDto);
@@ -286,7 +293,9 @@ describe("SongsService", () => {
     });
 
     it("should throw BadRequestException when genre IDs do not exist", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "Artist", songs: [] },
+      ]);
       mockGenresService.findByIds.mockResolvedValue([null]);
 
       await expect(service.create(createDto)).rejects.toThrow(
@@ -296,8 +305,12 @@ describe("SongsService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "202", name: "Jazz", songs: [] },
+      ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis del failed"));
 
@@ -307,6 +320,26 @@ describe("SongsService", () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining("Cache invalidation failed"),
       );
+    });
+
+    it("should allow artist and genre names without ID validation", async () => {
+      const nameBasedDto: CreateSongDTO = {
+        ...createDto,
+        artists: ["Queen"],
+        genres: ["Rock"],
+      };
+      const nameBasedSong: SongDTO = {
+        id: "789",
+        ...nameBasedDto,
+      };
+      mockRepository.create.mockResolvedValue(nameBasedSong);
+
+      const result = await service.create(nameBasedDto);
+
+      expect(result).toEqual(nameBasedSong);
+      expect(mockArtistsService.findByIds).not.toHaveBeenCalled();
+      expect(mockGenresService.findByIds).not.toHaveBeenCalled();
+      expect(mockRepository.create).toHaveBeenCalledWith(nameBasedDto);
     });
   });
 
@@ -341,10 +374,21 @@ describe("SongsService", () => {
     it("should validate artist IDs when provided in update", async () => {
       mockArtistsService.findByIds.mockResolvedValue([null]);
 
-      await expect(
-        service.update("123", { artists: ["missing-artist"] }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.update("123", { artists: ["999"] })).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockRepository.update).not.toHaveBeenCalled();
+    });
+
+    it("should allow name-based artists in update without ID validation", async () => {
+      const nameUpdateDto: Partial<CreateSongDTO> = { artists: ["Muse"] };
+      mockRepository.update.mockResolvedValue(mockUpdatedSong);
+
+      const result = await service.update("123", nameUpdateDto);
+
+      expect(result).toEqual(mockUpdatedSong);
+      expect(mockArtistsService.findByIds).not.toHaveBeenCalled();
+      expect(mockRepository.update).toHaveBeenCalledWith("123", nameUpdateDto);
     });
 
     it("should not invalidate cache if song not found", async () => {
@@ -360,10 +404,10 @@ describe("SongsService", () => {
   describe("replace", () => {
     const replaceDto: CreateSongDTO = {
       title: "Replaced Song",
-      artists: ["artist-1"],
+      artists: ["101"],
       album: "New Album",
       year: 2025,
-      genres: ["genre-1"],
+      genres: ["202"],
       duration: 200,
       releaseDate: new Date("2025-01-01"),
     };
@@ -374,8 +418,12 @@ describe("SongsService", () => {
     };
 
     it("should replace song and invalidate caches", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "202", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
 
       const result = await service.replace("123", replaceDto);
@@ -388,8 +436,12 @@ describe("SongsService", () => {
     });
 
     it("should not invalidate cache if song not found", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "202", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(null);
 
       const result = await service.replace("999", replaceDto);
@@ -399,8 +451,12 @@ describe("SongsService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "101", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "202", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis failed"));
 
@@ -409,6 +465,26 @@ describe("SongsService", () => {
       expect(result).toEqual(mockReplacedSong);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining("Cache invalidation failed"),
+      );
+    });
+
+    it("should allow replacing with name-based artists and genres", async () => {
+      const nameReplaceDto: CreateSongDTO = {
+        ...replaceDto,
+        artists: ["Daft Punk"],
+        genres: ["Electronic"],
+      };
+      const nameReplacedSong: SongDTO = { id: "123", ...nameReplaceDto };
+      mockRepository.replace.mockResolvedValue(nameReplacedSong);
+
+      const result = await service.replace("123", nameReplaceDto);
+
+      expect(result).toEqual(nameReplacedSong);
+      expect(mockArtistsService.findByIds).not.toHaveBeenCalled();
+      expect(mockGenresService.findByIds).not.toHaveBeenCalled();
+      expect(mockRepository.replace).toHaveBeenCalledWith(
+        "123",
+        nameReplaceDto,
       );
     });
   });

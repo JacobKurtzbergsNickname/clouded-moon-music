@@ -34,25 +34,37 @@ export class SongsService extends CachedServiceBase {
     artistIds?: string[],
     genreIds?: string[],
   ): Promise<void> {
-    if (artistIds && artistIds.length > 0) {
-      const artists = await this.artistsService.findByIds(artistIds);
-      const missingArtists = artistIds.filter((_, i) => artists[i] === null);
-      if (missingArtists.length > 0) {
-        throw new BadRequestException(
-          `Artist IDs not found: ${missingArtists.join(", ")}`,
-        );
-      }
-    }
+    const validateNumericIds = async (
+      ids: string[] | undefined,
+      lookup: (ids: string[]) => Promise<(unknown | null)[]>,
+      errorLabel: string,
+    ): Promise<void> => {
+      if (!ids || ids.length === 0) return;
 
-    if (genreIds && genreIds.length > 0) {
-      const genres = await this.genresService.findByIds(genreIds);
-      const missingGenres = genreIds.filter((_, i) => genres[i] === null);
-      if (missingGenres.length > 0) {
+      const numericIds = ids.filter((id) => /^\d+$/.test(id));
+      if (numericIds.length === 0) return;
+
+      const results = await lookup(numericIds);
+      const missing = numericIds.filter((_, i) => results[i] === null);
+      if (missing.length > 0) {
         throw new BadRequestException(
-          `Genre IDs not found: ${missingGenres.join(", ")}`,
+          `${errorLabel} not found: ${missing.join(", ")}`,
         );
       }
-    }
+    };
+
+    await Promise.all([
+      validateNumericIds(
+        artistIds,
+        this.artistsService.findByIds.bind(this.artistsService),
+        "Artist IDs",
+      ),
+      validateNumericIds(
+        genreIds,
+        this.genresService.findByIds.bind(this.genresService),
+        "Genre IDs",
+      ),
+    ]);
   }
 
   async findAll(): Promise<SongDTO[]> {
@@ -81,7 +93,11 @@ export class SongsService extends CachedServiceBase {
     const song = await this.songsRepository.findOne(id);
 
     if (song) {
-      const cacheWriteResult = await this.setCached(cacheKey, song, CACHE_TTL.SONG);
+      const cacheWriteResult = await this.setCached(
+        cacheKey,
+        song,
+        CACHE_TTL.SONG,
+      );
       cacheWriteResult.match(
         () => this.logger.info(`Cache populated: ${cacheKey}`),
         (error) => this.logger.warn(`Cache write failed: ${error.message}`),
@@ -180,7 +196,12 @@ export class SongsService extends CachedServiceBase {
    */
   private async invalidateSongCaches(...extraKeys: string[]): Promise<void> {
     const results = await Promise.all([
-      this.invalidateCache(CACHE_KEYS.SONGS_LIST_ALL, CACHE_KEYS.ARTISTS_LIST_ALL, CACHE_KEYS.GENRES_LIST_ALL, ...extraKeys),
+      this.invalidateCache(
+        CACHE_KEYS.SONGS_LIST_ALL,
+        CACHE_KEYS.ARTISTS_LIST_ALL,
+        CACHE_KEYS.GENRES_LIST_ALL,
+        ...extraKeys,
+      ),
       this.invalidateCachePattern(`${CACHE_KEYS.SONGS_LIST_FILTERED}*`),
       this.invalidateCachePattern(`${CACHE_KEYS.ARTIST}*`),
       this.invalidateCachePattern(`${CACHE_KEYS.GENRE}*`),
@@ -188,7 +209,8 @@ export class SongsService extends CachedServiceBase {
 
     Result.combine(results).match(
       () => this.logger.info("Song mutation caches invalidated"),
-      (error) => this.logger.warn(`Cache invalidation failed: ${error.message}`),
+      (error) =>
+        this.logger.warn(`Cache invalidation failed: ${error.message}`),
     );
   }
 }

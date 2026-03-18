@@ -31,13 +31,21 @@ export class CreateTrackDTO {
   @IsNotEmpty()
   readonly duration!: number;
 
-  @ApiProperty({ example: 1411, description: "Bitrate in kbps", required: false })
+  @ApiProperty({
+    example: 1411,
+    description: "Bitrate in kbps",
+    required: false,
+  })
   @IsInt()
   @Min(1)
   @IsOptional()
   readonly bitrate?: number;
 
-  @ApiProperty({ example: 44100, description: "Sample rate in Hz", required: false })
+  @ApiProperty({
+    example: 44100,
+    description: "Sample rate in Hz",
+    required: false,
+  })
   @IsInt()
   @Min(1)
   @IsOptional()
