@@ -1,7 +1,10 @@
 import { StorageService } from "./storage.service";
 
 // Helper — create a service with a specific provider env var
-function buildService(provider = "local", secret = "test-secret"): StorageService {
+function buildService(
+  provider = "local",
+  secret = "test-secret",
+): StorageService {
   process.env.STORAGE_PROVIDER = provider;
   process.env.STORAGE_SECRET_ACCESS_KEY = secret;
   process.env.CDN_BASE_URL = "http://localhost:3456";
@@ -153,7 +156,9 @@ describe("StorageService", () => {
     it("should return false when expires is not a number", () => {
       const service = buildService();
 
-      expect(service.verifyLocalSignature("uuid-1", "not-a-number", "sig")).toBe(false);
+      expect(
+        service.verifyLocalSignature("uuid-1", "not-a-number", "sig"),
+      ).toBe(false);
     });
 
     it("should return false when the track id is changed after signing", () => {
@@ -165,7 +170,9 @@ describe("StorageService", () => {
       const sig = parsed.searchParams.get("sig")!;
 
       // Verify with a different track id — should fail
-      expect(service.verifyLocalSignature("uuid-999", expires, sig)).toBe(false);
+      expect(service.verifyLocalSignature("uuid-999", expires, sig)).toBe(
+        false,
+      );
     });
 
     it("should return false when the expires value is changed after signing", () => {
@@ -176,9 +183,9 @@ describe("StorageService", () => {
       const sig = parsed.searchParams.get("sig")!;
 
       const tamperedExpiry = String(Date.now() + 99999999);
-      expect(
-        service.verifyLocalSignature("uuid-1", tamperedExpiry, sig),
-      ).toBe(false);
+      expect(service.verifyLocalSignature("uuid-1", tamperedExpiry, sig)).toBe(
+        false,
+      );
     });
 
     it("should return false when sig length mismatches expected HMAC hex length", () => {
