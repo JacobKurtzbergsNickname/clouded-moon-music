@@ -3,9 +3,11 @@ import DataLoader from "dataloader";
 import { ArtistType } from "../models/artist.type";
 import { GenreType } from "../models/genre.type";
 import { SongType } from "../models/song.type";
+import { PlaylistType } from "../models/playlist.type";
 import { ArtistsService } from "../../artists/artists.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
+import { PlaylistsService } from "../../playlists/playlists.service";
 
 /**
  * Request-scoped service providing DataLoader instances for batch loading entities.
@@ -23,6 +25,7 @@ export class DataLoadersService {
     private readonly artistsService: ArtistsService,
     private readonly genresService: GenresService,
     private readonly songsService: SongsService,
+    private readonly playlistsService: PlaylistsService,
   ) {}
 
   /**
@@ -119,6 +122,21 @@ export class DataLoadersService {
       return artistIds.map((artistId) => {
         const key = String(artistId);
         return songsByArtistId.get(key) || [];
+      });
+    },
+  );
+
+  /**
+   * DataLoader for batching playlist lookups by ID.
+   * Caches results per-request to avoid duplicate fetches.
+   * Uses database-level batch query via findByIds for optimal performance.
+   */
+  readonly playlistLoader = new DataLoader<string, PlaylistType | null>(
+    async (ids: readonly string[]) => {
+      const playlists = await this.playlistsService.findByIds(Array.from(ids));
+      return playlists.map((playlist) => {
+        if (!playlist) return null;
+        return playlist as unknown as PlaylistType;
       });
     },
   );

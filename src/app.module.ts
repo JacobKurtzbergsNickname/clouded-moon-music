@@ -24,6 +24,7 @@ import { ArtistsModule } from "./artists/artists.module";
 import { GenresModule } from "./genres/genres.module";
 import { RedisModule } from "./redis/redis.module";
 import { TracksModule } from "./tracks/tracks.module";
+import { PlaylistsModule } from "./playlists/playlists.module";
 
 const mongoConnectionFactory = (connection: Connection) => {
   connection.on("connected", () => {
@@ -87,6 +88,7 @@ const mongoConnectionFactory = (connection: Connection) => {
     GenresModule,
     RedisModule,
     TracksModule,
+    PlaylistsModule,
 
     WinstonModule.forRoot({
       transports: [

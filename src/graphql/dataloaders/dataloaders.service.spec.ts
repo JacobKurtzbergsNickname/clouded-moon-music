@@ -3,6 +3,7 @@ import { DataLoadersService } from "./dataloaders.service";
 import { ArtistsService } from "../../artists/artists.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
+import { PlaylistsService } from "../../playlists/playlists.service";
 
 describe("DataLoadersService", () => {
   let service: DataLoadersService;
@@ -25,6 +26,10 @@ describe("DataLoadersService", () => {
       findByGenreIds: jest.fn(),
     };
 
+    const mockPlaylistsService = {
+      findByIds: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DataLoadersService,
@@ -39,6 +44,10 @@ describe("DataLoadersService", () => {
         {
           provide: SongsService,
           useValue: mockSongsService,
+        },
+        {
+          provide: PlaylistsService,
+          useValue: mockPlaylistsService,
         },
       ],
     }).compile();
