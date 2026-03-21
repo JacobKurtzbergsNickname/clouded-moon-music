@@ -41,9 +41,7 @@ export class MongoSongsRepository implements SongsRepository {
       return ids.map(() => null);
     }
 
-    const docs = await this.songModel
-      .find({ _id: { $in: validIds } })
-      .exec();
+    const docs = await this.songModel.find({ _id: { $in: validIds } }).exec();
 
     const songMap = new Map<string, SongDTO>();
     docs.forEach((doc) => songMap.set(doc._id.toString(), this.toSong(doc)));

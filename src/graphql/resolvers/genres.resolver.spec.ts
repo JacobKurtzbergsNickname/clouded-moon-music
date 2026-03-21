@@ -43,9 +43,8 @@ describe("GenresResolver", () => {
     }).compile();
 
     resolver = module.get<GenresResolver>(GenresResolver);
-    graphqlGenresService = module.get<GraphqlGenresService>(
-      GraphqlGenresService,
-    );
+    graphqlGenresService =
+      module.get<GraphqlGenresService>(GraphqlGenresService);
     dataLoadersService = module.get<DataLoadersService>(DataLoadersService);
   });
 

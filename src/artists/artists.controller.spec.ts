@@ -63,7 +63,9 @@ describe("ArtistsController", () => {
     it("should throw NotFoundException when artist not found", async () => {
       jest.spyOn(service, "findOne").mockResolvedValue(null);
 
-      await expect(controller.findOne("999")).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne("999")).rejects.toThrow(
+        NotFoundException,
+      );
       expect(service.findOne).toHaveBeenCalledWith("999");
     });
   });

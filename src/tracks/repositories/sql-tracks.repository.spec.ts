@@ -195,7 +195,11 @@ describe("SqlTracksRepository", () => {
     });
 
     it("should create a WAV track", async () => {
-      const wavDto = { ...createDto, format: "wav" as const, storageKey: "tracks/uuid-4/master.wav" };
+      const wavDto = {
+        ...createDto,
+        format: "wav" as const,
+        storageKey: "tracks/uuid-4/master.wav",
+      };
       const savedEntity: Track = {
         id: "uuid-4",
         ...wavDto,
@@ -211,7 +215,9 @@ describe("SqlTracksRepository", () => {
 
     it("should propagate save errors", async () => {
       mockTypeormRepo.create.mockReturnValue(createDto as any);
-      mockTypeormRepo.save.mockRejectedValue(new Error("Unique constraint violation"));
+      mockTypeormRepo.save.mockRejectedValue(
+        new Error("Unique constraint violation"),
+      );
 
       await expect(repository.create(createDto)).rejects.toThrow(
         "Unique constraint violation",
@@ -230,7 +236,9 @@ describe("SqlTracksRepository", () => {
       const result = await repository.remove("uuid-1");
 
       expect(result).toBe("uuid-1");
-      expect(typeormRepo.findOne).toHaveBeenCalledWith({ where: { id: "uuid-1" } });
+      expect(typeormRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "uuid-1" },
+      });
       expect(typeormRepo.remove).toHaveBeenCalledWith(mockTrackEntity);
     });
 
@@ -247,7 +255,9 @@ describe("SqlTracksRepository", () => {
       mockTypeormRepo.findOne.mockResolvedValue(mockTrackEntity);
       mockTypeormRepo.remove.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(repository.remove("uuid-1")).rejects.toThrow("Delete failed");
+      await expect(repository.remove("uuid-1")).rejects.toThrow(
+        "Delete failed",
+      );
     });
   });
 });

@@ -4,14 +4,18 @@ import { CMLogger, ILogEntry } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
 import { StorageService, SignedUrlResult } from "../storage/storage.service";
-import { TRACKS_REPOSITORY, TracksRepository } from "./repositories/tracks.repository";
+import {
+  TRACKS_REPOSITORY,
+  TracksRepository,
+} from "./repositories/tracks.repository";
 import { TrackDTO } from "./models/track.dto";
 import { CreateTrackDTO } from "./models/create-track.dto";
 
 @Injectable()
 export class TracksService extends CachedServiceBase {
   constructor(
-    @Inject(TRACKS_REPOSITORY) private readonly tracksRepository: TracksRepository,
+    @Inject(TRACKS_REPOSITORY)
+    private readonly tracksRepository: TracksRepository,
     private readonly storageService: StorageService,
     logger: CMLogger,
     redisService: RedisService,
@@ -98,7 +102,9 @@ export class TracksService extends CachedServiceBase {
   async create(dto: CreateTrackDTO): Promise<TrackDTO> {
     const track = await this.tracksRepository.create(dto);
 
-    const invalidateResult = await this.invalidateCache(CACHE_KEYS.TRACKS_LIST_ALL);
+    const invalidateResult = await this.invalidateCache(
+      CACHE_KEYS.TRACKS_LIST_ALL,
+    );
     invalidateResult.match(
       () =>
         this.logger.info("Invalidated tracks list cache after create", {
@@ -107,7 +113,8 @@ export class TracksService extends CachedServiceBase {
           message: "Cache invalidated",
           context: "TracksService",
         }),
-      (error) => this.logger.warn(`Cache invalidation failed: ${error.message}`),
+      (error) =>
+        this.logger.warn(`Cache invalidation failed: ${error.message}`),
     );
 
     return track;
@@ -130,7 +137,8 @@ export class TracksService extends CachedServiceBase {
             message: "Cache invalidated",
             context: "TracksService",
           }),
-        (error) => this.logger.warn(`Cache invalidation failed: ${error.message}`),
+        (error) =>
+          this.logger.warn(`Cache invalidation failed: ${error.message}`),
       );
     }
 
@@ -141,7 +149,9 @@ export class TracksService extends CachedServiceBase {
    * Return a signed URL authorising the client to stream the requested track
    * directly from object storage (or the local dev endpoint).
    */
-  async getPlayUrl(id: string): Promise<{ streamUrl: string; expiresAt: Date } | null> {
+  async getPlayUrl(
+    id: string,
+  ): Promise<{ streamUrl: string; expiresAt: Date } | null> {
     const track = await this.findOne(id);
     if (!track) return null;
 
