@@ -16,8 +16,7 @@ export class Auth0Config {
       env.AUTH0_CALLBACK_URL ?? `http://localhost:${env.PORT ?? 3456}/callback`;
     this.logoutUrl =
       env.AUTH0_LOGOUT_URL ?? `http://localhost:${env.PORT ?? 3456}`;
-    this.baseUrl =
-      env.AUTH0_BASE_URL ?? `http://localhost:${env.PORT ?? 3456}`;
+    this.baseUrl = env.AUTH0_BASE_URL ?? `http://localhost:${env.PORT ?? 3456}`;
   }
 
   get issuerBaseUrl(): string {
