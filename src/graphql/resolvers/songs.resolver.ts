@@ -48,9 +48,26 @@ export class SongsResolver {
   @ResolveField(() => AlbumType, { name: "album", nullable: true })
   async album(@Parent() song: SongType): Promise<AlbumType | null> {
     const songRuntime = song as unknown as SongDTORuntime;
-    const albumId = songRuntime.album;
-    if (!albumId) return null;
-    return this.dataLoadersService.albumLoader.load(albumId);
+    const albumRef = songRuntime.album;
+    if (!albumRef) return null;
+
+    // Legacy data stores album titles as plain strings; short-circuit before DB lookup
+    if (typeof albumRef === "string" && /\D/.test(albumRef.trim())) {
+      const title = albumRef.trim();
+      if (!title) return null;
+      return { id: title, title } as AlbumType;
+    }
+
+    const normalizedAlbumId =
+      typeof albumRef === "string" ? albumRef.trim() : String(albumRef);
+    if (!normalizedAlbumId) return null;
+
+    const album =
+      await this.dataLoadersService.albumLoader.load(normalizedAlbumId);
+    if (album) return album;
+
+    // Fallback for legacy strings that look like IDs but have no album record
+    return { id: normalizedAlbumId, title: albumRef } as AlbumType;
   }
 
   @ResolveField(() => [ArtistType], { name: "artists" })
