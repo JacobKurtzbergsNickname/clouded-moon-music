@@ -479,4 +479,27 @@ describe("SqlSongsRepository", () => {
       expect(result).toHaveLength(1);
     });
   });
+
+  describe("findByAlbumIds", () => {
+    it("should return empty array when albumIds is empty", async () => {
+      const result = await repository.findByAlbumIds([]);
+
+      expect(result).toEqual([]);
+      expect(songRepository.find).not.toHaveBeenCalled();
+    });
+
+    it("should return songs matching albumIds", async () => {
+      mockSongRepository.find.mockResolvedValue([mockSong]);
+
+      const result = await repository.findByAlbumIds(["Test Album"]);
+
+      expect(result).toHaveLength(1);
+      expect(songRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { album: expect.anything() },
+          relations: ["artists", "genres"],
+        }),
+      );
+    });
+  });
 });
