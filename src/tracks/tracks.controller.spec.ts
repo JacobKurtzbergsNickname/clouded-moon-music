@@ -238,7 +238,9 @@ describe("TracksController", () => {
         expiresAt,
       });
 
-      const result = await controller.requestUpload("tracks/uuid-5/master.flac");
+      const result = await controller.requestUpload(
+        "tracks/uuid-5/master.flac",
+      );
 
       expect(result).toEqual({
         uploadUrl:

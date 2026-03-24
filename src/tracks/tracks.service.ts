@@ -155,10 +155,8 @@ export class TracksService extends CachedServiceBase {
     const track = await this.findOne(id);
     if (!track) return null;
 
-    const signed: SignedUrlResult = await this.storageService.getSignedDownloadUrl(
-      track.storageKey,
-      id,
-    );
+    const signed: SignedUrlResult =
+      await this.storageService.getSignedDownloadUrl(track.storageKey, id);
 
     return { streamUrl: signed.url, expiresAt: signed.expiresAt };
   }
