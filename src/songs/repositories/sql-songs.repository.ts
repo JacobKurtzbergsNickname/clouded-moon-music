@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Song } from "../models/song.entity";
 import { Artist } from "../../artists/models/artist.entity";
 import { Genre } from "../../genres/models/genre.entity";
@@ -263,6 +263,29 @@ export class SqlSongsRepository implements SongsRepository {
     // This is a fallback for SQL - ideally not used in production
     // as the MongoDB repository is the primary implementation
     return songs;
+  }
+
+  /**
+   * Find all songs that belong to any of the specified album IDs.
+   * For the SQL implementation, album is stored as a string column,
+   * so we can query directly using an IN clause.
+   * Uses a single SQL query with IN clause on the album column.
+   * @param albumIds - Array of album IDs (as strings)
+   * @returns Array of SongDTO objects
+   */
+  async findByAlbumIds(albumIds: string[]): Promise<SongDTO[]> {
+    if (albumIds.length === 0) {
+      return [];
+    }
+
+    const uniqueAlbumIds = Array.from(new Set(albumIds));
+
+    const songs = await this.songRepository.find({
+      where: { album: In(uniqueAlbumIds) },
+      relations: ["artists", "genres"],
+    });
+
+    return songs.map((song) => this.toSongWithStringId(song));
   }
 
   /**

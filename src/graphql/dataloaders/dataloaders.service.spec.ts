@@ -1,20 +1,27 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DataLoadersService } from "./dataloaders.service";
 import { ArtistsService } from "../../artists/artists.service";
+import { AlbumsService } from "../../albums/albums.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
 import { ArtistDTO } from "../../artists/models/artist.dto";
+import { AlbumDTO } from "../../albums/models/album.dto";
 import { GenreDTO } from "../../genres/models/genre.dto";
 import { SongDTO } from "../../songs/models/song.dto";
 
 describe("DataLoadersService", () => {
   let service: DataLoadersService;
   let artistsService: ArtistsService;
+  let albumsService: AlbumsService;
   let genresService: GenresService;
   let songsService: SongsService;
 
   beforeEach(async () => {
     const mockArtistsService = {
+      findByIds: vi.fn(),
+    };
+
+    const mockAlbumsService = {
       findByIds: vi.fn(),
     };
 
@@ -26,6 +33,7 @@ describe("DataLoadersService", () => {
       findByIds: vi.fn(),
       findByArtistIds: vi.fn(),
       findByGenreIds: vi.fn(),
+      findByAlbumIds: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,6 +42,10 @@ describe("DataLoadersService", () => {
         {
           provide: ArtistsService,
           useValue: mockArtistsService,
+        },
+        {
+          provide: AlbumsService,
+          useValue: mockAlbumsService,
         },
         {
           provide: GenresService,
@@ -49,6 +61,7 @@ describe("DataLoadersService", () => {
     // Use resolve() instead of get() for request-scoped providers
     service = await module.resolve<DataLoadersService>(DataLoadersService);
     artistsService = module.get<ArtistsService>(ArtistsService);
+    albumsService = module.get<AlbumsService>(AlbumsService);
     genresService = module.get<GenresService>(GenresService);
     songsService = module.get<SongsService>(SongsService);
   });
@@ -78,6 +91,39 @@ describe("DataLoadersService", () => {
       vi.spyOn(artistsService, "findByIds").mockResolvedValue([null]);
 
       const result = await service.artistLoader.load("999");
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("albumLoader", () => {
+    it("should batch load albums", async () => {
+      const mockAlbums: AlbumDTO[] = [
+        { id: "1", title: "Album 1", releaseYear: 1975, songs: [] },
+        { id: "2", title: "Album 2", releaseYear: 1980, songs: [] },
+      ];
+
+      vi.spyOn(albumsService, "findByIds").mockResolvedValue(mockAlbums);
+
+      const results = await service.albumLoader.loadMany(["1", "2"]);
+
+      expect(albumsService.findByIds).toHaveBeenCalledWith(["1", "2"]);
+      expect(results).toHaveLength(2);
+      expect(results[0]).toEqual({
+        id: "1",
+        title: "Album 1",
+        releaseYear: 1975,
+      });
+      expect(results[1]).toEqual({
+        id: "2",
+        title: "Album 2",
+        releaseYear: 1980,
+      });
+    });
+
+    it("should return null for non-existent albums", async () => {
+      vi.spyOn(albumsService, "findByIds").mockResolvedValue([null]);
+
+      const result = await service.albumLoader.load("999");
       expect(result).toBeNull();
     });
   });
@@ -199,6 +245,58 @@ describe("DataLoadersService", () => {
       if (!(results[1] instanceof Error)) {
         expect(results[1]).toHaveLength(1); // artist2 has 1 song
       }
+    });
+  });
+
+  describe("songsByAlbumLoader", () => {
+    it("should load songs for given albums", async () => {
+      const mockSongs: SongDTO[] = [
+        {
+          id: "1",
+          title: "Song 1",
+          artists: ["artist1"],
+          album: "album1",
+          year: 2020,
+          duration: 180,
+          releaseDate: new Date(),
+          genres: [],
+        },
+        {
+          id: "2",
+          title: "Song 2",
+          artists: ["artist2"],
+          album: "album2",
+          year: 2021,
+          duration: 200,
+          releaseDate: new Date(),
+          genres: [],
+        },
+        {
+          id: "3",
+          title: "Song 3",
+          artists: ["artist1"],
+          album: "album1",
+          year: 2022,
+          duration: 220,
+          releaseDate: new Date(),
+          genres: [],
+        },
+      ];
+
+      vi.spyOn(songsService, "findByAlbumIds").mockResolvedValue(mockSongs);
+
+      const results = await service.songsByAlbumLoader.loadMany([
+        "album1",
+        "album2",
+      ]);
+
+      expect(songsService.findByAlbumIds).toHaveBeenCalledWith([
+        "album1",
+        "album2",
+      ]);
+      expect(results).toHaveLength(2);
+      expect((results[0] as unknown as SongDTO[]).length).toBe(2); // album1 has 2 songs
+      expect((results[1] as unknown as SongDTO[]).length).toBe(1); // album2 has 1 song
     });
   });
 
