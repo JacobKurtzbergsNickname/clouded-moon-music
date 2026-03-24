@@ -6,13 +6,13 @@ import { CMLogger } from "./logger.service";
 import { ILogEntry } from "./interfaces";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 
-// Create a mock Winston Logger with jest.fn()
+// Create a mock Winston Logger with vi.fn()
 const mockWinstonLogger: Partial<Logger> = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-  verbose: jest.fn(),
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+  verbose: vi.fn(),
 };
 
 describe("CMLogger", () => {
@@ -20,7 +20,7 @@ describe("CMLogger", () => {
   let logger: Logger;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

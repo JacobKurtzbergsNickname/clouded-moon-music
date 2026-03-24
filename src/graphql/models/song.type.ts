@@ -7,21 +7,23 @@ import {
 } from "@nestjs/graphql";
 import { ArtistType } from "./artist.type";
 import { GenreType } from "./genre.type";
+import { AlbumType } from "./album.type";
 
 @ObjectType("Song")
 export class SongType {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  title: string;
+  title!: string;
 
   // Resolved via @ResolveField in resolver, not from DTO
   @Field(() => [ArtistType])
   artists?: ArtistType[];
 
-  @Field()
-  album: string;
+  // Resolved via @ResolveField in resolver, not from DTO
+  @Field(() => AlbumType, { nullable: true })
+  album?: AlbumType;
 
   @Field(() => Int, { nullable: true })
   year?: number;
@@ -31,8 +33,20 @@ export class SongType {
   genres?: GenreType[];
 
   @Field(() => Int)
-  duration: number;
+  duration!: number;
 
   @Field(() => GraphQLISODateTime)
-  releaseDate: Date;
+  releaseDate!: Date;
 }
+
+/**
+ * Represents the raw payload shape returned by services before relationship
+ * fields (artists, genres) are resolved via @ResolveField.
+ * Use this type in the GraphQL service layer and DataLoaders to avoid
+ * unsound `as unknown as SongType` casts.
+ */
+export type SongRawGqlType = Omit<SongType, "artists" | "genres" | "album"> & {
+  artists?: string[];
+  genres?: string[];
+  album?: string;
+};

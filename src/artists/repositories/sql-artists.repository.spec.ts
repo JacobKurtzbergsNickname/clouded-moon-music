@@ -3,6 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SqlArtistsRepository } from "./sql-artists.repository";
 import { Artist } from "../models/artist.entity";
+import { Song } from "../../songs/models/song.entity";
 
 describe("SqlArtistsRepository", () => {
   let repository: SqlArtistsRepository;
@@ -12,14 +13,14 @@ describe("SqlArtistsRepository", () => {
     id: 1,
     name: "Test Artist",
     songs: [
-      { id: 1, title: "Song 1" } as any,
-      { id: 2, title: "Song 2" } as any,
+      { id: 1, title: "Song 1" } as unknown as Song,
+      { id: 2, title: "Song 2" } as unknown as Song,
     ],
   };
 
   const mockArtistRepository = {
-    find: jest.fn(),
-    findOne: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -40,7 +41,7 @@ describe("SqlArtistsRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -93,6 +94,58 @@ describe("SqlArtistsRepository", () => {
     });
   });
 
+  describe("findByIds", () => {
+    it("should return empty array when ids is empty", async () => {
+      const result = await repository.findByIds([]);
+
+      expect(result).toEqual([]);
+      expect(artistRepository.find).not.toHaveBeenCalled();
+    });
+
+    it("should return array of artist DTOs for valid ids", async () => {
+      const mockArtists = [mockArtist];
+      mockArtistRepository.find.mockResolvedValue(mockArtists);
+
+      const result = await repository.findByIds(["1"]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: "1",
+        name: "Test Artist",
+        songs: ["Song 1", "Song 2"],
+      });
+    });
+
+    it("should return null for non-numeric ids", async () => {
+      const result = await repository.findByIds(["invalid", "abc"]);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeNull();
+      expect(result[1]).toBeNull();
+      expect(artistRepository.find).not.toHaveBeenCalled();
+    });
+
+    it("should return null for ids not found in database", async () => {
+      mockArtistRepository.find.mockResolvedValue([]);
+
+      const result = await repository.findByIds(["999"]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toBeNull();
+    });
+
+    it("should return results in the same order as input ids", async () => {
+      const artist1 = { ...mockArtist, id: 1, name: "Artist 1" };
+      const artist2 = { ...mockArtist, id: 2, name: "Artist 2" };
+      mockArtistRepository.find.mockResolvedValue([artist2, artist1]);
+
+      const result = await repository.findByIds(["1", "2"]);
+
+      expect(result[0]!.name).toBe("Artist 1");
+      expect(result[1]!.name).toBe("Artist 2");
+    });
+  });
+
   describe("findOne", () => {
     it("should return an artist DTO by id", async () => {
       mockArtistRepository.findOne.mockResolvedValue(mockArtist);
@@ -141,7 +194,10 @@ describe("SqlArtistsRepository", () => {
     });
 
     it("should handle artists with null songs relation", async () => {
-      const artistWithNullSongs = { ...mockArtist, songs: null as any };
+      const artistWithNullSongs = {
+        ...mockArtist,
+        songs: null as unknown as Song[],
+      };
       mockArtistRepository.findOne.mockResolvedValue(artistWithNullSongs);
 
       const result = await repository.findOne("1");

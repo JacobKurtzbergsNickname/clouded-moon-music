@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ArtistsController } from "./artists.controller";
 import { ArtistsService } from "./artists.service";
@@ -14,8 +15,8 @@ describe("ArtistsController", () => {
         {
           provide: ArtistsService,
           useValue: {
-            findAll: jest.fn(),
-            findOne: jest.fn(),
+            findAll: vi.fn(),
+            findOne: vi.fn(),
           },
         },
       ],
@@ -35,7 +36,7 @@ describe("ArtistsController", () => {
         { id: "1", name: "Artist 1", songs: ["Song 1"] },
         { id: "2", name: "Artist 2", songs: ["Song 2"] },
       ];
-      jest.spyOn(service, "findAll").mockResolvedValue(mockArtists);
+      vi.spyOn(service, "findAll").mockResolvedValue(mockArtists);
 
       const result = await controller.findAll();
 
@@ -51,7 +52,7 @@ describe("ArtistsController", () => {
         name: "Artist 1",
         songs: ["Song 1"],
       };
-      jest.spyOn(service, "findOne").mockResolvedValue(mockArtist);
+      vi.spyOn(service, "findOne").mockResolvedValue(mockArtist);
 
       const result = await controller.findOne("1");
 
@@ -59,12 +60,12 @@ describe("ArtistsController", () => {
       expect(service.findOne).toHaveBeenCalledWith("1");
     });
 
-    it("should return null if artist not found", async () => {
-      jest.spyOn(service, "findOne").mockResolvedValue(null);
+    it("should throw NotFoundException when artist not found", async () => {
+      vi.spyOn(service, "findOne").mockResolvedValue(null);
 
-      const result = await controller.findOne("999");
-
-      expect(result).toBeNull();
+      await expect(controller.findOne("999")).rejects.toThrow(
+        NotFoundException,
+      );
       expect(service.findOne).toHaveBeenCalledWith("999");
     });
   });

@@ -62,11 +62,14 @@ docker-compose up -d
 
 This starts all required services:
 
-| Service    | Port  | Admin UI                | Credentials                                           |
-| ---------- | ----- | ----------------------- | ----------------------------------------------------- |
-| MongoDB    | 27019 | <http://localhost:8083> | admin / PreahChanTravPopookKrap2026                   |
-| PostgreSQL | 5433  | <http://localhost:5050> | <admin@cloudedmoon.com> / PreahChanTravPopookKrap2026 |
-| Redis      | 6380  | -                       | No auth                                               |
+| Service    | Port  | Admin UI                |
+| ---------- | ----- | ----------------------- |
+| MongoDB    | 27019 | <http://localhost:8083> |
+| PostgreSQL | 5433  | <http://localhost:5050> |
+| Redis      | 6380  | _(no UI)_               |
+
+> **Default credentials:** `admin` / `PreahChanTravPopookKrap2026`
+> PostgreSQL admin login: `admin@cloudedmoon.com`
 
 ### 3. Configure Environment Variables
 
@@ -93,19 +96,19 @@ REDIS_PORT=6380
 
 ## 🌍 Environment Variables Reference
 
-| Variable            | Description               | Default            | Required |
-| ------------------- | ------------------------- | ------------------ | -------- |
-| `PORT`              | Application server port   | 3456               | No       |
-| `MONGO_URI`         | MongoDB connection string | See above          | Yes      |
-| `POSTGRES_HOST`     | PostgreSQL host           | localhost          | Yes      |
-| `POSTGRES_PORT`     | PostgreSQL port           | 5433               | Yes      |
-| `POSTGRES_USER`     | PostgreSQL username       | admin              | Yes      |
-| `POSTGRES_PASSWORD` | PostgreSQL password       | -                  | Yes      |
-| `POSTGRES_DATABASE` | PostgreSQL database name  | clouded_moon_music | Yes      |
-| `REDIS_HOST`        | Redis host                | localhost          | Yes      |
-| `REDIS_PORT`        | Redis port                | 6380               | Yes      |
+> When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
 
-**Note:** When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
+| Variable            | Default / Notes          |
+| ------------------- | ------------------------ |
+| `PORT`              | `3456`                   |
+| `MONGO_URI`         | See `.env` example above |
+| `POSTGRES_HOST`     | `localhost`              |
+| `POSTGRES_PORT`     | `5433`                   |
+| `POSTGRES_USER`     | `admin`                  |
+| `POSTGRES_PASSWORD` | _(required)_             |
+| `POSTGRES_DATABASE` | `clouded_moon_music`     |
+| `REDIS_HOST`        | `localhost`              |
+| `REDIS_PORT`        | `6380`                   |
 
 ## 🏃 Running the Application
 
@@ -337,6 +340,8 @@ class SongsService extends CachedServiceBase {
 
 ## 🔧 Technical Stack
 
+### Full Stack Details
+
 ### Core Framework
 
 - **NestJS 10** - TypeScript framework with dependency injection
@@ -365,7 +370,7 @@ class SongsService extends CachedServiceBase {
 
 ### Development
 
-- **Jest 29** - Unit and integration testing
+- **Vitest 2** - Unit and integration testing
 - **ESLint** with Airbnb config - Code quality
 - **Prettier** - Code formatting
 - **Docker Compose** - Local development infrastructure
@@ -517,6 +522,8 @@ Application logs are stored in the `logs/` directory:
 - Automatic daily rotation with timestamps
 
 ## 🚢 Deployment Considerations
+
+### Production Setup Notes
 
 ### Environment Security
 

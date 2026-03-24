@@ -12,10 +12,10 @@ import { SongDTO } from "./song.dto";
 @Entity("songs")
 export class Song {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  title: string;
+  title!: string;
 
   @ManyToMany(() => Artist, (artist) => artist.songs, { eager: true })
   @JoinTable({
@@ -23,13 +23,13 @@ export class Song {
     joinColumn: { name: "song_id", referencedColumnName: "id" },
     inverseJoinColumn: { name: "artist_id", referencedColumnName: "id" },
   })
-  artists: Artist[];
+  artists!: Artist[];
 
   @Column()
-  album: string;
+  album!: string;
 
   @Column({ nullable: true })
-  year: number;
+  year!: number;
 
   @ManyToMany(() => Genre, (genre) => genre.songs, { eager: true })
   @JoinTable({
@@ -37,13 +37,13 @@ export class Song {
     joinColumn: { name: "song_id", referencedColumnName: "id" },
     inverseJoinColumn: { name: "genre_id", referencedColumnName: "id" },
   })
-  genres: Genre[];
+  genres!: Genre[];
 
   @Column()
-  duration: number;
+  duration!: number;
 
   @Column({ type: "timestamp" })
-  releaseDate: Date;
+  releaseDate!: Date;
 
   /**
    * Converts the Song entity to a SongDTO
