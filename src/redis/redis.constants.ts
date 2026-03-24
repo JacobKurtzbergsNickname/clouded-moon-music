@@ -11,6 +11,8 @@ export const CACHE_KEYS = {
   GENRES_LIST_ALL: "genres:list:all",
   TRACK: "track:",
   TRACKS_LIST_ALL: "tracks:list:all",
+  PLAYLIST: "playlist:",
+  PLAYLISTS_LIST_ALL: "playlists:list:all",
   ALBUM: "album:",
   ALBUMS_LIST_ALL: "albums:list:all",
 } as const;
@@ -28,6 +30,8 @@ export const CACHE_TTL = {
   GENRES_LIST_ALL: 300, // 5 minutes for genres list (invalidated on song changes)
   TRACK: 300, // 5 minutes for individual tracks
   TRACKS_LIST_ALL: 60, // 1 minute for the full track list
+  PLAYLIST: 300, // 5 minutes for individual playlists
+  PLAYLISTS_LIST_ALL: 60, // 1 minute for the full playlists list
   ALBUM: 600, // 10 minutes for individual albums (invalidated on song changes)
   ALBUMS_LIST_ALL: 300, // 5 minutes for albums list (invalidated on song changes)
 } as const;

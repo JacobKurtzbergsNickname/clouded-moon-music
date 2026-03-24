@@ -65,7 +65,7 @@ jobs:
         run: npm run test:cov
 
       - name: Upload coverage report
-        if: ${{ !env.ACT }}
+        if: ${{ !env.SKIP_COVERAGE_UPLOAD && startsWith(runner.name, 'GitHub Actions') }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage

@@ -3,11 +3,14 @@ import { SongsService } from "../songs/songs.service";
 import { ArtistsService } from "../artists/artists.service";
 import { AlbumsService } from "../albums/albums.service";
 import { GenresService } from "../genres/genres.service";
+import { PlaylistsService } from "../playlists/playlists.service";
 import CreateSongDTO from "../songs/models/create-song.dto";
+import { CreatePlaylistDTO } from "../playlists/models/create-playlist.dto";
 import { SongRawGqlType } from "./models/song.type";
 import { ArtistType } from "./models/artist.type";
 import { AlbumType } from "./models/album.type";
 import { GenreType } from "./models/genre.type";
+import { PlaylistType } from "./models/playlist.type";
 
 @Injectable()
 export class GraphqlSongsService {
@@ -132,5 +135,53 @@ export class GraphqlGenresService {
 
   remove(id: string): Promise<string | null> {
     return this.genresService.remove(id);
+  }
+}
+
+@Injectable()
+export class GraphqlPlaylistsService {
+  constructor(private readonly playlistsService: PlaylistsService) {}
+
+  async findAll(): Promise<PlaylistType[]> {
+    const playlists = await this.playlistsService.findAll();
+    return playlists as unknown as PlaylistType[];
+  }
+
+  async findOne(id: string): Promise<PlaylistType | null> {
+    const playlist = await this.playlistsService.findOne(id);
+    return playlist as unknown as PlaylistType | null;
+  }
+
+  async create(input: CreatePlaylistDTO): Promise<PlaylistType> {
+    const playlist = await this.playlistsService.create(input);
+    return playlist as unknown as PlaylistType;
+  }
+
+  async update(
+    id: string,
+    input: Partial<CreatePlaylistDTO>,
+  ): Promise<PlaylistType | null> {
+    const playlist = await this.playlistsService.update(id, input);
+    return playlist as unknown as PlaylistType | null;
+  }
+
+  remove(id: string): Promise<string | null> {
+    return this.playlistsService.remove(id);
+  }
+
+  async addSong(
+    playlistId: string,
+    songId: string,
+  ): Promise<PlaylistType | null> {
+    const playlist = await this.playlistsService.addSong(playlistId, songId);
+    return playlist as unknown as PlaylistType | null;
+  }
+
+  async removeSong(
+    playlistId: string,
+    songId: string,
+  ): Promise<PlaylistType | null> {
+    const playlist = await this.playlistsService.removeSong(playlistId, songId);
+    return playlist as unknown as PlaylistType | null;
   }
 }

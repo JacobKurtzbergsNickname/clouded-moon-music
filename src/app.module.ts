@@ -8,8 +8,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
 import { join } from "path";
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-const depthLimit = require("graphql-depth-limit") as (n: number) => any;
+import depthLimit from "graphql-depth-limit";
 import { createComplexityRule } from "graphql-query-complexity";
 import { GraphQLError } from "graphql";
 
@@ -26,6 +25,7 @@ import { RedisModule } from "./redis/redis.module";
 import { TracksModule } from "./tracks/tracks.module";
 import { HealthModule } from "./health/health.module";
 import { validate } from "./config/env.validation";
+import { PlaylistsModule } from "./playlists/playlists.module";
 
 @Module({
   imports: [
@@ -111,6 +111,7 @@ import { validate } from "./config/env.validation";
     RedisModule,
     TracksModule,
     HealthModule,
+    PlaylistsModule,
 
     WinstonModule.forRoot({
       transports: [

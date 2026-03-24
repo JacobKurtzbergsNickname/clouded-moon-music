@@ -4,6 +4,7 @@ import { ArtistsService } from "../../artists/artists.service";
 import { AlbumsService } from "../../albums/albums.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
+import { PlaylistsService } from "../../playlists/playlists.service";
 import { ArtistDTO } from "../../artists/models/artist.dto";
 import { AlbumDTO } from "../../albums/models/album.dto";
 import { GenreDTO } from "../../genres/models/genre.dto";
@@ -36,6 +37,10 @@ describe("DataLoadersService", () => {
       findByAlbumIds: vi.fn(),
     };
 
+    const mockPlaylistsService = {
+      findByIds: vi.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DataLoadersService,
@@ -54,6 +59,10 @@ describe("DataLoadersService", () => {
         {
           provide: SongsService,
           useValue: mockSongsService,
+        },
+        {
+          provide: PlaylistsService,
+          useValue: mockPlaylistsService,
         },
       ],
     }).compile();
