@@ -98,17 +98,17 @@ REDIS_PORT=6380
 
 > When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
 
-| Variable            | Default / Notes           |
-| ------------------- | ------------------------- |
-| `PORT`              | `3456`                    |
-| `MONGO_URI`         | See `.env` example above  |
-| `POSTGRES_HOST`     | `localhost`               |
-| `POSTGRES_PORT`     | `5433`                    |
-| `POSTGRES_USER`     | `admin`                   |
-| `POSTGRES_PASSWORD` | _(required)_              |
-| `POSTGRES_DATABASE` | `clouded_moon_music`      |
-| `REDIS_HOST`        | `localhost`               |
-| `REDIS_PORT`        | `6380`                    |
+| Variable            | Default / Notes          |
+| ------------------- | ------------------------ |
+| `PORT`              | `3456`                   |
+| `MONGO_URI`         | See `.env` example above |
+| `POSTGRES_HOST`     | `localhost`              |
+| `POSTGRES_PORT`     | `5433`                   |
+| `POSTGRES_USER`     | `admin`                  |
+| `POSTGRES_PASSWORD` | _(required)_             |
+| `POSTGRES_DATABASE` | `clouded_moon_music`     |
+| `REDIS_HOST`        | `localhost`              |
+| `REDIS_PORT`        | `6380`                   |
 
 ## 🏃 Running the Application
 
@@ -248,8 +248,7 @@ See [docs/database-level-batching-implementation.md](docs/database-level-batchin
 
 ## 🏗️ Architecture
 
-<details>
-<summary><strong>Module Structure</strong></summary>
+### Module Structure
 
 ```folder
 src/
@@ -281,10 +280,7 @@ src/
     └── middleware/  # Request logging
 ```
 
-</details>
-
-<details>
-<summary><strong>Database Strategy</strong></summary>
+### Database Strategy
 
 #### MongoDB (Songs)
 
@@ -306,10 +302,7 @@ src/
 - Artists/Genres require relational integrity and referential consistency
 - Demonstrates polyglot persistence patterns
 
-</details>
-
-<details>
-<summary><strong>Caching Layer</strong></summary>
+### Caching Layer
 
 **Redis Implementation:**
 
@@ -330,10 +323,7 @@ class SongsService extends CachedServiceBase {
 }
 ```
 
-</details>
-
-<details>
-<summary><strong>GraphQL Optimization</strong></summary>
+### GraphQL Optimization
 
 **DataLoader Integration:**
 
@@ -348,12 +338,9 @@ class SongsService extends CachedServiceBase {
 - Complexity analysis (max 1000 points) prevents expensive operations
 - Real-time complexity logging for monitoring
 
-</details>
-
 ## 🔧 Technical Stack
 
-<details>
-<summary><strong>Full stack details</strong></summary>
+### Full Stack Details
 
 ### Core Framework
 
@@ -383,12 +370,10 @@ class SongsService extends CachedServiceBase {
 
 ### Development
 
-- **Jest 29** - Unit and integration testing
+- **Vitest 2** - Unit and integration testing
 - **ESLint** with Airbnb config - Code quality
 - **Prettier** - Code formatting
 - **Docker Compose** - Local development infrastructure
-
-</details>
 
 ## 🧪 Testing
 
@@ -459,8 +444,7 @@ MongoDB integration specifics:
 
 ## 🐛 Troubleshooting
 
-<details>
-<summary><strong>Common Issues</strong></summary>
+### Common Issues
 
 #### Port Conflicts
 
@@ -537,12 +521,9 @@ Application logs are stored in the `logs/` directory:
 - `logs/combined.log` - All log levels
 - Automatic daily rotation with timestamps
 
-</details>
-
 ## 🚢 Deployment Considerations
 
-<details>
-<summary><strong>Production setup notes</strong></summary>
+### Production Setup Notes
 
 ### Environment Security
 
@@ -571,8 +552,6 @@ Application logs are stored in the `logs/` directory:
 - Monitor Redis memory usage and eviction policies
 - Track GraphQL query complexity patterns
 - Set up application performance monitoring (APM)
-
-</details>
 
 ## 👥 Contributing
 

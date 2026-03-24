@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { CMLogger, ILogEntry } from "../common/logger";
+import { CMLogger } from "../common/logger";
 import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
@@ -21,96 +21,38 @@ export class GenresService extends CachedServiceBase {
   }
 
   async findAll(): Promise<GenreDTO[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: "Getting all genres",
-      context: "GenresService",
-    };
-    this.logger.info("Method: findAll()", logEntry);
-
-    const cacheKey = CACHE_KEYS.GENRES_LIST_ALL;
-
-    // Try cache first
-    const cachedResult = await this.getCached<GenreDTO[]>(cacheKey);
-
-    if (cachedResult.isOk()) {
-      this.logger.info("Cache hit", {
-        ...logEntry,
-        message: "Cache hit for all genres",
-      });
-      return cachedResult.value;
-    }
-
-    this.logger.warn(
-      `Cache read failed, falling back to DB: ${cachedResult.error.message}`,
-    );
-
-    // Fetch from repository
-    const genres = await this.genresRepository.findAll();
-
-    // Populate cache (fire and forget with logging)
-    const cacheWriteResult = await this.setCached(
-      cacheKey,
-      genres,
+    this.logger.info("Method: findAll()");
+    return this.findAllCached(
+      CACHE_KEYS.GENRES_LIST_ALL,
       CACHE_TTL.GENRES_LIST_ALL,
+      () => this.genresRepository.findAll(),
     );
-
-    cacheWriteResult.match(
-      () =>
-        this.logger.info("Cache populated", {
-          ...logEntry,
-          message: "Cached all genres",
-        }),
-      (error) => this.logger.warn(`Cache write failed: ${error.message}`),
-    );
-
-    return genres;
   }
 
   async findOne(id: string): Promise<GenreDTO | null> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Finding genre with id: ${id}`,
-      context: "GenresService",
-    };
-    this.logger.info("Method: findOne()", logEntry);
-
+    this.logger.info(`Method: findOne(${id})`);
     const cacheKey = `${CACHE_KEYS.GENRE}${id}`;
-
-    // Try cache first
     const cachedResult = await this.getCached<GenreDTO>(cacheKey);
 
     if (cachedResult.isOk()) {
-      this.logger.info("Cache hit", {
-        ...logEntry,
-        message: `Cache hit for genre ${id}`,
-      });
+      this.logger.info(`Cache hit: ${cacheKey}`);
       return cachedResult.value;
     }
 
     this.logger.warn(
-      `Cache read failed, falling back to DB: ${cachedResult.error.message}`,
+      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
     );
 
-    // Fetch from repository
     const genre = await this.genresRepository.findOne(id);
 
-    // Populate cache if genre found
     if (genre) {
       const cacheWriteResult = await this.setCached(
         cacheKey,
         genre,
         CACHE_TTL.GENRE,
       );
-
       cacheWriteResult.match(
-        () =>
-          this.logger.info("Cache populated", {
-            ...logEntry,
-            message: `Cached genre ${id}`,
-          }),
+        () => this.logger.info(`Cache populated: ${cacheKey}`),
         (error) => this.logger.warn(`Cache write failed: ${error.message}`),
       );
     }
@@ -125,14 +67,39 @@ export class GenresService extends CachedServiceBase {
    * @returns Array of GenreDTO or null, in the same order as input IDs
    */
   async findByIds(ids: string[]): Promise<(GenreDTO | null)[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Batch finding ${ids.length} genres`,
-      context: "GenresService",
-    };
-    this.logger.info("Method: findByIds()", logEntry);
-
+    this.logger.info(
+      `Method: findByIds() — batch finding ${ids.length} genres`,
+    );
     return this.genresRepository.findByIds(ids);
+  }
+
+  async create(name: string): Promise<GenreDTO> {
+    const genre = await this.genresRepository.create(name);
+    await this.invalidateCache(CACHE_KEYS.GENRES_LIST_ALL);
+    return genre;
+  }
+
+  async update(id: string, name: string): Promise<GenreDTO | null> {
+    const genre = await this.genresRepository.update(id, name);
+    if (genre) {
+      await Promise.all([
+        this.invalidateCache(
+          CACHE_KEYS.GENRES_LIST_ALL,
+          `${CACHE_KEYS.GENRE}${id}`,
+        ),
+      ]);
+    }
+    return genre;
+  }
+
+  async remove(id: string): Promise<string | null> {
+    const result = await this.genresRepository.remove(id);
+    if (result) {
+      await this.invalidateCache(
+        CACHE_KEYS.GENRES_LIST_ALL,
+        `${CACHE_KEYS.GENRE}${id}`,
+      );
+    }
+    return result;
   }
 }

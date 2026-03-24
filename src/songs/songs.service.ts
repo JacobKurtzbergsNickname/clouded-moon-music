@@ -1,6 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Result } from "neverthrow";
-import { CMLogger, ILogEntry } from "../common/logger";
+import { CMLogger } from "../common/logger";
+import { ILogEntry } from "../common/logger/interfaces/log.interface";
 import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
@@ -10,113 +11,111 @@ import {
   SONGS_REPOSITORY,
 } from "./repositories/songs.repository";
 import { SongDTO } from "./models/song.dto";
+import { ArtistsService } from "../artists/artists.service";
+import { GenresService } from "../genres/genres.service";
 
 @Injectable()
 export class SongsService extends CachedServiceBase {
   constructor(
     @Inject(SONGS_REPOSITORY) private readonly songsRepository: SongsRepository,
+    private readonly artistsService: ArtistsService,
+    private readonly genresService: GenresService,
     logger: CMLogger,
     redisService: RedisService,
   ) {
     super(redisService, logger);
   }
 
-  async findAll(): Promise<SongDTO[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: "Getting all songs",
-      context: "SongsService",
+  /**
+   * Validate that all referenced artist and genre IDs exist in the database.
+   * Throws BadRequestException if any IDs are not found.
+   */
+  private async validateReferences(
+    artistIds?: string[],
+    genreIds?: string[],
+  ): Promise<void> {
+    const validateNumericIds = async (
+      ids: string[] | undefined,
+      lookup: (ids: string[]) => Promise<(unknown | null)[]>,
+      errorLabel: string,
+    ): Promise<void> => {
+      if (!ids || ids.length === 0) return;
+
+      const numericIds = ids.filter((id) => /^\d+$/.test(id));
+      if (numericIds.length === 0) return;
+
+      const results = await lookup(numericIds);
+      const missing = numericIds.filter((_, i) => results[i] === null);
+      if (missing.length > 0) {
+        throw new BadRequestException(
+          `${errorLabel} not found: ${missing.join(", ")}`,
+        );
+      }
     };
-    this.logger.info("Method: findAll()", logEntry);
 
-    const cacheKey = CACHE_KEYS.SONGS_LIST_ALL;
+    await Promise.all([
+      validateNumericIds(
+        artistIds,
+        this.artistsService.findByIds.bind(this.artistsService),
+        "Artist IDs",
+      ),
+      validateNumericIds(
+        genreIds,
+        this.genresService.findByIds.bind(this.genresService),
+        "Genre IDs",
+      ),
+    ]);
+  }
 
-    // Try cache first
-    const cachedResult = await this.getCached<SongDTO[]>(cacheKey);
-
-    if (cachedResult.isOk()) {
-      this.logger.info("Cache hit", {
-        ...logEntry,
-        message: "Cache hit for all songs",
-      });
-      return cachedResult.value;
-    }
-
-    this.logger.warn(
-      `Cache read failed, falling back to DB: ${cachedResult.error.message}`,
-    );
-
-    // Fetch from repository
-    const songs = await this.songsRepository.findAll();
-
-    // Populate cache (fire and forget with logging)
-    const cacheWriteResult = await this.setCached(
-      cacheKey,
-      songs,
+  async findAll(): Promise<SongDTO[]> {
+    this.logger.info("Method: findAll()");
+    return this.findAllCached(
+      CACHE_KEYS.SONGS_LIST_ALL,
       CACHE_TTL.SONGS_LIST_ALL,
+      () => this.songsRepository.findAll(),
     );
-
-    cacheWriteResult.match(
-      () =>
-        this.logger.info("Cache populated", {
-          ...logEntry,
-          message: "Cached all songs",
-        }),
-      (error) => this.logger.warn(`Cache write failed: ${error.message}`),
-    );
-
-    return songs;
   }
 
   async findOne(id: string): Promise<SongDTO | null> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Finding song with id: ${id}`,
-      context: "SongsService",
-    };
-    this.logger.info("Method: findOne()", logEntry);
-
+    this.logger.info(`Method: findOne(${id})`);
     const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-
-    // Try cache first
     const cachedResult = await this.getCached<SongDTO>(cacheKey);
 
     if (cachedResult.isOk()) {
-      this.logger.info("Cache hit", {
-        ...logEntry,
-        message: `Cache hit for song ${id}`,
-      });
+      this.logger.info(`Cache hit: ${cacheKey}`);
       return cachedResult.value;
     }
 
     this.logger.warn(
-      `Cache read failed, falling back to DB: ${cachedResult.error.message}`,
+      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
     );
 
-    // Fetch from repository
     const song = await this.songsRepository.findOne(id);
 
-    // Populate cache if song found
     if (song) {
       const cacheWriteResult = await this.setCached(
         cacheKey,
         song,
         CACHE_TTL.SONG,
       );
-
       cacheWriteResult.match(
-        () =>
-          this.logger.info("Cache populated", {
-            ...logEntry,
-            message: `Cached song ${id}`,
-          }),
+        () => this.logger.info(`Cache populated: ${cacheKey}`),
         (error) => this.logger.warn(`Cache write failed: ${error.message}`),
       );
     }
 
     return song;
+  }
+
+  /**
+   * Find multiple songs by IDs using database-level batching.
+   * This method bypasses caching to ensure optimal batch query performance.
+   * @param ids - Array of song IDs
+   * @returns Array of SongDTO or null in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(SongDTO | null)[]> {
+    this.logger.info(`Method: findByIds() — batch finding ${ids.length} songs`);
+    return this.songsRepository.findByIds(ids);
   }
 
   /**
@@ -174,6 +173,7 @@ export class SongsService extends CachedServiceBase {
   }
 
   async create(dto: CreateSongDTO): Promise<SongDTO> {
+    await this.validateReferences(dto.artists, dto.genres);
     const song = await this.songsRepository.create(dto);
 
     // Invalidate song list caches
@@ -237,8 +237,8 @@ export class SongsService extends CachedServiceBase {
     id: string,
     song: Partial<CreateSongDTO>,
   ): Promise<SongDTO | null> {
+    await this.validateReferences(song.artists, song.genres);
     const updatedSong = await this.songsRepository.update(id, song);
-
     if (updatedSong) {
       const cacheKey = `${CACHE_KEYS.SONG}${id}`;
       const invalidateResult = await this.invalidateCache(
@@ -292,13 +292,12 @@ export class SongsService extends CachedServiceBase {
           this.logger.warn(`Cache invalidation failed: ${error.message}`),
       );
     }
-
     return updatedSong;
   }
 
   async replace(id: string, song: CreateSongDTO): Promise<SongDTO | null> {
+    await this.validateReferences(song.artists, song.genres);
     const replacedSong = await this.songsRepository.replace(id, song);
-
     if (replacedSong) {
       const cacheKey = `${CACHE_KEYS.SONG}${id}`;
       const invalidateResult = await this.invalidateCache(
@@ -352,13 +351,11 @@ export class SongsService extends CachedServiceBase {
           this.logger.warn(`Cache invalidation failed: ${error.message}`),
       );
     }
-
     return replacedSong;
   }
 
   async remove(id: string): Promise<string | null> {
     const result = await this.songsRepository.remove(id);
-
     if (result) {
       const cacheKey = `${CACHE_KEYS.SONG}${id}`;
       const invalidateResult = await this.invalidateCache(
@@ -412,7 +409,30 @@ export class SongsService extends CachedServiceBase {
           this.logger.warn(`Cache invalidation failed: ${error.message}`),
       );
     }
-
     return result;
+  }
+
+  /**
+   * Invalidate all caches affected by a song mutation in parallel.
+   * @param extraKeys - Additional specific cache keys to invalidate (e.g., individual song key)
+   */
+  private async invalidateSongCaches(...extraKeys: string[]): Promise<void> {
+    const results = await Promise.all([
+      this.invalidateCache(
+        CACHE_KEYS.SONGS_LIST_ALL,
+        CACHE_KEYS.ARTISTS_LIST_ALL,
+        CACHE_KEYS.GENRES_LIST_ALL,
+        ...extraKeys,
+      ),
+      this.invalidateCachePattern(`${CACHE_KEYS.SONGS_LIST_FILTERED}*`),
+      this.invalidateCachePattern(`${CACHE_KEYS.ARTIST}*`),
+      this.invalidateCachePattern(`${CACHE_KEYS.GENRE}*`),
+    ]);
+
+    Result.combine(results).match(
+      () => this.logger.info("Song mutation caches invalidated"),
+      (error) =>
+        this.logger.warn(`Cache invalidation failed: ${error.message}`),
+    );
   }
 }

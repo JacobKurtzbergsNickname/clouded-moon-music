@@ -3,10 +3,14 @@ import { StorageService } from "./storage.service";
 // Helper — create a service with a specific provider env var
 function buildService(
   provider = "local",
-  secret = "test-secret",
+  secret: string | null = "test-secret",
 ): StorageService {
   process.env.STORAGE_PROVIDER = provider;
-  process.env.STORAGE_SECRET_ACCESS_KEY = secret;
+  if (secret === null) {
+    delete process.env.STORAGE_SECRET_ACCESS_KEY;
+  } else {
+    process.env.STORAGE_SECRET_ACCESS_KEY = secret;
+  }
   process.env.CDN_BASE_URL = "http://localhost:3456";
   process.env.SIGNED_URL_EXPIRY = "60";
   return new StorageService();
@@ -32,10 +36,10 @@ describe("StorageService", () => {
   // getSignedDownloadUrl — local provider
   // ---------------------------------------------------------------------------
   describe("getSignedDownloadUrl (local provider)", () => {
-    it("should return a URL pointing to the dev stream endpoint", () => {
+    it("should return a URL pointing to the dev stream endpoint", async () => {
       const service = buildService();
 
-      const { url, expiresAt } = service.getSignedDownloadUrl(
+      const { url, expiresAt } = await service.getSignedDownloadUrl(
         "tracks/uuid-1/master.flac",
         "uuid-1",
       );
@@ -46,11 +50,11 @@ describe("StorageService", () => {
       expect(expiresAt).toBeInstanceOf(Date);
     });
 
-    it("should honour a custom TTL", () => {
+    it("should honour a custom TTL", async () => {
       const service = buildService();
       const before = Date.now();
 
-      const { expiresAt } = service.getSignedDownloadUrl(
+      const { expiresAt } = await service.getSignedDownloadUrl(
         "tracks/uuid-1/master.flac",
         "uuid-1",
         120,
@@ -61,10 +65,10 @@ describe("StorageService", () => {
       expect(diff).toBeLessThanOrEqual(121 * 1000);
     });
 
-    it("should include the track id in the path", () => {
+    it("should include the track id in the path", async () => {
       const service = buildService();
 
-      const { url } = service.getSignedDownloadUrl(
+      const { url } = await service.getSignedDownloadUrl(
         "tracks/uuid-99/master.flac",
         "uuid-99",
       );
@@ -72,15 +76,33 @@ describe("StorageService", () => {
       expect(url).toContain("uuid-99");
     });
 
-    it("should produce different signatures for different track ids", () => {
+    it("should produce different signatures for different track ids", async () => {
       const service = buildService();
 
-      const { url: url1 } = service.getSignedDownloadUrl("k1", "id-1");
-      const { url: url2 } = service.getSignedDownloadUrl("k2", "id-2");
+      const { url: url1 } = await service.getSignedDownloadUrl("k1", "id-1");
+      const { url: url2 } = await service.getSignedDownloadUrl("k2", "id-2");
 
       const sig1 = new URL(url1).searchParams.get("sig");
       const sig2 = new URL(url2).searchParams.get("sig");
       expect(sig1).not.toBe(sig2);
+    });
+
+    it("should fall back to a default signing key when the secret is unset", async () => {
+      const service = buildService("local", null);
+
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
+      const parsed = new URL(url);
+      const expires = parsed.searchParams.get("expires")!;
+      const sig = parsed.searchParams.get("sig")!;
+
+      expect(sig).toBeTruthy();
+      expect(service.verifyLocalSignature("uuid-1", expires, sig)).toBe(true);
+
+      const upload = await service.getSignedUploadUrl(
+        "tracks/uuid-1/master.flac",
+      );
+      const uploadSig = new URL(upload.url).searchParams.get("sig");
+      expect(uploadSig).toBeTruthy();
     });
   });
 
@@ -88,10 +110,10 @@ describe("StorageService", () => {
   // getSignedUploadUrl — local provider
   // ---------------------------------------------------------------------------
   describe("getSignedUploadUrl (local provider)", () => {
-    it("should return a URL with the storage key encoded as a query param", () => {
+    it("should return a URL with the storage key encoded as a query param", async () => {
       const service = buildService();
 
-      const { url, expiresAt } = service.getSignedUploadUrl(
+      const { url, expiresAt } = await service.getSignedUploadUrl(
         "tracks/uuid-1/master.flac",
       );
 
@@ -101,11 +123,11 @@ describe("StorageService", () => {
       expect(expiresAt).toBeInstanceOf(Date);
     });
 
-    it("should honour a custom TTL", () => {
+    it("should honour a custom TTL", async () => {
       const service = buildService();
       const before = Date.now();
 
-      const { expiresAt } = service.getSignedUploadUrl(
+      const { expiresAt } = await service.getSignedUploadUrl(
         "tracks/uuid-1/master.flac",
         30,
       );
@@ -120,10 +142,10 @@ describe("StorageService", () => {
   // verifyLocalSignature
   // ---------------------------------------------------------------------------
   describe("verifyLocalSignature", () => {
-    it("should return true for a valid, unexpired signature", () => {
+    it("should return true for a valid, unexpired signature", async () => {
       const service = buildService();
 
-      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
       const parsed = new URL(url);
       const expires = parsed.searchParams.get("expires")!;
       const sig = parsed.searchParams.get("sig")!;
@@ -131,10 +153,10 @@ describe("StorageService", () => {
       expect(service.verifyLocalSignature("uuid-1", expires, sig)).toBe(true);
     });
 
-    it("should return false for a tampered signature", () => {
+    it("should return false for a tampered signature", async () => {
       const service = buildService();
 
-      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
       const parsed = new URL(url);
       const expires = parsed.searchParams.get("expires")!;
 
@@ -161,10 +183,10 @@ describe("StorageService", () => {
       ).toBe(false);
     });
 
-    it("should return false when the track id is changed after signing", () => {
+    it("should return false when the track id is changed after signing", async () => {
       const service = buildService();
 
-      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
       const parsed = new URL(url);
       const expires = parsed.searchParams.get("expires")!;
       const sig = parsed.searchParams.get("sig")!;
@@ -175,10 +197,10 @@ describe("StorageService", () => {
       );
     });
 
-    it("should return false when the expires value is changed after signing", () => {
+    it("should return false when the expires value is changed after signing", async () => {
       const service = buildService();
 
-      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
       const parsed = new URL(url);
       const sig = parsed.searchParams.get("sig")!;
 
@@ -200,34 +222,58 @@ describe("StorageService", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Non-local provider (stub path)
+  // Non-local provider (S3-compatible)
   // ---------------------------------------------------------------------------
-  describe("non-local provider (stub)", () => {
-    it("should return a URL from getSignedDownloadUrl even without real credentials", () => {
+  describe("non-local provider (S3-compatible)", () => {
+    it("should produce a signed download URL for S3-compatible providers", async () => {
       process.env.STORAGE_PROVIDER = "r2";
-      process.env.CDN_BASE_URL = "https://cdn.example.com";
+      process.env.STORAGE_ENDPOINT = "https://r2.example.com";
+      process.env.STORAGE_BUCKET = "music-assets";
+      process.env.STORAGE_ACCESS_KEY_ID = "akid";
+      process.env.STORAGE_SECRET_ACCESS_KEY = "secret";
+      process.env.STORAGE_REGION = "auto";
       const service = new StorageService();
 
-      const { url, expiresAt } = service.getSignedDownloadUrl(
+      const { url, expiresAt } = await service.getSignedDownloadUrl(
         "tracks/uuid-1/master.flac",
         "uuid-1",
       );
 
-      expect(url).toBeDefined();
-      expect(typeof url).toBe("string");
+      const parsed = new URL(url);
+      expect(parsed.searchParams.get("X-Amz-Signature")).toBeTruthy();
+      expect(url).toContain("tracks/uuid-1/master.flac");
       expect(expiresAt).toBeInstanceOf(Date);
     });
 
-    it("should return a URL from getSignedUploadUrl even without real credentials", () => {
+    it("should produce a signed upload URL using PUT semantics", async () => {
       process.env.STORAGE_PROVIDER = "s3";
-      process.env.STORAGE_ENDPOINT = "https://s3.us-east-1.amazonaws.com";
       process.env.STORAGE_BUCKET = "music-assets";
+      process.env.STORAGE_ACCESS_KEY_ID = "akid";
+      process.env.STORAGE_SECRET_ACCESS_KEY = "secret";
+      process.env.STORAGE_REGION = "us-east-1";
       const service = new StorageService();
 
-      const { url } = service.getSignedUploadUrl("tracks/uuid-1/master.wav");
+      const { url } = await service.getSignedUploadUrl(
+        "tracks/uuid-1/master.wav",
+        300,
+      );
 
-      expect(url).toBeDefined();
-      expect(typeof url).toBe("string");
+      const parsed = new URL(url);
+      expect(parsed.searchParams.get("X-Amz-Expires")).toBe("300");
+      expect(parsed.searchParams.get("X-Amz-Signature")).toBeTruthy();
+    });
+
+    it("should require an endpoint for non-s3 providers", async () => {
+      process.env.STORAGE_PROVIDER = "b2";
+      process.env.STORAGE_BUCKET = "music-assets";
+      process.env.STORAGE_ACCESS_KEY_ID = "akid";
+      process.env.STORAGE_SECRET_ACCESS_KEY = "secret";
+
+      const service = new StorageService();
+
+      await expect(
+        service.getSignedDownloadUrl("tracks/uuid-1/master.flac", "uuid-1"),
+      ).rejects.toThrow("STORAGE_ENDPOINT");
     });
   });
 
@@ -235,14 +281,15 @@ describe("StorageService", () => {
   // Default TTL from environment
   // ---------------------------------------------------------------------------
   describe("default TTL from environment", () => {
-    it("should use SIGNED_URL_EXPIRY env var as default TTL", () => {
+    it("should use SIGNED_URL_EXPIRY env var as default TTL", async () => {
       process.env.STORAGE_PROVIDER = "local";
       process.env.SIGNED_URL_EXPIRY = "300";
       process.env.CDN_BASE_URL = "http://localhost:3456";
+      process.env.STORAGE_SECRET_ACCESS_KEY = "test-secret-key";
       const service = new StorageService();
 
       const before = Date.now();
-      const { expiresAt } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { expiresAt } = await service.getSignedDownloadUrl("k", "uuid-1");
       const diff = expiresAt.getTime() - before;
 
       expect(diff).toBeGreaterThanOrEqual(299 * 1000);

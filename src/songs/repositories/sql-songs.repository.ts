@@ -198,6 +198,14 @@ export class SqlSongsRepository implements SongsRepository {
     return this.toSongWithStringId(savedSong);
   }
 
+  async findByIds(ids: string[]): Promise<(SongDTO | null)[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const results = await Promise.all(ids.map((id) => this.findOne(id)));
+    return results;
+  }
+
   async remove(id: string): Promise<string | null> {
     const numericId = parseInt(id, 10);
     if (isNaN(numericId)) {

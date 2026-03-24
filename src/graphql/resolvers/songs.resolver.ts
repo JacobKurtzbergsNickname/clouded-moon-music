@@ -8,7 +8,7 @@ import {
   Resolver,
 } from "@nestjs/graphql";
 import { GraphqlSongsService } from "../graphql.service";
-import { SongType } from "../models/song.type";
+import { SongType, SongRawGqlType } from "../models/song.type";
 import { ArtistType } from "../models/artist.type";
 import { AlbumType } from "../models/album.type";
 import { GenreType } from "../models/genre.type";
@@ -34,14 +34,14 @@ export class SongsResolver {
   ) {}
 
   @Query(() => [SongType], { name: "songs" })
-  findAll(): Promise<SongType[]> {
+  findAll(): Promise<SongRawGqlType[]> {
     return this.graphqlSongsService.findAll();
   }
 
   @Query(() => SongType, { name: "song", nullable: true })
   findOne(
     @Args("id", { type: () => ID }) id: string,
-  ): Promise<SongType | null> {
+  ): Promise<SongRawGqlType | null> {
     return this.graphqlSongsService.findOne(id);
   }
 
@@ -71,40 +71,27 @@ export class SongsResolver {
   }
 
   @ResolveField(() => [ArtistType], { name: "artists" })
-  async artists(@Parent() song: SongType): Promise<ArtistType[]> {
-    // Parent receives DTO structure from service with artists as string[]
-    // Cast to SongDTORuntime to maintain type safety while accessing DTO fields
-    const songRuntime = song as unknown as SongDTORuntime;
-    const artistIds = songRuntime.artists || [];
+  async artists(@Parent() song: SongRawGqlType): Promise<ArtistType[]> {
+    const artistIds = song.artists ?? [];
     const artists = await Promise.all(
-      artistIds.map((id: string) =>
-        this.dataLoadersService.artistLoader.load(id),
-      ),
+      artistIds.map((id) => this.dataLoadersService.artistLoader.load(id)),
     );
-    // Filter out nulls
     return artists.filter((artist): artist is ArtistType => artist !== null);
   }
 
   @ResolveField(() => [GenreType], { name: "genres", nullable: true })
-  async genres(@Parent() song: SongType): Promise<GenreType[] | null> {
-    // Parent receives DTO structure from service with genres as string[] | undefined
-    // Cast to SongDTORuntime to maintain type safety while accessing DTO fields
-    const songRuntime = song as unknown as SongDTORuntime;
-    const genreIds = songRuntime.genres;
+  async genres(@Parent() song: SongRawGqlType): Promise<GenreType[] | null> {
+    const genreIds = song.genres;
     if (!genreIds) return null;
 
-    // Use DataLoader to batch-load genres from string IDs
     const genres = await Promise.all(
-      genreIds.map((id: string) =>
-        this.dataLoadersService.genreLoader.load(id),
-      ),
+      genreIds.map((id) => this.dataLoadersService.genreLoader.load(id)),
     );
-    // Filter out nulls
     return genres.filter((genre): genre is GenreType => genre !== null);
   }
 
   @Mutation(() => SongType, { name: "createSong" })
-  create(@Args("input") input: CreateSongInput): Promise<SongType> {
+  create(@Args("input") input: CreateSongInput): Promise<SongRawGqlType> {
     return this.graphqlSongsService.create(input);
   }
 
@@ -112,7 +99,7 @@ export class SongsResolver {
   update(
     @Args("id", { type: () => ID }) id: string,
     @Args("input") input: UpdateSongInput,
-  ): Promise<SongType | null> {
+  ): Promise<SongRawGqlType | null> {
     return this.graphqlSongsService.update(id, input);
   }
 

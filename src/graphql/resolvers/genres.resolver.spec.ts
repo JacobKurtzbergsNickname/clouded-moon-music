@@ -17,13 +17,13 @@ describe("GenresResolver", () => {
   };
 
   const mockGraphqlGenresService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
   };
 
   const mockDataLoadersService = {
     songsByGenreLoader: {
-      load: jest.fn(),
+      load: vi.fn(),
     },
   };
 
@@ -49,7 +49,7 @@ describe("GenresResolver", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

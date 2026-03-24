@@ -5,17 +5,17 @@ import { REDIS_CLIENT } from "./redis.constants";
 
 describe("RedisService", () => {
   let service: RedisService;
-  let mockRedisClient: jest.Mocked<Redis>;
+  let mockRedisClient: Mocked<Redis>;
 
   beforeEach(async () => {
     // Create a mock Redis client
     mockRedisClient = {
-      get: jest.fn(),
-      set: jest.fn(),
-      del: jest.fn(),
-      scan: jest.fn(),
-      quit: jest.fn(),
-    } as unknown as jest.Mocked<Redis>;
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+      scan: vi.fn(),
+      quit: vi.fn(),
+    } as unknown as Mocked<Redis>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,7 +31,7 @@ describe("RedisService", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

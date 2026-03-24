@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
+import { plainToInstance } from "class-transformer";
 import { Model, Types } from "mongoose";
 import { Song, SongDocument } from "../models/song.schema";
 import CreateSongDTO from "../models/create-song.dto";
@@ -23,6 +24,29 @@ export class MongoSongsRepository implements SongsRepository {
     }
     const doc = await this.songModel.findById(id).exec();
     return doc ? this.toSong(doc) : null;
+  }
+
+  /**
+   * Find multiple songs by IDs in a single database query.
+   * @param ids - Array of song IDs
+   * @returns Array of SongDTO or null in the same order as input IDs
+   */
+  async findByIds(ids: string[]): Promise<(SongDTO | null)[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const validIds = ids.filter((id) => Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+      return ids.map(() => null);
+    }
+
+    const docs = await this.songModel.find({ _id: { $in: validIds } }).exec();
+
+    const songMap = new Map<string, SongDTO>();
+    docs.forEach((doc) => songMap.set(doc._id.toString(), this.toSong(doc)));
+
+    return ids.map((id) => songMap.get(id) ?? null);
   }
 
   async create(dto: CreateSongDTO): Promise<SongDTO> {
@@ -116,7 +140,7 @@ export class MongoSongsRepository implements SongsRepository {
    * Converts a Mongoose document to a plain Song DTO object
    */
   private toSong(doc: SongDocument): SongDTO {
-    return {
+    return plainToInstance(SongDTO, {
       id: doc._id.toString(),
       title: doc.title,
       artists: doc.artists,
@@ -125,6 +149,6 @@ export class MongoSongsRepository implements SongsRepository {
       genres: doc.genres,
       duration: doc.duration,
       releaseDate: doc.releaseDate,
-    };
+    });
   }
 }

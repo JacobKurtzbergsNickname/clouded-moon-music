@@ -21,29 +21,29 @@ export class CMLogger implements LoggerService {
   }
 
   // 1. Implement the generic log() method
-  log(message: any, ...optionalParams: any[]): void {
+  log(message: unknown, ...optionalParams: unknown[]): void {
     if (!this.isLevelEnabled("log")) return;
 
     const context = optionalParams[0];
     if (context) {
-      this.logger.info(message, { context });
+      this.logger.info(String(message), { context });
     } else {
-      this.logger.info(message);
+      this.logger.info(String(message));
     }
   }
 
   // 2. Implement the fatal() method
   // Note: fatal() always logs regardless of logLevels (critical errors)
-  fatal(message: any, ...optionalParams: any[]): void {
+  fatal(message: unknown, ...optionalParams: unknown[]): void {
     const context = optionalParams[0];
     const stack = optionalParams[1];
 
     if (stack) {
-      this.logger.error(message, { context, stack, level: "fatal" });
+      this.logger.error(String(message), { context, stack, level: "fatal" });
     } else if (context) {
-      this.logger.error(message, { context, level: "fatal" });
+      this.logger.error(String(message), { context, level: "fatal" });
     } else {
-      this.logger.error(message, { level: "fatal" });
+      this.logger.error(String(message), { level: "fatal" });
     }
   }
 

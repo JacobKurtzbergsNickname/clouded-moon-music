@@ -4,6 +4,10 @@ import { ArtistsService } from "../../artists/artists.service";
 import { AlbumsService } from "../../albums/albums.service";
 import { GenresService } from "../../genres/genres.service";
 import { SongsService } from "../../songs/songs.service";
+import { ArtistDTO } from "../../artists/models/artist.dto";
+import { AlbumDTO } from "../../albums/models/album.dto";
+import { GenreDTO } from "../../genres/models/genre.dto";
+import { SongDTO } from "../../songs/models/song.dto";
 
 describe("DataLoadersService", () => {
   let service: DataLoadersService;
@@ -14,22 +18,22 @@ describe("DataLoadersService", () => {
 
   beforeEach(async () => {
     const mockArtistsService = {
-      findByIds: jest.fn(),
+      findByIds: vi.fn(),
     };
 
     const mockAlbumsService = {
-      findByIds: jest.fn(),
+      findByIds: vi.fn(),
     };
 
     const mockGenresService = {
-      findByIds: jest.fn(),
+      findByIds: vi.fn(),
     };
 
     const mockSongsService = {
-      findOne: jest.fn(),
-      findByArtistIds: jest.fn(),
-      findByAlbumIds: jest.fn(),
-      findByGenreIds: jest.fn(),
+      findByIds: vi.fn(),
+      findByArtistIds: vi.fn(),
+      findByGenreIds: vi.fn(),
+      findByAlbumIds: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -68,14 +72,12 @@ describe("DataLoadersService", () => {
 
   describe("artistLoader", () => {
     it("should batch load artists", async () => {
-      const mockArtists = [
-        { id: "1", name: "Artist 1" },
-        { id: "2", name: "Artist 2" },
+      const mockArtists: ArtistDTO[] = [
+        { id: "1", name: "Artist 1", songs: [] },
+        { id: "2", name: "Artist 2", songs: [] },
       ];
 
-      jest
-        .spyOn(artistsService, "findByIds")
-        .mockResolvedValue(mockArtists as any);
+      vi.spyOn(artistsService, "findByIds").mockResolvedValue(mockArtists);
 
       const results = await service.artistLoader.loadMany(["1", "2"]);
 
@@ -86,7 +88,7 @@ describe("DataLoadersService", () => {
     });
 
     it("should return null for non-existent artists", async () => {
-      jest.spyOn(artistsService, "findByIds").mockResolvedValue([null]);
+      vi.spyOn(artistsService, "findByIds").mockResolvedValue([null]);
 
       const result = await service.artistLoader.load("999");
       expect(result).toBeNull();
@@ -95,14 +97,12 @@ describe("DataLoadersService", () => {
 
   describe("albumLoader", () => {
     it("should batch load albums", async () => {
-      const mockAlbums = [
-        { id: "1", title: "Album 1", releaseYear: 1975 },
-        { id: "2", title: "Album 2", releaseYear: 1980 },
+      const mockAlbums: AlbumDTO[] = [
+        { id: "1", title: "Album 1", releaseYear: 1975, songs: [] },
+        { id: "2", title: "Album 2", releaseYear: 1980, songs: [] },
       ];
 
-      jest
-        .spyOn(albumsService, "findByIds")
-        .mockResolvedValue(mockAlbums as any);
+      vi.spyOn(albumsService, "findByIds").mockResolvedValue(mockAlbums);
 
       const results = await service.albumLoader.loadMany(["1", "2"]);
 
@@ -121,7 +121,7 @@ describe("DataLoadersService", () => {
     });
 
     it("should return null for non-existent albums", async () => {
-      jest.spyOn(albumsService, "findByIds").mockResolvedValue([null]);
+      vi.spyOn(albumsService, "findByIds").mockResolvedValue([null]);
 
       const result = await service.albumLoader.load("999");
       expect(result).toBeNull();
@@ -130,14 +130,12 @@ describe("DataLoadersService", () => {
 
   describe("genreLoader", () => {
     it("should batch load genres", async () => {
-      const mockGenres = [
-        { id: "1", name: "Genre 1" },
-        { id: "2", name: "Genre 2" },
+      const mockGenres: GenreDTO[] = [
+        { id: "1", name: "Genre 1", songs: [] },
+        { id: "2", name: "Genre 2", songs: [] },
       ];
 
-      jest
-        .spyOn(genresService, "findByIds")
-        .mockResolvedValue(mockGenres as any);
+      vi.spyOn(genresService, "findByIds").mockResolvedValue(mockGenres);
 
       const results = await service.genreLoader.loadMany(["1", "2"]);
 
@@ -149,13 +147,14 @@ describe("DataLoadersService", () => {
   });
 
   describe("songLoader", () => {
-    it("should batch load songs", async () => {
-      const mockSongs = [
+    it("should batch load songs using a single findByIds call", async () => {
+      const mockSongs: SongDTO[] = [
         {
           id: "1",
           title: "Song 1",
           artists: ["artist1"],
           album: "Album 1",
+          year: 2020,
           duration: 180,
           releaseDate: new Date(),
           genres: ["genre1"],
@@ -165,31 +164,43 @@ describe("DataLoadersService", () => {
           title: "Song 2",
           artists: ["artist2"],
           album: "Album 2",
+          year: 2021,
           duration: 200,
           releaseDate: new Date(),
           genres: ["genre2"],
         },
       ];
 
-      jest
-        .spyOn(songsService, "findOne")
-        .mockResolvedValueOnce(mockSongs[0] as any)
-        .mockResolvedValueOnce(mockSongs[1] as any);
+      vi.spyOn(songsService, "findByIds").mockResolvedValue(
+        mockSongs as never[],
+      );
 
       const results = await service.songLoader.loadMany(["1", "2"]);
 
+      // Verify batch method is called instead of individual findOne calls
+      expect(songsService.findByIds).toHaveBeenCalledWith(["1", "2"]);
       expect(results).toHaveLength(2);
+      expect((results[0] as { id: string }).id).toBe("1");
+      expect((results[1] as { id: string }).id).toBe("2");
+    });
+
+    it("should return null for non-existent songs", async () => {
+      vi.spyOn(songsService, "findByIds").mockResolvedValue([null]);
+
+      const result = await service.songLoader.load("999");
+      expect(result).toBeNull();
     });
   });
 
   describe("songsByArtistLoader", () => {
     it("should load songs for given artists", async () => {
-      const mockSongs = [
+      const mockSongs: SongDTO[] = [
         {
           id: "1",
           title: "Song 1",
           artists: ["artist1"],
           album: "Album 1",
+          year: 2020,
           duration: 180,
           releaseDate: new Date(),
           genres: [],
@@ -199,6 +210,7 @@ describe("DataLoadersService", () => {
           title: "Song 2",
           artists: ["artist2"],
           album: "Album 2",
+          year: 2021,
           duration: 200,
           releaseDate: new Date(),
           genres: [],
@@ -208,15 +220,14 @@ describe("DataLoadersService", () => {
           title: "Song 3",
           artists: ["artist1"],
           album: "Album 3",
+          year: 2022,
           duration: 220,
           releaseDate: new Date(),
           genres: [],
         },
       ];
 
-      jest
-        .spyOn(songsService, "findByArtistIds")
-        .mockResolvedValue(mockSongs as any);
+      vi.spyOn(songsService, "findByArtistIds").mockResolvedValue(mockSongs);
 
       const results = await service.songsByArtistLoader.loadMany([
         "artist1",
@@ -228,19 +239,24 @@ describe("DataLoadersService", () => {
         "artist2",
       ]);
       expect(results).toHaveLength(2);
-      expect((results[0] as any).length).toBe(2); // artist1 has 2 songs
-      expect((results[1] as any).length).toBe(1); // artist2 has 1 song
+      if (!(results[0] instanceof Error)) {
+        expect(results[0]).toHaveLength(2); // artist1 has 2 songs
+      }
+      if (!(results[1] instanceof Error)) {
+        expect(results[1]).toHaveLength(1); // artist2 has 1 song
+      }
     });
   });
 
   describe("songsByAlbumLoader", () => {
     it("should load songs for given albums", async () => {
-      const mockSongs = [
+      const mockSongs: SongDTO[] = [
         {
           id: "1",
           title: "Song 1",
           artists: ["artist1"],
           album: "album1",
+          year: 2020,
           duration: 180,
           releaseDate: new Date(),
           genres: [],
@@ -250,6 +266,7 @@ describe("DataLoadersService", () => {
           title: "Song 2",
           artists: ["artist2"],
           album: "album2",
+          year: 2021,
           duration: 200,
           releaseDate: new Date(),
           genres: [],
@@ -259,15 +276,14 @@ describe("DataLoadersService", () => {
           title: "Song 3",
           artists: ["artist1"],
           album: "album1",
+          year: 2022,
           duration: 220,
           releaseDate: new Date(),
           genres: [],
         },
       ];
 
-      jest
-        .spyOn(songsService, "findByAlbumIds")
-        .mockResolvedValue(mockSongs as any);
+      vi.spyOn(songsService, "findByAlbumIds").mockResolvedValue(mockSongs);
 
       const results = await service.songsByAlbumLoader.loadMany([
         "album1",
@@ -279,19 +295,20 @@ describe("DataLoadersService", () => {
         "album2",
       ]);
       expect(results).toHaveLength(2);
-      expect((results[0] as any).length).toBe(2); // album1 has 2 songs
-      expect((results[1] as any).length).toBe(1); // album2 has 1 song
+      expect((results[0] as unknown as SongDTO[]).length).toBe(2); // album1 has 2 songs
+      expect((results[1] as unknown as SongDTO[]).length).toBe(1); // album2 has 1 song
     });
   });
 
   describe("songsByGenreLoader", () => {
     it("should load songs for given genres", async () => {
-      const mockSongs = [
+      const mockSongs: SongDTO[] = [
         {
           id: "1",
           title: "Song 1",
           artists: ["artist1"],
           album: "Album 1",
+          year: 2020,
           duration: 180,
           releaseDate: new Date(),
           genres: ["genre1"],
@@ -301,15 +318,14 @@ describe("DataLoadersService", () => {
           title: "Song 2",
           artists: ["artist2"],
           album: "Album 2",
+          year: 2021,
           duration: 200,
           releaseDate: new Date(),
           genres: ["genre2"],
         },
       ];
 
-      jest
-        .spyOn(songsService, "findByGenreIds")
-        .mockResolvedValue(mockSongs as any);
+      vi.spyOn(songsService, "findByGenreIds").mockResolvedValue(mockSongs);
 
       const results = await service.songsByGenreLoader.loadMany([
         "genre1",
@@ -321,8 +337,12 @@ describe("DataLoadersService", () => {
         "genre2",
       ]);
       expect(results).toHaveLength(2);
-      expect((results[0] as any).length).toBe(1); // genre1 has 1 song
-      expect((results[1] as any).length).toBe(1); // genre2 has 1 song
+      if (!(results[0] instanceof Error)) {
+        expect(results[0]).toHaveLength(1); // genre1 has 1 song
+      }
+      if (!(results[1] instanceof Error)) {
+        expect(results[1]).toHaveLength(1); // genre2 has 1 song
+      }
     });
   });
 });

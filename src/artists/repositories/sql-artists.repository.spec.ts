@@ -3,6 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SqlArtistsRepository } from "./sql-artists.repository";
 import { Artist } from "../models/artist.entity";
+import { Song } from "../../songs/models/song.entity";
 
 describe("SqlArtistsRepository", () => {
   let repository: SqlArtistsRepository;
@@ -12,14 +13,14 @@ describe("SqlArtistsRepository", () => {
     id: 1,
     name: "Test Artist",
     songs: [
-      { id: 1, title: "Song 1" } as any,
-      { id: 2, title: "Song 2" } as any,
+      { id: 1, title: "Song 1" } as unknown as Song,
+      { id: 2, title: "Song 2" } as unknown as Song,
     ],
   };
 
   const mockArtistRepository = {
-    find: jest.fn(),
-    findOne: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -40,7 +41,7 @@ describe("SqlArtistsRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -140,8 +141,8 @@ describe("SqlArtistsRepository", () => {
 
       const result = await repository.findByIds(["1", "2"]);
 
-      expect(result[0].name).toBe("Artist 1");
-      expect(result[1].name).toBe("Artist 2");
+      expect(result[0]!.name).toBe("Artist 1");
+      expect(result[1]!.name).toBe("Artist 2");
     });
   });
 
@@ -193,7 +194,10 @@ describe("SqlArtistsRepository", () => {
     });
 
     it("should handle artists with null songs relation", async () => {
-      const artistWithNullSongs = { ...mockArtist, songs: null as any };
+      const artistWithNullSongs = {
+        ...mockArtist,
+        songs: null as unknown as Song[],
+      };
       mockArtistRepository.findOne.mockResolvedValue(artistWithNullSongs);
 
       const result = await repository.findOne("1");
