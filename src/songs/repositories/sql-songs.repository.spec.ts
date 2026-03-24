@@ -27,23 +27,23 @@ describe("SqlSongsRepository", () => {
   } as unknown as Song;
 
   const mockSongRepository = {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
+    remove: vi.fn(),
   };
 
   const mockArtistRepository = {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
   };
 
   const mockGenreRepository = {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -74,7 +74,7 @@ describe("SqlSongsRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

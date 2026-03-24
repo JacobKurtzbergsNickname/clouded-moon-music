@@ -21,12 +21,12 @@ describe("SongsController", () => {
   };
 
   const mockSongsService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    replace: jest.fn(),
-    remove: jest.fn(),
+    create: vi.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    update: vi.fn(),
+    replace: vi.fn(),
+    remove: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -45,7 +45,7 @@ describe("SongsController", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

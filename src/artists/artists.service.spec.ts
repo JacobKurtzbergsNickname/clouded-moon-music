@@ -2,32 +2,43 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { CMLogger } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { ArtistsService } from "./artists.service";
-import { ARTISTS_REPOSITORY } from "./repositories/artists.repository";
+import {
+  ARTISTS_REPOSITORY,
+  ArtistsRepository,
+} from "./repositories/artists.repository";
 import { ArtistDTO } from "./models/artist.dto";
+
+type ArtistsRepositoryMock = Mocked<
+  Pick<ArtistsRepository, "findAll" | "findOne">
+>;
+type RedisServiceMock = Mocked<Pick<RedisService, "get" | "set">>;
+type LoggerMock = Mocked<
+  Pick<CMLogger, "info" | "error" | "warn" | "debug" | "verbose">
+>;
 
 describe("ArtistsService", () => {
   let service: ArtistsService;
-  let mockRepository: any;
-  let mockRedisService: any;
-  let mockLogger: any;
+  let mockRepository: ArtistsRepositoryMock;
+  let mockRedisService: RedisServiceMock;
+  let mockLogger: LoggerMock;
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
     };
 
     mockRedisService = {
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue("OK"),
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue("OK"),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

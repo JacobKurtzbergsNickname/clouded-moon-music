@@ -15,8 +15,8 @@ describe("ArtistsController", () => {
         {
           provide: ArtistsService,
           useValue: {
-            findAll: jest.fn(),
-            findOne: jest.fn(),
+            findAll: vi.fn(),
+            findOne: vi.fn(),
           },
         },
       ],
@@ -36,7 +36,7 @@ describe("ArtistsController", () => {
         { id: "1", name: "Artist 1", songs: ["Song 1"] },
         { id: "2", name: "Artist 2", songs: ["Song 2"] },
       ];
-      jest.spyOn(service, "findAll").mockResolvedValue(mockArtists);
+      vi.spyOn(service, "findAll").mockResolvedValue(mockArtists);
 
       const result = await controller.findAll();
 
@@ -52,7 +52,7 @@ describe("ArtistsController", () => {
         name: "Artist 1",
         songs: ["Song 1"],
       };
-      jest.spyOn(service, "findOne").mockResolvedValue(mockArtist);
+      vi.spyOn(service, "findOne").mockResolvedValue(mockArtist);
 
       const result = await controller.findOne("1");
 
@@ -61,7 +61,7 @@ describe("ArtistsController", () => {
     });
 
     it("should throw NotFoundException when artist not found", async () => {
-      jest.spyOn(service, "findOne").mockResolvedValue(null);
+      vi.spyOn(service, "findOne").mockResolvedValue(null);
 
       await expect(controller.findOne("999")).rejects.toThrow(
         NotFoundException,

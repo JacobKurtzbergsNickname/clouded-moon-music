@@ -9,28 +9,28 @@ import { CreateTrackDTO } from "./models/create-track.dto";
 
 describe("TracksService", () => {
   let service: TracksService;
-  let mockRepository: jest.Mocked<{
-    findAll: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    remove: jest.Mock;
+  let mockRepository: Mocked<{
+    findAll: Mock;
+    findOne: Mock;
+    create: Mock;
+    remove: Mock;
   }>;
-  let mockRedisService: jest.Mocked<{
-    get: jest.Mock;
-    set: jest.Mock;
-    del: jest.Mock;
-    deletePattern: jest.Mock;
+  let mockRedisService: Mocked<{
+    get: Mock;
+    set: Mock;
+    del: Mock;
+    deletePattern: Mock;
   }>;
-  let mockStorageService: jest.Mocked<{
-    getSignedDownloadUrl: jest.Mock;
-    getSignedUploadUrl: jest.Mock;
+  let mockStorageService: Mocked<{
+    getSignedDownloadUrl: Mock;
+    getSignedUploadUrl: Mock;
   }>;
-  let mockLogger: jest.Mocked<{
-    info: jest.Mock;
-    warn: jest.Mock;
-    error: jest.Mock;
-    debug: jest.Mock;
-    verbose: jest.Mock;
+  let mockLogger: Mocked<{
+    info: Mock;
+    warn: Mock;
+    error: Mock;
+    debug: Mock;
+    verbose: Mock;
   }>;
 
   const mockTrack: TrackDTO = {
@@ -48,30 +48,30 @@ describe("TracksService", () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      remove: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      create: vi.fn(),
+      remove: vi.fn(),
     };
 
     mockRedisService = {
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue("OK"),
-      del: jest.fn().mockResolvedValue(1),
-      deletePattern: jest.fn().mockResolvedValue(0),
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue("OK"),
+      del: vi.fn().mockResolvedValue(1),
+      deletePattern: vi.fn().mockResolvedValue(0),
     };
 
     mockStorageService = {
-      getSignedDownloadUrl: jest.fn(),
-      getSignedUploadUrl: jest.fn(),
+      getSignedDownloadUrl: vi.fn(),
+      getSignedUploadUrl: vi.fn(),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

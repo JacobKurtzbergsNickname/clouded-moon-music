@@ -6,11 +6,11 @@ describe("HttpExceptionFilter", () => {
 
   beforeEach(() => {
     filter = new HttpExceptionFilter();
-    jest.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should be defined", () => {
@@ -19,16 +19,16 @@ describe("HttpExceptionFilter", () => {
 
   it("should return a structured error response", () => {
     const exception = new HttpException("Not found", HttpStatus.NOT_FOUND);
-    const mockJson = jest.fn();
-    const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-    const mockGetResponse = jest.fn().mockReturnValue({
+    const mockJson = vi.fn();
+    const mockStatus = vi.fn().mockReturnValue({ json: mockJson });
+    const mockGetResponse = vi.fn().mockReturnValue({
       status: mockStatus,
     });
-    const mockGetRequest = jest.fn().mockReturnValue({
+    const mockGetRequest = vi.fn().mockReturnValue({
       url: "/test",
       method: "GET",
     });
-    const mockSwitchToHttp = jest.fn().mockReturnValue({
+    const mockSwitchToHttp = vi.fn().mockReturnValue({
       getResponse: mockGetResponse,
       getRequest: mockGetRequest,
     });
@@ -53,15 +53,15 @@ describe("HttpExceptionFilter", () => {
       { message: ["field is required", "field must be a string"] },
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
-    const mockJson = jest.fn();
-    const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-    const mockGetResponse = jest.fn().mockReturnValue({ status: mockStatus });
-    const mockGetRequest = jest.fn().mockReturnValue({
+    const mockJson = vi.fn();
+    const mockStatus = vi.fn().mockReturnValue({ json: mockJson });
+    const mockGetResponse = vi.fn().mockReturnValue({ status: mockStatus });
+    const mockGetRequest = vi.fn().mockReturnValue({
       url: "/songs",
       method: "POST",
     });
     const mockHost = {
-      switchToHttp: jest.fn().mockReturnValue({
+      switchToHttp: vi.fn().mockReturnValue({
         getResponse: mockGetResponse,
         getRequest: mockGetRequest,
       }),

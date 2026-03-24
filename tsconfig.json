@@ -14,7 +14,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "types": ["node", "morgan", "jest"],
+    "types": ["node", "morgan", "vitest/globals"],
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",

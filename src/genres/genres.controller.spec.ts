@@ -15,8 +15,8 @@ describe("GenresController", () => {
         {
           provide: GenresService,
           useValue: {
-            findAll: jest.fn(),
-            findOne: jest.fn(),
+            findAll: vi.fn(),
+            findOne: vi.fn(),
           },
         },
       ],
@@ -36,7 +36,7 @@ describe("GenresController", () => {
         { id: "1", name: "Rock", songs: ["Song 1"] },
         { id: "2", name: "Jazz", songs: ["Song 2"] },
       ];
-      jest.spyOn(service, "findAll").mockResolvedValue(mockGenres);
+      vi.spyOn(service, "findAll").mockResolvedValue(mockGenres);
 
       const result = await controller.findAll();
 
@@ -52,7 +52,7 @@ describe("GenresController", () => {
         name: "Rock",
         songs: ["Song 1"],
       };
-      jest.spyOn(service, "findOne").mockResolvedValue(mockGenre);
+      vi.spyOn(service, "findOne").mockResolvedValue(mockGenre);
 
       const result = await controller.findOne("1");
 
@@ -61,7 +61,7 @@ describe("GenresController", () => {
     });
 
     it("should throw NotFoundException when genre not found", async () => {
-      jest.spyOn(service, "findOne").mockResolvedValue(null);
+      vi.spyOn(service, "findOne").mockResolvedValue(null);
 
       await expect(controller.findOne("999")).rejects.toThrow(
         NotFoundException,

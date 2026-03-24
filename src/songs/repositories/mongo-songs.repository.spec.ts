@@ -12,15 +12,18 @@ const TEST_ARTIST_NAME = "Test Artist";
 const TEST_ALBUM_NAME = "Test Album";
 const TEST_YEAR = 2024;
 const TEST_GENRE = "Rock";
-const TEST_DURATION = "03:45";
+const TEST_DURATION = 225;
 const TEST_RELEASE_DATE = "2024-01-01";
 const TEST_INVALID_ID = "invalid-id";
 const TEST_UPDATED_TITLE = "Updated Title";
 const TEST_UPDATED_SHORT = "Updated";
 
+type SongModelMock = Mock &
+  Record<"find" | "findById" | "findByIdAndUpdate" | "findByIdAndDelete", Mock>;
+
 describe("MongoSongsRepository", () => {
   let repository: MongoSongsRepository;
-  let songModel: Model<SongDocument>;
+  let songModel: SongModelMock;
 
   const mockSongDocument = {
     _id: { toString: () => TEST_OBJECT_ID },
@@ -39,35 +42,33 @@ describe("MongoSongsRepository", () => {
     album: TEST_ALBUM_NAME,
     year: TEST_YEAR,
     genres: [TEST_GENRE],
-    // Note: duration is typed as Date in DTO but stored as string in schema
-    duration: TEST_DURATION as any,
+    duration: TEST_DURATION,
     releaseDate: new Date(TEST_RELEASE_DATE),
   };
 
-  const mockSongModel = {
-    find: jest.fn(),
-    findById: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-  };
-
   beforeEach(async () => {
+    songModel = Object.assign(vi.fn(), {
+      find: vi.fn(),
+      findById: vi.fn(),
+      findByIdAndUpdate: vi.fn(),
+      findByIdAndDelete: vi.fn(),
+    }) as SongModelMock;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MongoSongsRepository,
         {
           provide: getModelToken(Song.name),
-          useValue: mockSongModel,
+          useValue: songModel as unknown as Model<SongDocument>,
         },
       ],
     }).compile();
 
     repository = module.get<MongoSongsRepository>(MongoSongsRepository);
-    songModel = module.get<Model<SongDocument>>(getModelToken(Song.name));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -77,8 +78,8 @@ describe("MongoSongsRepository", () => {
   describe("findAll", () => {
     it("should return an array of songs", async () => {
       const mockSongs = [mockSongDocument, mockSongDocument];
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockSongs),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(mockSongs),
       });
 
       const result = await repository.findAll();
@@ -90,8 +91,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return an empty array when no songs exist", async () => {
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue([]),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue([]),
       });
 
       const result = await repository.findAll();
@@ -103,8 +104,8 @@ describe("MongoSongsRepository", () => {
 
   describe("findOne", () => {
     it("should return a song by id", async () => {
-      mockSongModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockSongDocument),
+      songModel.findById.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(mockSongDocument),
       });
 
       const result = await repository.findOne(TEST_OBJECT_ID);
@@ -116,8 +117,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return null when song is not found", async () => {
-      mockSongModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      songModel.findById.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(null),
       });
 
       const result = await repository.findOne(TEST_OBJECT_ID);
@@ -136,15 +137,10 @@ describe("MongoSongsRepository", () => {
 
   describe("create", () => {
     it("should create and return a new song", async () => {
-      const saveMock = jest.fn().mockResolvedValue(mockSongDocument);
-
-      // Mock the constructor
-      (songModel as any) = jest.fn().mockImplementation(() => ({
-        save: saveMock,
-      }));
-
-      // Directly assign the mock to the repository's private property
-      (repository as any).songModel = songModel;
+      const saveMock = vi.fn().mockResolvedValue(mockSongDocument);
+      songModel.mockImplementation(
+        () => ({ save: saveMock }) as unknown as SongDocument,
+      );
 
       const result = await repository.create(mockCreateSongDTO);
 
@@ -159,8 +155,8 @@ describe("MongoSongsRepository", () => {
       const updatedData = { title: TEST_UPDATED_TITLE };
       const updatedSong = { ...mockSongDocument, ...updatedData };
 
-      mockSongModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(updatedSong),
+      songModel.findByIdAndUpdate.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(updatedSong),
       });
 
       const result = await repository.update(TEST_OBJECT_ID, updatedData);
@@ -175,8 +171,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return null when updating non-existent song", async () => {
-      mockSongModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      songModel.findByIdAndUpdate.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(null),
       });
 
       const result = await repository.update(TEST_OBJECT_ID, {
@@ -200,8 +196,8 @@ describe("MongoSongsRepository", () => {
     it("should replace and return the replaced song", async () => {
       const replacedSong = { ...mockSongDocument };
 
-      mockSongModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(replacedSong),
+      songModel.findByIdAndUpdate.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(replacedSong),
       });
 
       const result = await repository.replace(
@@ -219,8 +215,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return null when replacing non-existent song", async () => {
-      mockSongModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      songModel.findByIdAndUpdate.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(null),
       });
 
       const result = await repository.replace(
@@ -244,8 +240,8 @@ describe("MongoSongsRepository", () => {
 
   describe("remove", () => {
     it("should remove a song and return the id", async () => {
-      mockSongModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockSongDocument),
+      songModel.findByIdAndDelete.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(mockSongDocument),
       });
 
       const result = await repository.remove(TEST_OBJECT_ID);
@@ -255,8 +251,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return null when song to remove is not found", async () => {
-      mockSongModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
+      songModel.findByIdAndDelete.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(null),
       });
 
       const result = await repository.remove(TEST_OBJECT_ID);
@@ -283,8 +279,8 @@ describe("MongoSongsRepository", () => {
 
     it("should return songs matching given artist ids", async () => {
       const mockSongs = [mockSongDocument];
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockSongs),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(mockSongs),
       });
 
       const result = await repository.findByArtistIds([TEST_OBJECT_ID]);
@@ -297,8 +293,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return empty array when no songs match", async () => {
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue([]),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue([]),
       });
 
       const result = await repository.findByArtistIds([TEST_OBJECT_ID]);
@@ -317,8 +313,8 @@ describe("MongoSongsRepository", () => {
 
     it("should return songs matching given genre ids", async () => {
       const mockSongs = [mockSongDocument];
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockSongs),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue(mockSongs),
       });
 
       const result = await repository.findByGenreIds([TEST_OBJECT_ID]);
@@ -331,8 +327,8 @@ describe("MongoSongsRepository", () => {
     });
 
     it("should return empty array when no songs match", async () => {
-      mockSongModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue([]),
+      songModel.find.mockReturnValue({
+        exec: vi.fn().mockResolvedValue([]),
       });
 
       const result = await repository.findByGenreIds([TEST_OBJECT_ID]);

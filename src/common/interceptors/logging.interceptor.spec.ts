@@ -1,5 +1,5 @@
 import { ExecutionContext, Logger } from "@nestjs/common";
-import { of } from "rxjs";
+import { lastValueFrom, of } from "rxjs";
 import { LoggingInterceptor } from "./logging.interceptor";
 
 describe("LoggingInterceptor", () => {
@@ -7,19 +7,19 @@ describe("LoggingInterceptor", () => {
 
   beforeEach(() => {
     interceptor = new LoggingInterceptor();
-    jest.spyOn(Logger.prototype, "log").mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, "log").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should be defined", () => {
     expect(interceptor).toBeDefined();
   });
 
-  it("should log the request method and URL after completion", (done) => {
-    const logSpy = jest.spyOn(Logger.prototype, "log");
+  it("should log the request method and URL after completion", async () => {
+    const logSpy = vi.spyOn(Logger.prototype, "log");
     const mockContext = {
       switchToHttp: () => ({
         getRequest: () => ({ method: "GET", url: "/songs" }),
@@ -30,13 +30,8 @@ describe("LoggingInterceptor", () => {
       handle: () => of({ data: "result" }),
     };
 
-    interceptor.intercept(mockContext, mockCallHandler).subscribe({
-      complete: () => {
-        expect(logSpy).toHaveBeenCalledWith(
-          expect.stringContaining("GET /songs"),
-        );
-        done();
-      },
-    });
+    await lastValueFrom(interceptor.intercept(mockContext, mockCallHandler));
+
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("GET /songs"));
   });
 });

@@ -11,7 +11,7 @@ import { GenresService } from "../genres/genres.service";
 
 describe("SongsService", () => {
   let service: SongsService;
-  let mockRepository: jest.Mocked<{
+  let mockRepository: Mocked<{
     findAll: () => Promise<SongDTO[]>;
     findOne: (id: string) => Promise<SongDTO | null>;
     findByIds: (ids: string[]) => Promise<(SongDTO | null)[]>;
@@ -25,15 +25,15 @@ describe("SongsService", () => {
     findByArtistIds: (ids: string[]) => Promise<SongDTO[]>;
     findByGenreIds: (ids: string[]) => Promise<SongDTO[]>;
   }>;
-  let mockArtistsService: jest.Mocked<Pick<ArtistsService, "findByIds">>;
-  let mockGenresService: jest.Mocked<Pick<GenresService, "findByIds">>;
-  let mockRedisService: jest.Mocked<{
+  let mockArtistsService: Mocked<Pick<ArtistsService, "findByIds">>;
+  let mockGenresService: Mocked<Pick<GenresService, "findByIds">>;
+  let mockRedisService: Mocked<{
     get: (key: string) => Promise<string | null>;
     set: (key: string, value: string, ttl: number) => Promise<string>;
     del: (...keys: string[]) => Promise<number>;
     deletePattern: (pattern: string) => Promise<number>;
   }>;
-  let mockLogger: jest.Mocked<{
+  let mockLogger: Mocked<{
     info: (msg: string) => void;
     error: (msg: string) => void;
     warn: (msg: string) => void;
@@ -43,38 +43,38 @@ describe("SongsService", () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      findByIds: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      replace: jest.fn(),
-      remove: jest.fn(),
-      findByArtistIds: jest.fn(),
-      findByGenreIds: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      findByIds: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      replace: vi.fn(),
+      remove: vi.fn(),
+      findByArtistIds: vi.fn(),
+      findByGenreIds: vi.fn(),
     };
 
     mockArtistsService = {
-      findByIds: jest.fn().mockResolvedValue([]),
+      findByIds: vi.fn().mockResolvedValue([]),
     };
 
     mockGenresService = {
-      findByIds: jest.fn().mockResolvedValue([]),
+      findByIds: vi.fn().mockResolvedValue([]),
     };
 
     mockRedisService = {
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue("OK"),
-      del: jest.fn().mockResolvedValue(1),
-      deletePattern: jest.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue("OK"),
+      del: vi.fn().mockResolvedValue(1),
+      deletePattern: vi.fn().mockResolvedValue(1),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

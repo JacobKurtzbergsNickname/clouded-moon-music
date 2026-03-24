@@ -11,15 +11,15 @@ describe("HealthController", () => {
   let healthCheckService: HealthCheckService;
 
   const mockHealthCheckService = {
-    check: jest.fn(),
+    check: vi.fn(),
   };
 
   const mockMongooseHealthIndicator = {
-    pingCheck: jest.fn(),
+    pingCheck: vi.fn(),
   };
 
   const mockTypeOrmHealthIndicator = {
-    pingCheck: jest.fn(),
+    pingCheck: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -46,7 +46,7 @@ describe("HealthController", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

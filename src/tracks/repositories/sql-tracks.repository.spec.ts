@@ -7,7 +7,7 @@ import { TrackDTO } from "../models/track.dto";
 
 describe("SqlTracksRepository", () => {
   let repository: SqlTracksRepository;
-  let typeormRepo: jest.Mocked<Repository<Track>>;
+  let typeormRepo: Mocked<Repository<Track>>;
 
   const mockTrackEntity: Track = {
     id: "uuid-1",
@@ -36,11 +36,11 @@ describe("SqlTracksRepository", () => {
   };
 
   const mockTypeormRepo = {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
+    remove: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -59,7 +59,7 @@ describe("SqlTracksRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -214,7 +214,12 @@ describe("SqlTracksRepository", () => {
     });
 
     it("should propagate save errors", async () => {
-      mockTypeormRepo.create.mockReturnValue(createDto as any);
+      const unsavedEntity: Track = {
+        id: "uuid-unsaved",
+        ...createDto,
+        createdAt: new Date("2026-01-04T00:00:00.000Z"),
+      };
+      mockTypeormRepo.create.mockReturnValue(unsavedEntity);
       mockTypeormRepo.save.mockRejectedValue(
         new Error("Unique constraint violation"),
       );

@@ -30,5 +30,5 @@ export class LogEntry implements ILogEntry {
 
   requestId?: string;
 
-  [key: string]: any;
+  [key: string]: unknown;
 }

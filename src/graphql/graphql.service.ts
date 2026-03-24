@@ -3,7 +3,7 @@ import { SongsService } from "../songs/songs.service";
 import { ArtistsService } from "../artists/artists.service";
 import { GenresService } from "../genres/genres.service";
 import CreateSongDTO from "../songs/models/create-song.dto";
-import { SongType, SongRawGqlType } from "./models/song.type";
+import { SongRawGqlType } from "./models/song.type";
 import { ArtistType } from "./models/artist.type";
 import { GenreType } from "./models/genre.type";
 

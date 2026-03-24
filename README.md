@@ -98,17 +98,17 @@ REDIS_PORT=6380
 
 > When using Docker Compose, these values are pre-configured. Only modify if running databases externally.
 
-| Variable            | Default / Notes           |
-| ------------------- | ------------------------- |
-| `PORT`              | `3456`                    |
-| `MONGO_URI`         | See `.env` example above  |
-| `POSTGRES_HOST`     | `localhost`               |
-| `POSTGRES_PORT`     | `5433`                    |
-| `POSTGRES_USER`     | `admin`                   |
-| `POSTGRES_PASSWORD` | _(required)_              |
-| `POSTGRES_DATABASE` | `clouded_moon_music`      |
-| `REDIS_HOST`        | `localhost`               |
-| `REDIS_PORT`        | `6380`                    |
+| Variable            | Default / Notes          |
+| ------------------- | ------------------------ |
+| `PORT`              | `3456`                   |
+| `MONGO_URI`         | See `.env` example above |
+| `POSTGRES_HOST`     | `localhost`              |
+| `POSTGRES_PORT`     | `5433`                   |
+| `POSTGRES_USER`     | `admin`                  |
+| `POSTGRES_PASSWORD` | _(required)_             |
+| `POSTGRES_DATABASE` | `clouded_moon_music`     |
+| `REDIS_HOST`        | `localhost`              |
+| `REDIS_PORT`        | `6380`                   |
 
 ## 🏃 Running the Application
 
@@ -383,7 +383,7 @@ class SongsService extends CachedServiceBase {
 
 ### Development
 
-- **Jest 29** - Unit and integration testing
+- **Vitest 2** - Unit and integration testing
 - **ESLint** with Airbnb config - Code quality
 - **Prettier** - Code formatting
 - **Docker Compose** - Local development infrastructure
