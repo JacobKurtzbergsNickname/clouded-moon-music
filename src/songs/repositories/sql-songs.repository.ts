@@ -259,6 +259,8 @@ export class SqlSongsRepository implements SongsRepository {
 
   /**
    * Find all songs that belong to any of the specified album IDs.
+   * For the SQL implementation, album is stored as a string column,
+   * so we can query directly using an IN clause.
    * Uses a single SQL query with IN clause on the album column.
    * @param albumIds - Array of album IDs (as strings)
    * @returns Array of SongDTO objects
@@ -268,8 +270,10 @@ export class SqlSongsRepository implements SongsRepository {
       return [];
     }
 
+    const uniqueAlbumIds = Array.from(new Set(albumIds));
+
     const songs = await this.songRepository.find({
-      where: { album: In(albumIds) },
+      where: { album: In(uniqueAlbumIds) },
       relations: ["artists", "genres"],
     });
 

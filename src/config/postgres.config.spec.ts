@@ -38,7 +38,9 @@ describe("PostgresConfig", () => {
       const config = new PostgresConfig({});
       const result = config.getConfig("/app/src");
 
-      expect((result as any).entities).toContain("/app/src/**/*.entity{.ts,.js}");
+      expect((result as any).entities).toContain(
+        "/app/src/**/*.entity{.ts,.js}",
+      );
     });
   });
 

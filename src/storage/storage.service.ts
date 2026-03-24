@@ -76,7 +76,10 @@ export class StorageService {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  private buildLocalSignedUrl(trackId: string, ttlSeconds: number): SignedUrlResult {
+  private buildLocalSignedUrl(
+    trackId: string,
+    ttlSeconds: number,
+  ): SignedUrlResult {
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
     const expires = expiresAt.getTime().toString();
     const payload = `${trackId}:${expires}`;
@@ -86,7 +89,10 @@ export class StorageService {
     return { url, expiresAt };
   }
 
-  private buildLocalUploadUrl(storageKey: string, ttlSeconds: number): SignedUrlResult {
+  private buildLocalUploadUrl(
+    storageKey: string,
+    ttlSeconds: number,
+  ): SignedUrlResult {
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
     const expires = expiresAt.getTime().toString();
     const sig = this.hmacSign(`upload:${storageKey}:${expires}`);

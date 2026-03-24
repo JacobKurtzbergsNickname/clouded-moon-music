@@ -25,6 +25,9 @@ describe("SongsResolver", () => {
       genreLoader: {
         load: jest.fn(),
       },
+      albumLoader: {
+        load: jest.fn(),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -60,7 +63,7 @@ describe("SongsResolver", () => {
           year: 2020,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as unknown as SongType,
       ];
 
       jest.spyOn(graphqlSongsService, "findAll").mockResolvedValue(mockSongs);
@@ -79,7 +82,7 @@ describe("SongsResolver", () => {
         year: 2020,
         duration: 180,
         releaseDate: new Date(),
-      } as SongType;
+      } as unknown as SongType;
 
       jest.spyOn(graphqlSongsService, "findOne").mockResolvedValue(mockSong);
 
@@ -197,7 +200,7 @@ describe("SongsResolver", () => {
         album: "Album",
         duration: 200,
         releaseDate: new Date(),
-      } as SongType;
+      } as unknown as SongType;
 
       jest
         .spyOn(graphqlSongsService, "update")
@@ -214,6 +217,39 @@ describe("SongsResolver", () => {
 
       const result = await resolver.remove("1");
       expect(result).toBe("1");
+    });
+  });
+
+  describe("album", () => {
+    it("should return legacy album as inline AlbumType without loader hit", async () => {
+      const legacySong = {
+        id: "1",
+        album: "Blood Fire Death",
+      } as unknown as SongType;
+
+      const result = await resolver.album(legacySong);
+
+      expect(result).toEqual({
+        id: "Blood Fire Death",
+        title: "Blood Fire Death",
+      });
+      expect(dataLoadersService.albumLoader.load).not.toHaveBeenCalled();
+    });
+
+    it("should use album loader when album looks like an ID and fallback when missing", async () => {
+      const songWithIdAlbum = {
+        id: "1",
+        album: "42",
+      } as unknown as SongType;
+
+      jest
+        .spyOn(dataLoadersService.albumLoader, "load")
+        .mockResolvedValueOnce(null);
+
+      const result = await resolver.album(songWithIdAlbum);
+
+      expect(dataLoadersService.albumLoader.load).toHaveBeenCalledWith("42");
+      expect(result).toEqual({ id: "42", title: "42" });
     });
   });
 });

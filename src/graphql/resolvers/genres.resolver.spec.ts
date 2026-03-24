@@ -43,9 +43,8 @@ describe("GenresResolver", () => {
     }).compile();
 
     resolver = module.get<GenresResolver>(GenresResolver);
-    graphqlGenresService = module.get<GraphqlGenresService>(
-      GraphqlGenresService,
-    );
+    graphqlGenresService =
+      module.get<GraphqlGenresService>(GraphqlGenresService);
     dataLoadersService = module.get<DataLoadersService>(DataLoadersService);
   });
 
@@ -105,7 +104,7 @@ describe("GenresResolver", () => {
           year: 2024,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as unknown as SongType,
       ];
 
       mockDataLoadersService.songsByGenreLoader.load.mockResolvedValue(

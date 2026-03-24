@@ -108,8 +108,16 @@ describe("DataLoadersService", () => {
 
       expect(albumsService.findByIds).toHaveBeenCalledWith(["1", "2"]);
       expect(results).toHaveLength(2);
-      expect(results[0]).toEqual({ id: "1", title: "Album 1", releaseYear: 1975 });
-      expect(results[1]).toEqual({ id: "2", title: "Album 2", releaseYear: 1980 });
+      expect(results[0]).toEqual({
+        id: "1",
+        title: "Album 1",
+        releaseYear: 1975,
+      });
+      expect(results[1]).toEqual({
+        id: "2",
+        title: "Album 2",
+        releaseYear: 1980,
+      });
     });
 
     it("should return null for non-existent albums", async () => {
