@@ -46,7 +46,11 @@ export class GenresService extends CachedServiceBase {
     const genre = await this.genresRepository.findOne(id);
 
     if (genre) {
-      const cacheWriteResult = await this.setCached(cacheKey, genre, CACHE_TTL.GENRE);
+      const cacheWriteResult = await this.setCached(
+        cacheKey,
+        genre,
+        CACHE_TTL.GENRE,
+      );
       cacheWriteResult.match(
         () => this.logger.info(`Cache populated: ${cacheKey}`),
         (error) => this.logger.warn(`Cache write failed: ${error.message}`),
@@ -63,7 +67,9 @@ export class GenresService extends CachedServiceBase {
    * @returns Array of GenreDTO or null, in the same order as input IDs
    */
   async findByIds(ids: string[]): Promise<(GenreDTO | null)[]> {
-    this.logger.info(`Method: findByIds() — batch finding ${ids.length} genres`);
+    this.logger.info(
+      `Method: findByIds() — batch finding ${ids.length} genres`,
+    );
     return this.genresRepository.findByIds(ids);
   }
 
@@ -77,7 +83,10 @@ export class GenresService extends CachedServiceBase {
     const genre = await this.genresRepository.update(id, name);
     if (genre) {
       await Promise.all([
-        this.invalidateCache(CACHE_KEYS.GENRES_LIST_ALL, `${CACHE_KEYS.GENRE}${id}`),
+        this.invalidateCache(
+          CACHE_KEYS.GENRES_LIST_ALL,
+          `${CACHE_KEYS.GENRE}${id}`,
+        ),
       ]);
     }
     return genre;

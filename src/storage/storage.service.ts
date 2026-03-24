@@ -1,4 +1,8 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable, Logger } from "@nestjs/common";
 import { createHmac, timingSafeEqual } from "crypto";
@@ -14,9 +18,22 @@ export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly config: StorageConfig;
   private s3Client: S3Client | null = null;
+  private readonly signingKey: string;
 
   constructor() {
     this.config = getStorageConfig();
+    const trimmedSecret = this.config.secretAccessKey?.trim();
+
+    if (trimmedSecret) {
+      this.signingKey = trimmedSecret;
+    } else if (this.config.provider === "local") {
+      this.signingKey = "local-dev-fallback-secret";
+      this.logger.warn(
+        "STORAGE_SECRET_ACCESS_KEY not set; using fallback dev signing key for local storage provider.",
+      );
+    } else {
+      this.signingKey = "";
+    }
   }
 
   /**
@@ -92,7 +109,10 @@ export class StorageService {
     return { url, expiresAt };
   }
 
-  private buildLocalUploadUrl(storageKey: string, ttlSeconds: number): SignedUrlResult {
+  private buildLocalUploadUrl(
+    storageKey: string,
+    ttlSeconds: number,
+  ): SignedUrlResult {
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
     const expires = expiresAt.getTime().toString();
     const sig = this.hmacSign(`upload:${storageKey}:${expires}`);
@@ -132,15 +152,14 @@ export class StorageService {
   }
 
   private hmacSign(payload: string): string {
-    if (!this.config.secretAccessKey) {
+    if (!this.signingKey) {
       throw new Error(
         "STORAGE_SECRET_ACCESS_KEY must be configured for HMAC signing. " +
           "Set this environment variable before starting the application.",
       );
     }
-    return createHmac("sha256", this.config.secretAccessKey)
-      .update(payload)
-      .digest("hex");
+
+    return createHmac("sha256", this.signingKey).update(payload).digest("hex");
   }
 
   private getS3Client(): S3Client {
@@ -149,7 +168,9 @@ export class StorageService {
     }
 
     if (!this.config.bucketName) {
-      throw new Error("STORAGE_BUCKET must be configured for non-local providers.");
+      throw new Error(
+        "STORAGE_BUCKET must be configured for non-local providers.",
+      );
     }
 
     if (!this.config.accessKeyId || !this.config.secretAccessKey) {

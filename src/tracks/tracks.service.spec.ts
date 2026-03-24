@@ -244,7 +244,11 @@ describe("TracksService", () => {
     };
 
     it("should create track and invalidate list cache", async () => {
-      mockRepository.create.mockResolvedValue({ id: "uuid-3", ...createDto, createdAt: new Date() } as TrackDTO);
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-3",
+        ...createDto,
+        createdAt: new Date(),
+      } as TrackDTO);
 
       const result = await service.create(createDto);
 
@@ -254,7 +258,11 @@ describe("TracksService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockRepository.create.mockResolvedValue({ id: "uuid-3", ...createDto, createdAt: new Date() } as TrackDTO);
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-3",
+        ...createDto,
+        createdAt: new Date(),
+      } as TrackDTO);
       mockRedisService.del.mockRejectedValue(new Error("Redis del failed"));
 
       const result = await service.create(createDto);
@@ -266,8 +274,16 @@ describe("TracksService", () => {
     });
 
     it("should create a WAV track", async () => {
-      const wavDto: CreateTrackDTO = { ...createDto, format: "wav", storageKey: "tracks/uuid-4/master.wav" };
-      mockRepository.create.mockResolvedValue({ id: "uuid-4", ...wavDto, createdAt: new Date() } as TrackDTO);
+      const wavDto: CreateTrackDTO = {
+        ...createDto,
+        format: "wav",
+        storageKey: "tracks/uuid-4/master.wav",
+      };
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-4",
+        ...wavDto,
+        createdAt: new Date(),
+      } as TrackDTO);
 
       const result = await service.create(wavDto);
 
@@ -340,7 +356,11 @@ describe("TracksService", () => {
     });
 
     it("should return a signed stream URL for an existing WAV track", async () => {
-      const wavTrack: TrackDTO = { ...mockTrack, format: "wav", storageKey: "tracks/uuid-2/master.wav" };
+      const wavTrack: TrackDTO = {
+        ...mockTrack,
+        format: "wav",
+        storageKey: "tracks/uuid-2/master.wav",
+      };
       mockRedisService.get.mockResolvedValue(null);
       mockRepository.findOne.mockResolvedValue(wavTrack);
       mockStorageService.getSignedDownloadUrl.mockResolvedValue({

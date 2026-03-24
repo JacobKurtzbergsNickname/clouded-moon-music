@@ -16,7 +16,10 @@ describe("SongsService", () => {
     findOne: (id: string) => Promise<SongDTO | null>;
     findByIds: (ids: string[]) => Promise<(SongDTO | null)[]>;
     create: (dto: CreateSongDTO) => Promise<SongDTO>;
-    update: (id: string, song: Partial<CreateSongDTO>) => Promise<SongDTO | null>;
+    update: (
+      id: string,
+      song: Partial<CreateSongDTO>,
+    ) => Promise<SongDTO | null>;
     replace: (id: string, song: CreateSongDTO) => Promise<SongDTO | null>;
     remove: (id: string) => Promise<string | null>;
     findByArtistIds: (ids: string[]) => Promise<SongDTO[]>;
@@ -262,8 +265,12 @@ describe("SongsService", () => {
     };
 
     it("should create song and invalidate list caches", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
+      ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
 
       const result = await service.create(createDto);
@@ -286,7 +293,9 @@ describe("SongsService", () => {
     });
 
     it("should throw BadRequestException when genre IDs do not exist", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "Artist", songs: [] },
+      ]);
       mockGenresService.findByIds.mockResolvedValue([null]);
 
       await expect(service.create(createDto)).rejects.toThrow(
@@ -296,8 +305,12 @@ describe("SongsService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
+      ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis del failed"));
 
@@ -374,8 +387,12 @@ describe("SongsService", () => {
     };
 
     it("should replace song and invalidate caches", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
 
       const result = await service.replace("123", replaceDto);
@@ -388,8 +405,12 @@ describe("SongsService", () => {
     });
 
     it("should not invalidate cache if song not found", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(null);
 
       const result = await service.replace("999", replaceDto);
@@ -399,8 +420,12 @@ describe("SongsService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockArtistsService.findByIds.mockResolvedValue([{ id: "artist-1", name: "New Artist", songs: [] }]);
-      mockGenresService.findByIds.mockResolvedValue([{ id: "genre-1", name: "Jazz", songs: [] }]);
+      mockArtistsService.findByIds.mockResolvedValue([
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
+      ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis failed"));
 
