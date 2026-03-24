@@ -155,10 +155,8 @@ export class TracksService extends CachedServiceBase {
     const track = await this.findOne(id);
     if (!track) return null;
 
-    const signed: SignedUrlResult = this.storageService.getSignedDownloadUrl(
-      track.storageKey,
-      id,
-    );
+    const signed: SignedUrlResult =
+      await this.storageService.getSignedDownloadUrl(track.storageKey, id);
 
     return { streamUrl: signed.url, expiresAt: signed.expiresAt };
   }
@@ -167,7 +165,7 @@ export class TracksService extends CachedServiceBase {
    * Return a signed upload URL so the client can PUT an audio file directly
    * to object storage without routing large payloads through NestJS.
    */
-  getUploadUrl(storageKey: string): SignedUrlResult {
+  async getUploadUrl(storageKey: string): Promise<SignedUrlResult> {
     return this.storageService.getSignedUploadUrl(storageKey);
   }
 }

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotImplementedException } from "@nestjs/common";
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Injectable, Logger } from "@nestjs/common";
 import { createHmac, timingSafeEqual } from "crypto";
 import { StorageConfig, getStorageConfig } from "./storage.config";
 
@@ -11,6 +17,7 @@ export interface SignedUrlResult {
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly config: StorageConfig;
+  private s3Client: S3Client | null = null;
   private readonly signingKey: string;
 
   constructor() {
@@ -34,11 +41,11 @@ export class StorageService {
    * In production this would delegate to AWS S3, Cloudflare R2, or Backblaze B2.
    * In local/dev mode it produces an HMAC-signed URL pointing to the dev stream endpoint.
    */
-  getSignedDownloadUrl(
+  async getSignedDownloadUrl(
     storageKey: string,
     trackId: string,
     expiresInSeconds?: number,
-  ): SignedUrlResult {
+  ): Promise<SignedUrlResult> {
     const ttl = expiresInSeconds ?? this.config.signedUrlExpiry;
 
     if (this.config.provider !== "local") {
@@ -54,10 +61,10 @@ export class StorageService {
    * In production this would return a pre-signed PUT URL from the configured provider.
    * In local/dev mode it returns a placeholder pointing to the dev upload endpoint.
    */
-  getSignedUploadUrl(
+  async getSignedUploadUrl(
     storageKey: string,
     expiresInSeconds?: number,
-  ): SignedUrlResult {
+  ): Promise<SignedUrlResult> {
     const ttl = expiresInSeconds ?? this.config.signedUrlExpiry;
 
     if (this.config.provider !== "local") {
@@ -114,30 +121,34 @@ export class StorageService {
     return { url, expiresAt };
   }
 
-  private buildS3CompatibleSignedUrl(
+  private async buildS3CompatibleSignedUrl(
     storageKey: string,
     ttlSeconds: number,
-  ): SignedUrlResult {
-    void storageKey;
-    void ttlSeconds;
-    throw new NotImplementedException(
-      "S3-compatible signed download URL is not implemented. " +
-        "Configure STORAGE_PROVIDER=local for development or implement " +
-        "@aws-sdk/s3-request-presigner / equivalent for production.",
-    );
+  ): Promise<SignedUrlResult> {
+    const client = this.getS3Client();
+    const command = new GetObjectCommand({
+      Bucket: this.config.bucketName,
+      Key: storageKey,
+    });
+
+    const url = await getSignedUrl(client, command, { expiresIn: ttlSeconds });
+    const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+    return { url, expiresAt };
   }
 
-  private buildS3CompatibleSignedUploadUrl(
+  private async buildS3CompatibleSignedUploadUrl(
     storageKey: string,
     ttlSeconds: number,
-  ): SignedUrlResult {
-    void storageKey;
-    void ttlSeconds;
-    throw new NotImplementedException(
-      "S3-compatible signed upload URL is not implemented. " +
-        "Configure STORAGE_PROVIDER=local for development or implement " +
-        "@aws-sdk/s3-request-presigner / equivalent for production.",
-    );
+  ): Promise<SignedUrlResult> {
+    const client = this.getS3Client();
+    const command = new PutObjectCommand({
+      Bucket: this.config.bucketName,
+      Key: storageKey,
+    });
+
+    const url = await getSignedUrl(client, command, { expiresIn: ttlSeconds });
+    const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+    return { url, expiresAt };
   }
 
   private hmacSign(payload: string): string {
@@ -149,5 +160,45 @@ export class StorageService {
     }
 
     return createHmac("sha256", this.signingKey).update(payload).digest("hex");
+  }
+
+  private getS3Client(): S3Client {
+    if (this.s3Client) {
+      return this.s3Client;
+    }
+
+    if (!this.config.bucketName) {
+      throw new Error(
+        "STORAGE_BUCKET must be configured for non-local providers.",
+      );
+    }
+
+    if (!this.config.accessKeyId || !this.config.secretAccessKey) {
+      throw new Error(
+        "STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY must be configured " +
+          "for non-local providers.",
+      );
+    }
+
+    if (
+      this.config.provider !== "s3" &&
+      (!this.config.endpoint || this.config.endpoint.trim().length === 0)
+    ) {
+      throw new Error(
+        "STORAGE_ENDPOINT must be configured for r2 or b2 providers (S3-compatible endpoint).",
+      );
+    }
+
+    this.s3Client = new S3Client({
+      region: this.config.region,
+      endpoint: this.config.endpoint || undefined,
+      forcePathStyle: this.config.provider === "b2",
+      credentials: {
+        accessKeyId: this.config.accessKeyId,
+        secretAccessKey: this.config.secretAccessKey,
+      },
+    });
+
+    return this.s3Client;
   }
 }
