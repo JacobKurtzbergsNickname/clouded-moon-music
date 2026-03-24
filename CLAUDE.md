@@ -67,13 +67,14 @@ docker-compose up -d
 ```
 
 Services started:
-| Service | Port | Purpose |
-|---|---|---|
-| MongoDB | 27019 | Songs database |
-| Mongo Express | 8083 | MongoDB admin UI |
-| PostgreSQL | 5433 | Artists/Genres database |
-| pgAdmin | 5050 | PostgreSQL admin UI |
-| Redis | 6380 | Caching layer |
+
+| Service       | Port  | Purpose                 |
+| ------------- | ----- | ----------------------- |
+| MongoDB       | 27019 | Songs database          |
+| Mongo Express | 8083  | MongoDB admin UI        |
+| PostgreSQL    | 5433  | Artists/Genres database |
+| pgAdmin       | 5050  | PostgreSQL admin UI     |
+| Redis         | 6380  | Caching layer           |
 
 ### Seeding
 
@@ -108,7 +109,7 @@ npm run seed:clear        # Clear all seed data
 
 ### Directory Structure
 
-```
+```directory
 src/
 ├── main.ts                     # Bootstrap (port 3456, Swagger, ValidationPipe)
 ├── app.module.ts               # Root module (MongoDB, GraphQL, PostgreSQL, logging)
@@ -295,7 +296,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 All song operations via REST:
 
-```
+```HTTP
 POST   /songs         Create song (201)
 GET    /songs         List all songs
 GET    /songs/:id     Get single song

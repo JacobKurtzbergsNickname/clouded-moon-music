@@ -87,10 +87,10 @@ describe("StorageService", () => {
       expect(sig1).not.toBe(sig2);
     });
 
-    it("should fall back to a default signing key when the secret is unset", () => {
+    it("should fall back to a default signing key when the secret is unset", async () => {
       const service = buildService("local", null);
 
-      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const { url } = await service.getSignedDownloadUrl("k", "uuid-1");
       const parsed = new URL(url);
       const expires = parsed.searchParams.get("expires")!;
       const sig = parsed.searchParams.get("sig")!;
@@ -98,7 +98,9 @@ describe("StorageService", () => {
       expect(sig).toBeTruthy();
       expect(service.verifyLocalSignature("uuid-1", expires, sig)).toBe(true);
 
-      const upload = service.getSignedUploadUrl("tracks/uuid-1/master.flac");
+      const upload = await service.getSignedUploadUrl(
+        "tracks/uuid-1/master.flac",
+      );
       const uploadSig = new URL(upload.url).searchParams.get("sig");
       expect(uploadSig).toBeTruthy();
     });
