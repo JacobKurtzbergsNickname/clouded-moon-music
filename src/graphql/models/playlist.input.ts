@@ -6,7 +6,7 @@ export class CreatePlaylistInput {
   @Field()
   @IsNotEmpty()
   @IsString()
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   @IsOptional()

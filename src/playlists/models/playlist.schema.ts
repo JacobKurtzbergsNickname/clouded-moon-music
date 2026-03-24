@@ -6,18 +6,18 @@ export type PlaylistDocument = HydratedDocument<Playlist>;
 @Schema({ timestamps: true })
 export class Playlist {
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop()
-  description: string;
+  description!: string;
 
   @Prop({ type: [String], default: [] })
-  songs: string[];
+  songs!: string[];
 }
 
 export const PlaylistSchema = SchemaFactory.createForClass(Playlist);
 
-PlaylistSchema.virtual("id").get(function (this: any) {
+PlaylistSchema.virtual("id").get(function (this: PlaylistDocument) {
   return this._id.toString();
 });
 

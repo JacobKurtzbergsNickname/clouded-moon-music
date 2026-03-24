@@ -4,10 +4,10 @@ import { SongType } from "./song.type";
 @ObjectType("Playlist")
 export class PlaylistType {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  name: string;
+  name!: string;
 
   @Field({ nullable: true })
   description?: string;

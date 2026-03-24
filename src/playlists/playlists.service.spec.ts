@@ -2,15 +2,26 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { CMLogger } from "../common/logger";
 import { RedisService } from "../redis/redis.service";
 import { PlaylistsService } from "./playlists.service";
-import { PLAYLISTS_REPOSITORY } from "./repositories/playlists.repository";
+import {
+  PLAYLISTS_REPOSITORY,
+  PlaylistsRepository,
+} from "./repositories/playlists.repository";
 import { PlaylistDTO } from "./models/playlist.dto";
 import { CreatePlaylistDTO } from "./models/create-playlist.dto";
 
+type PlaylistsRepositoryMock = Mocked<PlaylistsRepository>;
+type RedisServiceMock = Mocked<
+  Pick<RedisService, "get" | "set" | "del" | "deletePattern">
+>;
+type LoggerMock = Mocked<
+  Pick<CMLogger, "info" | "error" | "warn" | "debug" | "verbose">
+>;
+
 describe("PlaylistsService", () => {
   let service: PlaylistsService;
-  let mockRepository: any;
-  let mockRedisService: any;
-  let mockLogger: any;
+  let mockRepository: PlaylistsRepositoryMock;
+  let mockRedisService: RedisServiceMock;
+  let mockLogger: LoggerMock;
 
   const mockPlaylist: PlaylistDTO = {
     id: "64a1f2e3b4c5d6e7f8a9b0c1",
@@ -21,30 +32,30 @@ describe("PlaylistsService", () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      findByIds: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      remove: jest.fn(),
-      addSong: jest.fn(),
-      removeSong: jest.fn(),
-    };
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      findByIds: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      remove: vi.fn(),
+      addSong: vi.fn(),
+      removeSong: vi.fn(),
+    } as unknown as PlaylistsRepositoryMock;
 
     mockRedisService = {
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue("OK"),
-      del: jest.fn().mockResolvedValue(1),
-      deletePattern: jest.fn().mockResolvedValue(1),
-    };
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue("OK"),
+      del: vi.fn().mockResolvedValue(1),
+      deletePattern: vi.fn().mockResolvedValue(1),
+    } as unknown as RedisServiceMock;
 
     mockLogger = {
-      info: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
-    };
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
+    } as unknown as LoggerMock;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

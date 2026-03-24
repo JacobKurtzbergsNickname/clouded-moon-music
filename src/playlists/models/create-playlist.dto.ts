@@ -8,7 +8,7 @@ export class CreatePlaylistDTO {
   })
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  readonly name!: string;
 
   @ApiProperty({
     description: "An optional description for the playlist",
