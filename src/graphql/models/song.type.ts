@@ -45,7 +45,8 @@ export class SongType {
  * Use this type in the GraphQL service layer and DataLoaders to avoid
  * unsound `as unknown as SongType` casts.
  */
-export type SongRawGqlType = Omit<SongType, "artists" | "genres"> & {
+export type SongRawGqlType = Omit<SongType, "artists" | "genres" | "album"> & {
   artists?: string[];
   genres?: string[];
+  album?: string;
 };

@@ -10,13 +10,13 @@ export class AlbumDTO {
     description: "The unique identifier of the album",
     example: "1",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: "The title of the album",
     example: "A Night at the Opera",
   })
-  title: string;
+  title!: string;
 
   @ApiProperty({
     description: "The year the album was released",
@@ -30,5 +30,5 @@ export class AlbumDTO {
     example: ["Bohemian Rhapsody", "You're My Best Friend"],
     type: [String],
   })
-  songs: string[];
+  songs!: string[];
 }

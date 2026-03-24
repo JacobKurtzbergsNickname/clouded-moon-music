@@ -4,15 +4,15 @@ import { SongType } from "./song.type";
 @ObjectType("Album")
 export class AlbumType {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field()
-  title: string;
+  title!: string;
 
   @Field(() => Int, { nullable: true })
   releaseYear?: number;
 
   // Resolved via @ResolveField in resolver, not from DTO
-  @Field(() => [SongType])
+  @Field(() => [SongType], { nullable: true })
   songs?: SongType[];
 }

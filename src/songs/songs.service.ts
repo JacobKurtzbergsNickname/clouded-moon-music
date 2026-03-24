@@ -358,29 +358,11 @@ export class SongsService extends CachedServiceBase {
     const result = await this.songsRepository.remove(id);
     if (result) {
       const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-      const invalidateResult = await this.invalidateCache(
-        cacheKey,
-        CACHE_KEYS.SONGS_LIST_ALL,
-      );
-      const invalidatePatternResult = await this.invalidateCachePattern(
-        `${CACHE_KEYS.SONGS_LIST_FILTERED}*`,
-      );
 
-      // Invalidate artist and genre caches since song count has changed
-      const invalidateArtistsResult = await this.invalidateCache(
-        CACHE_KEYS.ARTISTS_LIST_ALL,
-      );
-      const invalidateGenresResult = await this.invalidateCache(
-        CACHE_KEYS.GENRES_LIST_ALL,
-      );
-      const invalidateArtistPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ARTIST}*`,
-      );
-      const invalidateGenrePattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.GENRE}*`,
-      );
+      // Invalidate song, artist, and genre caches with a single grouped call
+      await this.invalidateSongCaches(cacheKey);
 
-      // Invalidate album caches since song count has changed
+      // Invalidate album caches since song count has changed (separate call)
       const invalidateAlbumsResult = await this.invalidateCache(
         CACHE_KEYS.ALBUMS_LIST_ALL,
       );
@@ -388,16 +370,7 @@ export class SongsService extends CachedServiceBase {
         `${CACHE_KEYS.ALBUM}*`,
       );
 
-      Result.combine([
-        invalidateResult,
-        invalidatePatternResult,
-        invalidateArtistsResult,
-        invalidateGenresResult,
-        invalidateArtistPattern,
-        invalidateGenrePattern,
-        invalidateAlbumsResult,
-        invalidateAlbumPattern,
-      ]).match(
+      Result.combine([invalidateAlbumsResult, invalidateAlbumPattern]).match(
         () =>
           this.logger.info("Cache invalidated after delete", {
             timestamp: new Date().toISOString(),
