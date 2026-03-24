@@ -7,7 +7,7 @@ import { TrackDTO } from "../models/track.dto";
 
 describe("SqlTracksRepository", () => {
   let repository: SqlTracksRepository;
-  let typeormRepo: jest.Mocked<Repository<Track>>;
+  let typeormRepo: Mocked<Repository<Track>>;
 
   const mockTrackEntity: Track = {
     id: "uuid-1",
@@ -36,11 +36,11 @@ describe("SqlTracksRepository", () => {
   };
 
   const mockTypeormRepo = {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
+    remove: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -59,7 +59,7 @@ describe("SqlTracksRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -109,9 +109,9 @@ describe("SqlTracksRepository", () => {
     it("should handle nullable optional fields", async () => {
       const minimalTrack: Track = {
         ...mockTrackEntity,
-        album: null,
-        bitrate: null,
-        sampleRate: null,
+        album: null as unknown as string,
+        bitrate: null as unknown as number,
+        sampleRate: null as unknown as number,
       };
       mockTypeormRepo.find.mockResolvedValue([minimalTrack]);
 
@@ -195,7 +195,11 @@ describe("SqlTracksRepository", () => {
     });
 
     it("should create a WAV track", async () => {
-      const wavDto = { ...createDto, format: "wav" as const, storageKey: "tracks/uuid-4/master.wav" };
+      const wavDto = {
+        ...createDto,
+        format: "wav" as const,
+        storageKey: "tracks/uuid-4/master.wav",
+      };
       const savedEntity: Track = {
         id: "uuid-4",
         ...wavDto,
@@ -210,8 +214,15 @@ describe("SqlTracksRepository", () => {
     });
 
     it("should propagate save errors", async () => {
-      mockTypeormRepo.create.mockReturnValue(createDto as any);
-      mockTypeormRepo.save.mockRejectedValue(new Error("Unique constraint violation"));
+      const unsavedEntity: Track = {
+        id: "uuid-unsaved",
+        ...createDto,
+        createdAt: new Date("2026-01-04T00:00:00.000Z"),
+      };
+      mockTypeormRepo.create.mockReturnValue(unsavedEntity);
+      mockTypeormRepo.save.mockRejectedValue(
+        new Error("Unique constraint violation"),
+      );
 
       await expect(repository.create(createDto)).rejects.toThrow(
         "Unique constraint violation",
@@ -230,7 +241,9 @@ describe("SqlTracksRepository", () => {
       const result = await repository.remove("uuid-1");
 
       expect(result).toBe("uuid-1");
-      expect(typeormRepo.findOne).toHaveBeenCalledWith({ where: { id: "uuid-1" } });
+      expect(typeormRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "uuid-1" },
+      });
       expect(typeormRepo.remove).toHaveBeenCalledWith(mockTrackEntity);
     });
 
@@ -247,7 +260,9 @@ describe("SqlTracksRepository", () => {
       mockTypeormRepo.findOne.mockResolvedValue(mockTrackEntity);
       mockTypeormRepo.remove.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(repository.remove("uuid-1")).rejects.toThrow("Delete failed");
+      await expect(repository.remove("uuid-1")).rejects.toThrow(
+        "Delete failed",
+      );
     });
   });
 });

@@ -67,13 +67,14 @@ docker-compose up -d
 ```
 
 Services started:
-| Service | Port | Purpose |
-|---|---|---|
-| MongoDB | 27019 | Songs database |
-| Mongo Express | 8083 | MongoDB admin UI |
-| PostgreSQL | 5433 | Artists/Genres database |
-| pgAdmin | 5050 | PostgreSQL admin UI |
-| Redis | 6380 | Caching layer |
+
+| Service       | Port  | Purpose                 |
+| ------------- | ----- | ----------------------- |
+| MongoDB       | 27019 | Songs database          |
+| Mongo Express | 8083  | MongoDB admin UI        |
+| PostgreSQL    | 5433  | Artists/Genres database |
+| pgAdmin       | 5050  | PostgreSQL admin UI     |
+| Redis         | 6380  | Caching layer           |
 
 ### Seeding
 
@@ -89,18 +90,18 @@ npm run seed:clear        # Clear all seed data
 
 ## NPM Scripts
 
-| Script | Purpose |
-|---|---|
-| `npm run dev` | Start in watch mode |
+| Script               | Purpose                |
+| -------------------- | ---------------------- |
+| `npm run dev`        | Start in watch mode    |
 | `npm run start:w-db` | Start Docker DBs + app |
-| `npm run build` | Compile TypeScript |
-| `npm run start:prod` | Run compiled output |
-| `npm test` | Run unit tests |
-| `npm run test:watch` | Tests in watch mode |
-| `npm run test:cov` | Tests with coverage |
-| `npm run test:e2e` | End-to-end tests |
-| `npm run lint` | ESLint with auto-fix |
-| `npm run format` | Prettier formatting |
+| `npm run build`      | Compile TypeScript     |
+| `npm run start:prod` | Run compiled output    |
+| `npm test`           | Run unit tests         |
+| `npm run test:watch` | Tests in watch mode    |
+| `npm run test:cov`   | Tests with coverage    |
+| `npm run test:e2e`   | End-to-end tests       |
+| `npm run lint`       | ESLint with auto-fix   |
+| `npm run format`     | Prettier formatting    |
 
 ---
 
@@ -108,7 +109,7 @@ npm run seed:clear        # Clear all seed data
 
 ### Directory Structure
 
-```
+```directory
 src/
 ├── main.ts                     # Bootstrap (port 3456, Swagger, ValidationPipe)
 ├── app.module.ts               # Root module (MongoDB, GraphQL, PostgreSQL, logging)
@@ -216,24 +217,24 @@ Uses [neverthrow](https://github.com/supermacro/neverthrow) `Result` types — d
 
 `DataLoadersService` in `src/graphql/dataloaders/dataloaders.service.ts` is **request-scoped** (`Scope.REQUEST`) and provides 5 DataLoaders:
 
-| Loader | Batch Method | Database |
-|---|---|---|
-| `artistLoader` | `findByIds(ids)` | PostgreSQL |
-| `genreLoader` | `findByIds(ids)` | PostgreSQL |
-| `songLoader` | `findOne(id)` | MongoDB |
-| `songsByArtistLoader` | `findByArtistIds(ids)` | MongoDB |
-| `songsByGenreLoader` | `findByGenreIds(ids)` | MongoDB |
+| Loader                | Batch Method           | Database   |
+| --------------------- | ---------------------- | ---------- |
+| `artistLoader`        | `findByIds(ids)`       | PostgreSQL |
+| `genreLoader`         | `findByIds(ids)`       | PostgreSQL |
+| `songLoader`          | `findOne(id)`          | MongoDB    |
+| `songsByArtistLoader` | `findByArtistIds(ids)` | MongoDB    |
+| `songsByGenreLoader`  | `findByGenreIds(ids)`  | MongoDB    |
 
 Each batch method issues a **single** `IN`/`$in` query regardless of how many IDs are batched. DataLoaders **must preserve result order** matching input ID order, with `null` for missing entries.
 
 #### 4. Polyglot Persistence
 
-| Data | Database | Reason |
-|---|---|---|
-| Songs | MongoDB | Schema flexibility, denormalized arrays |
-| Artists | PostgreSQL | Relational integrity, unique names |
-| Genres | PostgreSQL | Relational integrity, unique names |
-| All | Redis | Distributed cache, TTL expiry |
+| Data    | Database   | Reason                                  |
+| ------- | ---------- | --------------------------------------- |
+| Songs   | MongoDB    | Schema flexibility, denormalized arrays |
+| Artists | PostgreSQL | Relational integrity, unique names      |
+| Genres  | PostgreSQL | Relational integrity, unique names      |
+| All     | Redis      | Distributed cache, TTL expiry           |
 
 Artist and genre IDs are stored as **string arrays** in MongoDB song documents. There are no foreign key constraints across databases — referential integrity is enforced at the application layer.
 
@@ -248,7 +249,7 @@ return result.match(
     const song = await this.repo.findOne(id);
     if (song) await this.setCached(key, song, TTL);
     return song;
-  }
+  },
 );
 ```
 
@@ -295,7 +296,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 All song operations via REST:
 
-```
+```HTTP
 POST   /songs         Create song (201)
 GET    /songs         List all songs
 GET    /songs/:id     Get single song
@@ -363,14 +364,14 @@ query {
 
 Cache keys are defined in `src/redis/redis.constants.ts`:
 
-| Key Pattern | TTL | Invalidated By |
-|---|---|---|
-| `song:<id>` | 300s | Song mutations |
-| `songs:list:all` | 60s | Song mutations |
-| `artist:<id>` | 600s | Song mutations (if artist changes) |
-| `artists:list:all` | 300s | Song mutations |
-| `genre:<id>` | 600s | Song mutations (if genre changes) |
-| `genres:list:all` | 300s | Song mutations |
+| Key Pattern        | TTL  | Invalidated By                     |
+| ------------------ | ---- | ---------------------------------- |
+| `song:<id>`        | 300s | Song mutations                     |
+| `songs:list:all`   | 60s  | Song mutations                     |
+| `artist:<id>`      | 600s | Song mutations (if artist changes) |
+| `artists:list:all` | 300s | Song mutations                     |
+| `genre:<id>`       | 600s | Song mutations (if genre changes)  |
+| `genres:list:all`  | 300s | Song mutations                     |
 
 Cache invalidation uses both exact key deletion and pattern-based SCAN for bulk invalidation.
 
@@ -391,7 +392,7 @@ npm run test:e2e      # End-to-end tests
 ### Test Conventions
 
 - Use `@nestjs/testing` `Test.createTestingModule()` for integration-style tests
-- Mock all external dependencies (repositories, Redis, databases) with `jest.fn()`
+- Mock all external dependencies (repositories, Redis, databases) with `vi.fn()`
 - Provide mock repository tokens: `{ provide: SONGS_REPOSITORY, useValue: mockRepo }`
 - Assert on batch methods (`findByIds`, `findByArtistIds`) to verify DataLoader batching
 - Test cache hit paths and cache miss → DB fallback paths separately
@@ -415,6 +416,7 @@ this.logger.warn('Warning', 'ContextName');
 ```
 
 Log files rotate daily:
+
 - `logs/error.log` — error level only
 - `logs/combined.log` — all levels
 
@@ -441,6 +443,7 @@ Log files rotate daily:
 ### Formatting
 
 Prettier is configured with:
+
 - Print width: 80
 - Tab width: 2, spaces (no tabs)
 - Semicolons: on
@@ -482,6 +485,7 @@ This ensures a single DB query per request regardless of how many records are fe
 ## MCP Server Integration
 
 See `MCP-SETUP.md` for configuring:
+
 - **MongoDB MCP Server** — for database queries from AI tools
 - **Context7** — for library documentation lookups
 - **Postman MCP** — for API testing workflows

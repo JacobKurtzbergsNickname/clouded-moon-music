@@ -9,28 +9,28 @@ import { CreateTrackDTO } from "./models/create-track.dto";
 
 describe("TracksService", () => {
   let service: TracksService;
-  let mockRepository: jest.Mocked<{
-    findAll: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    remove: jest.Mock;
+  let mockRepository: Mocked<{
+    findAll: Mock;
+    findOne: Mock;
+    create: Mock;
+    remove: Mock;
   }>;
-  let mockRedisService: jest.Mocked<{
-    get: jest.Mock;
-    set: jest.Mock;
-    del: jest.Mock;
-    deletePattern: jest.Mock;
+  let mockRedisService: Mocked<{
+    get: Mock;
+    set: Mock;
+    del: Mock;
+    deletePattern: Mock;
   }>;
-  let mockStorageService: jest.Mocked<{
-    getSignedDownloadUrl: jest.Mock;
-    getSignedUploadUrl: jest.Mock;
+  let mockStorageService: Mocked<{
+    getSignedDownloadUrl: Mock;
+    getSignedUploadUrl: Mock;
   }>;
-  let mockLogger: jest.Mocked<{
-    info: jest.Mock;
-    warn: jest.Mock;
-    error: jest.Mock;
-    debug: jest.Mock;
-    verbose: jest.Mock;
+  let mockLogger: Mocked<{
+    info: Mock;
+    warn: Mock;
+    error: Mock;
+    debug: Mock;
+    verbose: Mock;
   }>;
 
   const mockTrack: TrackDTO = {
@@ -48,30 +48,30 @@ describe("TracksService", () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      remove: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      create: vi.fn(),
+      remove: vi.fn(),
     };
 
     mockRedisService = {
-      get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue("OK"),
-      del: jest.fn().mockResolvedValue(1),
-      deletePattern: jest.fn().mockResolvedValue(0),
+      get: vi.fn().mockResolvedValue(null),
+      set: vi.fn().mockResolvedValue("OK"),
+      del: vi.fn().mockResolvedValue(1),
+      deletePattern: vi.fn().mockResolvedValue(0),
     };
 
     mockStorageService = {
-      getSignedDownloadUrl: jest.fn(),
-      getSignedUploadUrl: jest.fn(),
+      getSignedDownloadUrl: vi.fn(),
+      getSignedUploadUrl: vi.fn(),
     };
 
     mockLogger = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      verbose: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -244,7 +244,11 @@ describe("TracksService", () => {
     };
 
     it("should create track and invalidate list cache", async () => {
-      mockRepository.create.mockResolvedValue({ id: "uuid-3", ...createDto, createdAt: new Date() } as TrackDTO);
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-3",
+        ...createDto,
+        createdAt: new Date(),
+      } as TrackDTO);
 
       const result = await service.create(createDto);
 
@@ -254,7 +258,11 @@ describe("TracksService", () => {
     });
 
     it("should handle cache invalidation failure gracefully", async () => {
-      mockRepository.create.mockResolvedValue({ id: "uuid-3", ...createDto, createdAt: new Date() } as TrackDTO);
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-3",
+        ...createDto,
+        createdAt: new Date(),
+      } as TrackDTO);
       mockRedisService.del.mockRejectedValue(new Error("Redis del failed"));
 
       const result = await service.create(createDto);
@@ -266,8 +274,16 @@ describe("TracksService", () => {
     });
 
     it("should create a WAV track", async () => {
-      const wavDto: CreateTrackDTO = { ...createDto, format: "wav", storageKey: "tracks/uuid-4/master.wav" };
-      mockRepository.create.mockResolvedValue({ id: "uuid-4", ...wavDto, createdAt: new Date() } as TrackDTO);
+      const wavDto: CreateTrackDTO = {
+        ...createDto,
+        format: "wav",
+        storageKey: "tracks/uuid-4/master.wav",
+      };
+      mockRepository.create.mockResolvedValue({
+        id: "uuid-4",
+        ...wavDto,
+        createdAt: new Date(),
+      } as TrackDTO);
 
       const result = await service.create(wavDto);
 
@@ -322,7 +338,7 @@ describe("TracksService", () => {
     it("should return a signed stream URL for an existing FLAC track", async () => {
       mockRedisService.get.mockResolvedValue(null);
       mockRepository.findOne.mockResolvedValue(mockTrack);
-      mockStorageService.getSignedDownloadUrl.mockReturnValue({
+      mockStorageService.getSignedDownloadUrl.mockResolvedValue({
         url: "https://cdn.example.com/tracks/uuid-1/master.flac?sig=abc",
         expiresAt,
       });
@@ -340,17 +356,21 @@ describe("TracksService", () => {
     });
 
     it("should return a signed stream URL for an existing WAV track", async () => {
-      const wavTrack: TrackDTO = { ...mockTrack, format: "wav", storageKey: "tracks/uuid-2/master.wav" };
+      const wavTrack: TrackDTO = {
+        ...mockTrack,
+        format: "wav",
+        storageKey: "tracks/uuid-2/master.wav",
+      };
       mockRedisService.get.mockResolvedValue(null);
       mockRepository.findOne.mockResolvedValue(wavTrack);
-      mockStorageService.getSignedDownloadUrl.mockReturnValue({
+      mockStorageService.getSignedDownloadUrl.mockResolvedValue({
         url: "http://localhost:3456/tracks/uuid-2/stream?expires=123&sig=xyz",
         expiresAt,
       });
 
       const result = await service.getPlayUrl("uuid-2");
 
-      expect(result.streamUrl).toContain("stream");
+      expect(result!.streamUrl).toContain("stream");
     });
 
     it("should return null when track does not exist", async () => {
@@ -368,14 +388,14 @@ describe("TracksService", () => {
   // getUploadUrl
   // ---------------------------------------------------------------------------
   describe("getUploadUrl", () => {
-    it("should delegate to StorageService and return an upload URL", () => {
+    it("should delegate to StorageService and return an upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockStorageService.getSignedUploadUrl.mockReturnValue({
+      mockStorageService.getSignedUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/bucket/tracks/uuid-5/master.flac?sig=upload",
         expiresAt,
       });
 
-      const result = service.getUploadUrl("tracks/uuid-5/master.flac");
+      const result = await service.getUploadUrl("tracks/uuid-5/master.flac");
 
       expect(mockStorageService.getSignedUploadUrl).toHaveBeenCalledWith(
         "tracks/uuid-5/master.flac",

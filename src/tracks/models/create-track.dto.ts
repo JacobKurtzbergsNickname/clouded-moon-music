@@ -13,12 +13,12 @@ export class CreateTrackDTO {
   @ApiProperty({ example: "Morning Wind" })
   @IsString()
   @IsNotEmpty()
-  readonly title: string;
+  readonly title!: string;
 
   @ApiProperty({ example: "Example Artist" })
   @IsString()
   @IsNotEmpty()
-  readonly artist: string;
+  readonly artist!: string;
 
   @ApiProperty({ example: "Sunrise Sessions", required: false })
   @IsString()
@@ -29,15 +29,23 @@ export class CreateTrackDTO {
   @IsInt()
   @Min(1)
   @IsNotEmpty()
-  readonly duration: number;
+  readonly duration!: number;
 
-  @ApiProperty({ example: 1411, description: "Bitrate in kbps", required: false })
+  @ApiProperty({
+    example: 1411,
+    description: "Bitrate in kbps",
+    required: false,
+  })
   @IsInt()
   @Min(1)
   @IsOptional()
   readonly bitrate?: number;
 
-  @ApiProperty({ example: 44100, description: "Sample rate in Hz", required: false })
+  @ApiProperty({
+    example: 44100,
+    description: "Sample rate in Hz",
+    required: false,
+  })
   @IsInt()
   @Min(1)
   @IsOptional()
@@ -46,10 +54,10 @@ export class CreateTrackDTO {
   @ApiProperty({ enum: ["flac", "wav"], example: "flac" })
   @IsEnum(["flac", "wav"])
   @IsNotEmpty()
-  readonly format: AudioFormat;
+  readonly format!: AudioFormat;
 
   @ApiProperty({ example: "tracks/trk_1821/master.flac" })
   @IsString()
   @IsNotEmpty()
-  readonly storageKey: string;
+  readonly storageKey!: string;
 }

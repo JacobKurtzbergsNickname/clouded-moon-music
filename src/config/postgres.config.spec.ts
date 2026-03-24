@@ -1,3 +1,4 @@
+import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { PostgresConfig, getPostgresConfig } from "./postgres.config";
 
 describe("PostgresConfig", () => {
@@ -36,18 +37,18 @@ describe("PostgresConfig", () => {
 
     it("should include entities path in config", () => {
       const config = new PostgresConfig({});
-      const result = config.getConfig("/app/src");
+      const result: TypeOrmModuleOptions = config.getConfig("/app/src");
 
-      expect((result as any).entities).toContain("/app/src/**/*.entity{.ts,.js}");
+      expect(result.entities).toContain("/app/src/**/*.entity{.ts,.js}");
     });
   });
 
   describe("getPostgresConfig", () => {
     it("should return a TypeOrmModuleOptions object", () => {
-      const result = getPostgresConfig("/app/src");
+      const result: TypeOrmModuleOptions = getPostgresConfig("/app/src");
 
       expect(result).toBeDefined();
-      expect((result as any).type).toBe("postgres");
+      expect(result.type).toBe("postgres");
     });
   });
 });

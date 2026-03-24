@@ -4,11 +4,11 @@ import { Song } from "../../songs/models/song.entity";
 @Entity("artists")
 export class Artist {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
-  name: string;
+  name!: string;
 
   @ManyToMany(() => Song, (song) => song.artists)
-  songs: Song[];
+  songs!: Song[];
 }

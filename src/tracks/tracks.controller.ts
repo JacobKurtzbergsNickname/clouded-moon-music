@@ -118,19 +118,24 @@ export class TracksController {
       "Returns a pre-signed PUT URL so the client can upload a FLAC or WAV file " +
       "directly to object storage without routing the payload through NestJS.",
   })
-  @ApiQuery({ name: "key", description: "Destination storage key, e.g. tracks/trk_1821/master.flac" })
+  @ApiQuery({
+    name: "key",
+    description: "Destination storage key, e.g. tracks/trk_1821/master.flac",
+  })
   @ApiResponse({
     status: 201,
     description: "Returns a signed upload URL",
     schema: {
       example: {
-        uploadUrl: "https://bucket.r2.example.com/tracks/trk_1821/master.flac?X-Amz-Signature=...",
+        uploadUrl:
+          "https://bucket.r2.example.com/tracks/trk_1821/master.flac?X-Amz-Signature=...",
         expiresAt: "2026-03-16T12:01:00.000Z",
       },
     },
   })
-  requestUpload(@Query("key") storageKey: string) {
-    const { url, expiresAt } = this.tracksService.getUploadUrl(storageKey);
+  async requestUpload(@Query("key") storageKey: string) {
+    const { url, expiresAt } =
+      await this.tracksService.getUploadUrl(storageKey);
     return { uploadUrl: url, expiresAt };
   }
 
@@ -142,16 +147,23 @@ export class TracksController {
 
   @Get(":id/stream")
   @ApiOperation({
-    summary: "[DEV ONLY] Stream an audio file directly from the local /media directory",
+    summary:
+      "[DEV ONLY] Stream an audio file directly from the local /media directory",
     description:
       "Streams the raw FLAC or WAV file from the server filesystem. " +
       "This endpoint is intended for local development only and must not be exposed in production. " +
       "Requests are validated with a short-lived HMAC signature issued by GET /tracks/:id/play.",
   })
   @ApiParam({ name: "id", description: "Track ID (UUID)" })
-  @ApiQuery({ name: "expires", description: "Unix timestamp (ms) when the signed URL expires" })
+  @ApiQuery({
+    name: "expires",
+    description: "Unix timestamp (ms) when the signed URL expires",
+  })
   @ApiQuery({ name: "sig", description: "HMAC-SHA256 signature" })
-  @ApiResponse({ status: 200, description: "Audio file stream (audio/flac or audio/wav)" })
+  @ApiResponse({
+    status: 200,
+    description: "Audio file stream (audio/flac or audio/wav)",
+  })
   @ApiResponse({ status: 401, description: "Invalid or expired signature" })
   @ApiResponse({ status: 404, description: "Track not found" })
   async stream(
@@ -196,7 +208,9 @@ export class TracksController {
     res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Cache-Control", "no-store");
 
-    this.logger.debug(`Streaming ${track.format.toUpperCase()} file for track ${id}`);
+    this.logger.debug(
+      `Streaming ${track.format.toUpperCase()} file for track ${id}`,
+    );
     createReadStream(filePath).pipe(res);
   }
 }
