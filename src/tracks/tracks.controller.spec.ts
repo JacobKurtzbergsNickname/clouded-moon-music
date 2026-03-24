@@ -12,19 +12,23 @@ import { CreateTrackDTO } from "./models/create-track.dto";
 // We spread the real module first so that other packages (e.g. winston's
 // DailyRotateFile transport) that depend on fs.mkdirSync etc. still work.
 // ---------------------------------------------------------------------------
-jest.mock("fs", () => ({
-  ...jest.requireActual<typeof import("fs")>("fs"),
-  existsSync: jest.fn(),
-  statSync: jest.fn(),
-  createReadStream: jest.fn(),
-}));
+vi.mock("fs", async () => {
+  const actual = await vi.importActual<typeof import("fs")>("fs");
+
+  return {
+    ...actual,
+    existsSync: vi.fn(),
+    statSync: vi.fn(),
+    createReadStream: vi.fn(),
+  };
+});
 
 import { existsSync, statSync, createReadStream } from "fs";
 
 describe("TracksController", () => {
   let controller: TracksController;
-  let tracksService: jest.Mocked<TracksService>;
-  let storageService: jest.Mocked<StorageService>;
+  let tracksService: Mocked<TracksService>;
+  let storageService: Mocked<StorageService>;
 
   const mockTrack: TrackDTO = {
     id: "uuid-1",
@@ -40,18 +44,18 @@ describe("TracksController", () => {
   };
 
   const mockTracksService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    remove: jest.fn(),
-    getPlayUrl: jest.fn(),
-    getUploadUrl: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    remove: vi.fn(),
+    getPlayUrl: vi.fn(),
+    getUploadUrl: vi.fn(),
   };
 
   const mockStorageService = {
-    getSignedDownloadUrl: jest.fn(),
-    getSignedUploadUrl: jest.fn(),
-    verifyLocalSignature: jest.fn(),
+    getSignedDownloadUrl: vi.fn(),
+    getSignedUploadUrl: vi.fn(),
+    verifyLocalSignature: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -69,7 +73,7 @@ describe("TracksController", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     delete process.env.NODE_ENV;
   });
 
@@ -231,14 +235,16 @@ describe("TracksController", () => {
   // POST /tracks/upload
   // ---------------------------------------------------------------------------
   describe("requestUpload", () => {
-    it("should return a signed upload URL", () => {
+    it("should return a signed upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockTracksService.getUploadUrl.mockReturnValue({
+      mockTracksService.getUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/tracks/uuid-5/master.flac?sig=upload",
         expiresAt,
       });
 
-      const result = controller.requestUpload("tracks/uuid-5/master.flac");
+      const result = await controller.requestUpload(
+        "tracks/uuid-5/master.flac",
+      );
 
       expect(result).toEqual({
         uploadUrl:
@@ -250,14 +256,14 @@ describe("TracksController", () => {
       );
     });
 
-    it("should generate a WAV upload URL", () => {
+    it("should generate a WAV upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockTracksService.getUploadUrl.mockReturnValue({
+      mockTracksService.getUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/tracks/uuid-6/master.wav?sig=upload",
         expiresAt,
       });
 
-      const result = controller.requestUpload("tracks/uuid-6/master.wav");
+      const result = await controller.requestUpload("tracks/uuid-6/master.wav");
 
       expect(result.uploadUrl).toContain("master.wav");
     });
@@ -268,7 +274,7 @@ describe("TracksController", () => {
   // ---------------------------------------------------------------------------
   describe("stream", () => {
     const mockRes = {
-      setHeader: jest.fn(),
+      setHeader: vi.fn(),
     } as unknown as Response;
 
     beforeEach(() => {
@@ -279,10 +285,10 @@ describe("TracksController", () => {
     it("should stream a FLAC file with correct headers in development", async () => {
       mockStorageService.verifyLocalSignature.mockReturnValue(true);
       mockTracksService.findOne.mockResolvedValue(mockTrack);
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (statSync as jest.Mock).mockReturnValue({ size: 10485760 }); // 10 MB
-      const mockReadStream = { pipe: jest.fn() };
-      (createReadStream as jest.Mock).mockReturnValue(mockReadStream);
+      (existsSync as Mock).mockReturnValue(true);
+      (statSync as Mock).mockReturnValue({ size: 10485760 }); // 10 MB
+      const mockReadStream = { pipe: vi.fn() };
+      (createReadStream as Mock).mockReturnValue(mockReadStream);
 
       const expires = String(Date.now() + 60000);
       await controller.stream("uuid-1", expires, "validSig", mockRes);
@@ -311,10 +317,10 @@ describe("TracksController", () => {
       };
       mockStorageService.verifyLocalSignature.mockReturnValue(true);
       mockTracksService.findOne.mockResolvedValue(wavTrack);
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (statSync as jest.Mock).mockReturnValue({ size: 52428800 }); // 50 MB
-      const mockReadStream = { pipe: jest.fn() };
-      (createReadStream as jest.Mock).mockReturnValue(mockReadStream);
+      (existsSync as Mock).mockReturnValue(true);
+      (statSync as Mock).mockReturnValue({ size: 52428800 }); // 50 MB
+      const mockReadStream = { pipe: vi.fn() };
+      (createReadStream as Mock).mockReturnValue(mockReadStream);
 
       const expires = String(Date.now() + 60000);
       await controller.stream("uuid-2", expires, "validSig", mockRes);
@@ -373,7 +379,7 @@ describe("TracksController", () => {
     it("should throw NotFoundException when audio file is missing from disk", async () => {
       mockStorageService.verifyLocalSignature.mockReturnValue(true);
       mockTracksService.findOne.mockResolvedValue(mockTrack);
-      (existsSync as jest.Mock).mockReturnValue(false);
+      (existsSync as Mock).mockReturnValue(false);
 
       const expires = String(Date.now() + 60000);
       await expect(

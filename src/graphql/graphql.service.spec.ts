@@ -7,6 +7,9 @@ import {
 import { SongsService } from "../songs/songs.service";
 import { ArtistsService } from "../artists/artists.service";
 import { GenresService } from "../genres/genres.service";
+import { SongDTO } from "../songs/models/song.dto";
+import { ArtistDTO } from "../artists/models/artist.dto";
+import { GenreDTO } from "../genres/models/genre.dto";
 
 describe("GraphqlSongsService", () => {
   let service: GraphqlSongsService;
@@ -14,11 +17,11 @@ describe("GraphqlSongsService", () => {
 
   beforeEach(async () => {
     const mockSongsService = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      remove: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      remove: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -41,7 +44,7 @@ describe("GraphqlSongsService", () => {
 
   describe("findAll", () => {
     it("should return all songs", async () => {
-      const mockSongs = [
+      const mockSongs: SongDTO[] = [
         {
           id: "1",
           title: "Test Song",
@@ -54,7 +57,7 @@ describe("GraphqlSongsService", () => {
         },
       ];
 
-      jest.spyOn(songsService, "findAll").mockResolvedValue(mockSongs as any);
+      vi.spyOn(songsService, "findAll").mockResolvedValue(mockSongs);
 
       const result = await service.findAll();
       expect(result).toEqual(mockSongs);
@@ -64,7 +67,7 @@ describe("GraphqlSongsService", () => {
 
   describe("findOne", () => {
     it("should return a song by id", async () => {
-      const mockSong = {
+      const mockSong: SongDTO = {
         id: "1",
         title: "Test Song",
         artists: ["artist1"],
@@ -75,7 +78,7 @@ describe("GraphqlSongsService", () => {
         genres: ["genre1"],
       };
 
-      jest.spyOn(songsService, "findOne").mockResolvedValue(mockSong as any);
+      vi.spyOn(songsService, "findOne").mockResolvedValue(mockSong);
 
       const result = await service.findOne("1");
       expect(result).toEqual(mockSong);
@@ -83,7 +86,7 @@ describe("GraphqlSongsService", () => {
     });
 
     it("should return null if song not found", async () => {
-      jest.spyOn(songsService, "findOne").mockResolvedValue(null);
+      vi.spyOn(songsService, "findOne").mockResolvedValue(null);
 
       const result = await service.findOne("999");
       expect(result).toBeNull();
@@ -97,8 +100,8 @@ describe("GraphqlArtistsService", () => {
 
   beforeEach(async () => {
     const mockArtistsService = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -121,14 +124,12 @@ describe("GraphqlArtistsService", () => {
 
   describe("findAll", () => {
     it("should return all artists with string IDs", async () => {
-      const mockArtists = [
-        { id: "1", name: "Artist 1" },
-        { id: "2", name: "Artist 2" },
+      const mockArtists: ArtistDTO[] = [
+        { id: "1", name: "Artist 1", songs: [] },
+        { id: "2", name: "Artist 2", songs: [] },
       ];
 
-      jest
-        .spyOn(artistsService, "findAll")
-        .mockResolvedValue(mockArtists as any);
+      vi.spyOn(artistsService, "findAll").mockResolvedValue(mockArtists);
 
       const result = await service.findAll();
       expect(result).toEqual([
@@ -140,18 +141,16 @@ describe("GraphqlArtistsService", () => {
 
   describe("findOne", () => {
     it("should return an artist by id", async () => {
-      const mockArtist = { id: "1", name: "Artist 1" };
+      const mockArtist: ArtistDTO = { id: "1", name: "Artist 1", songs: [] };
 
-      jest
-        .spyOn(artistsService, "findOne")
-        .mockResolvedValue(mockArtist as any);
+      vi.spyOn(artistsService, "findOne").mockResolvedValue(mockArtist);
 
       const result = await service.findOne("1");
       expect(result).toEqual({ id: "1", name: "Artist 1" });
     });
 
     it("should return null if artist not found", async () => {
-      jest.spyOn(artistsService, "findOne").mockResolvedValue(null);
+      vi.spyOn(artistsService, "findOne").mockResolvedValue(null);
 
       const result = await service.findOne("999");
       expect(result).toBeNull();
@@ -165,8 +164,8 @@ describe("GraphqlGenresService", () => {
 
   beforeEach(async () => {
     const mockGenresService = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -189,12 +188,12 @@ describe("GraphqlGenresService", () => {
 
   describe("findAll", () => {
     it("should return all genres with string IDs", async () => {
-      const mockGenres = [
-        { id: "1", name: "Genre 1" },
-        { id: "2", name: "Genre 2" },
+      const mockGenres: GenreDTO[] = [
+        { id: "1", name: "Genre 1", songs: [] },
+        { id: "2", name: "Genre 2", songs: [] },
       ];
 
-      jest.spyOn(genresService, "findAll").mockResolvedValue(mockGenres as any);
+      vi.spyOn(genresService, "findAll").mockResolvedValue(mockGenres);
 
       const result = await service.findAll();
       expect(result).toEqual([
@@ -206,16 +205,16 @@ describe("GraphqlGenresService", () => {
 
   describe("findOne", () => {
     it("should return a genre by id", async () => {
-      const mockGenre = { id: "1", name: "Genre 1" };
+      const mockGenre: GenreDTO = { id: "1", name: "Genre 1", songs: [] };
 
-      jest.spyOn(genresService, "findOne").mockResolvedValue(mockGenre as any);
+      vi.spyOn(genresService, "findOne").mockResolvedValue(mockGenre);
 
       const result = await service.findOne("1");
       expect(result).toEqual({ id: "1", name: "Genre 1" });
     });
 
     it("should return null if genre not found", async () => {
-      jest.spyOn(genresService, "findOne").mockResolvedValue(null);
+      vi.spyOn(genresService, "findOne").mockResolvedValue(null);
 
       const result = await service.findOne("999");
       expect(result).toBeNull();

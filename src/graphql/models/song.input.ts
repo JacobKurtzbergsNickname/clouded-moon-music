@@ -7,6 +7,8 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
+  MaxLength,
   Min,
   registerDecorator,
   ValidationOptions,
@@ -51,18 +53,20 @@ export class CreateSongInput {
   @Field()
   @IsNotEmpty()
   @IsString()
-  title: string;
+  @MaxLength(255)
+  title!: string;
 
   @Field(() => [String])
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  artists: string[];
+  artists!: string[];
 
   @Field()
   @IsNotEmpty()
   @IsString()
-  album: string;
+  @MaxLength(255)
+  album!: string;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
@@ -74,7 +78,7 @@ export class CreateSongInput {
   @Field(() => GraphQLISODateTime)
   @IsNotEmpty()
   @IsDateString()
-  releaseDate: Date;
+  releaseDate!: Date;
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
@@ -85,7 +89,8 @@ export class CreateSongInput {
   @Field(() => Int)
   @IsInt()
   @Min(1)
-  duration: number;
+  @Max(86400)
+  duration!: number;
 }
 
 @InputType()
@@ -93,6 +98,7 @@ export class UpdateSongInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   title?: string;
 
   @Field(() => [String], { nullable: true })
@@ -104,6 +110,7 @@ export class UpdateSongInput {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   album?: string;
 
   @Field(() => Int, { nullable: true })
@@ -128,5 +135,6 @@ export class UpdateSongInput {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(86400)
   duration?: number;
 }

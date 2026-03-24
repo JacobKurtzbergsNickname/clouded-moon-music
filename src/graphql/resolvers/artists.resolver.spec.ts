@@ -17,13 +17,13 @@ describe("ArtistsResolver", () => {
   };
 
   const mockGraphqlArtistsService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
   };
 
   const mockDataLoadersService = {
     songsByArtistLoader: {
-      load: jest.fn(),
+      load: vi.fn(),
     },
   };
 
@@ -50,7 +50,7 @@ describe("ArtistsResolver", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {

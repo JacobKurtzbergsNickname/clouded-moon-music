@@ -2,7 +2,10 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SongsResolver } from "./songs.resolver";
 import { GraphqlSongsService } from "../graphql.service";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
-import { SongType } from "../models/song.type";
+import { SongRawGqlType } from "../models/song.type";
+import { ArtistType } from "../models/artist.type";
+import { GenreType } from "../models/genre.type";
+import { CreateSongInput, UpdateSongInput } from "../models/song.input";
 
 describe("SongsResolver", () => {
   let resolver: SongsResolver;
@@ -11,19 +14,19 @@ describe("SongsResolver", () => {
 
   beforeEach(async () => {
     const mockGraphqlSongsService = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      remove: jest.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      remove: vi.fn(),
     };
 
     const mockDataLoadersService = {
       artistLoader: {
-        load: jest.fn(),
+        load: vi.fn(),
       },
       genreLoader: {
-        load: jest.fn(),
+        load: vi.fn(),
       },
     };
 
@@ -52,7 +55,7 @@ describe("SongsResolver", () => {
 
   describe("findAll", () => {
     it("should return all songs", async () => {
-      const mockSongs: SongType[] = [
+      const mockSongs: SongRawGqlType[] = [
         {
           id: "1",
           title: "Test Song",
@@ -60,10 +63,10 @@ describe("SongsResolver", () => {
           year: 2020,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as SongRawGqlType,
       ];
 
-      jest.spyOn(graphqlSongsService, "findAll").mockResolvedValue(mockSongs);
+      vi.spyOn(graphqlSongsService, "findAll").mockResolvedValue(mockSongs);
 
       const result = await resolver.findAll();
       expect(result).toEqual(mockSongs);
@@ -72,16 +75,16 @@ describe("SongsResolver", () => {
 
   describe("findOne", () => {
     it("should return a song by id", async () => {
-      const mockSong: SongType = {
+      const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
         album: "Test Album",
         year: 2020,
         duration: 180,
         releaseDate: new Date(),
-      } as SongType;
+      } as SongRawGqlType;
 
-      jest.spyOn(graphqlSongsService, "findOne").mockResolvedValue(mockSong);
+      vi.spyOn(graphqlSongsService, "findOne").mockResolvedValue(mockSong);
 
       const result = await resolver.findOne("1");
       expect(result).toEqual(mockSong);
@@ -91,79 +94,94 @@ describe("SongsResolver", () => {
 
   describe("artists", () => {
     it("should resolve artists for a song", async () => {
-      const mockSong = {
+      const mockSong: SongRawGqlType = {
         id: "1",
+        title: "Test Song",
+        album: "Test Album",
+        duration: 180,
+        releaseDate: new Date(),
         artists: ["artist1", "artist2"],
       };
 
-      const mockArtists = [
+      const mockArtists: ArtistType[] = [
         { id: "artist1", name: "Artist 1" },
         { id: "artist2", name: "Artist 2" },
       ];
 
-      jest
-        .spyOn(dataLoadersService.artistLoader, "load")
-        .mockResolvedValueOnce(mockArtists[0] as any)
-        .mockResolvedValueOnce(mockArtists[1] as any);
+      vi.spyOn(dataLoadersService.artistLoader, "load")
+        .mockResolvedValueOnce(mockArtists[0])
+        .mockResolvedValueOnce(mockArtists[1]);
 
-      const result = await resolver.artists(mockSong as any);
+      const result = await resolver.artists(mockSong);
       expect(result).toEqual(mockArtists);
       expect(dataLoadersService.artistLoader.load).toHaveBeenCalledTimes(2);
     });
 
     it("should filter out null artists", async () => {
-      const mockSong = {
+      const mockSong: SongRawGqlType = {
         id: "1",
+        title: "Test Song",
+        album: "Test Album",
+        duration: 180,
+        releaseDate: new Date(),
         artists: ["artist1", "artist2"],
       };
 
-      const mockArtists = [{ id: "artist1", name: "Artist 1" }, null];
+      const mockArtists: Array<ArtistType | null> = [
+        { id: "artist1", name: "Artist 1" },
+        null,
+      ];
 
-      jest
-        .spyOn(dataLoadersService.artistLoader, "load")
-        .mockResolvedValueOnce(mockArtists[0] as any)
+      vi.spyOn(dataLoadersService.artistLoader, "load")
+        .mockResolvedValueOnce(mockArtists[0])
         .mockResolvedValueOnce(null);
 
-      const result = await resolver.artists(mockSong as any);
+      const result = await resolver.artists(mockSong);
       expect(result).toEqual([mockArtists[0]]);
     });
   });
 
   describe("genres", () => {
     it("should resolve genres for a song", async () => {
-      const mockSong = {
+      const mockSong: SongRawGqlType = {
         id: "1",
+        title: "Test Song",
+        album: "Test Album",
+        duration: 180,
+        releaseDate: new Date(),
         genres: ["genre1", "genre2"],
       };
 
-      const mockGenres = [
+      const mockGenres: GenreType[] = [
         { id: "genre1", name: "Genre 1" },
         { id: "genre2", name: "Genre 2" },
       ];
 
-      jest
-        .spyOn(dataLoadersService.genreLoader, "load")
-        .mockResolvedValueOnce(mockGenres[0] as any)
-        .mockResolvedValueOnce(mockGenres[1] as any);
+      vi.spyOn(dataLoadersService.genreLoader, "load")
+        .mockResolvedValueOnce(mockGenres[0])
+        .mockResolvedValueOnce(mockGenres[1]);
 
-      const result = await resolver.genres(mockSong as any);
+      const result = await resolver.genres(mockSong);
       expect(result).toEqual(mockGenres);
     });
 
     it("should return null if song has no genres", async () => {
-      const mockSong = {
+      const mockSong: SongRawGqlType = {
         id: "1",
-        genres: null,
+        title: "Test Song",
+        album: "Test Album",
+        duration: 180,
+        releaseDate: new Date(),
       };
 
-      const result = await resolver.genres(mockSong as any);
+      const result = await resolver.genres(mockSong);
       expect(result).toBeNull();
     });
   });
 
   describe("create", () => {
     it("should create a new song", async () => {
-      const input = {
+      const input: CreateSongInput = {
         title: "New Song",
         artists: ["artist1"],
         album: "New Album",
@@ -171,46 +189,46 @@ describe("SongsResolver", () => {
         releaseDate: new Date(),
       };
 
-      const mockCreatedSong = {
+      const mockCreatedSong: SongRawGqlType = {
         id: "1",
         ...input,
-      } as unknown as SongType;
+      } as SongRawGqlType;
 
-      jest
-        .spyOn(graphqlSongsService, "create")
-        .mockResolvedValue(mockCreatedSong);
+      vi.spyOn(graphqlSongsService, "create").mockResolvedValue(
+        mockCreatedSong,
+      );
 
-      const result = await resolver.create(input as any);
+      const result = await resolver.create(input);
       expect(result).toEqual(mockCreatedSong);
     });
   });
 
   describe("update", () => {
     it("should update a song", async () => {
-      const input = {
+      const input: UpdateSongInput = {
         title: "Updated Song",
       };
 
-      const mockUpdatedSong = {
+      const mockUpdatedSong: SongRawGqlType = {
         id: "1",
         title: "Updated Song",
         album: "Album",
         duration: 200,
         releaseDate: new Date(),
-      } as SongType;
+      } as SongRawGqlType;
 
-      jest
-        .spyOn(graphqlSongsService, "update")
-        .mockResolvedValue(mockUpdatedSong);
+      vi.spyOn(graphqlSongsService, "update").mockResolvedValue(
+        mockUpdatedSong,
+      );
 
-      const result = await resolver.update("1", input as any);
+      const result = await resolver.update("1", input);
       expect(result).toEqual(mockUpdatedSong);
     });
   });
 
   describe("remove", () => {
     it("should remove a song", async () => {
-      jest.spyOn(graphqlSongsService, "remove").mockResolvedValue("1");
+      vi.spyOn(graphqlSongsService, "remove").mockResolvedValue("1");
 
       const result = await resolver.remove("1");
       expect(result).toBe("1");

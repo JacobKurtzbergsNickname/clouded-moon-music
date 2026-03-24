@@ -3,6 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SqlGenresRepository } from "./sql-genres.repository";
 import { Genre } from "../models/genre.entity";
+import { Song } from "../../songs/models/song.entity";
 
 describe("SqlGenresRepository", () => {
   let repository: SqlGenresRepository;
@@ -12,14 +13,14 @@ describe("SqlGenresRepository", () => {
     id: 1,
     name: "Rock",
     songs: [
-      { id: 1, title: "Song 1" } as any,
-      { id: 2, title: "Song 2" } as any,
+      { id: 1, title: "Song 1" } as unknown as Song,
+      { id: 2, title: "Song 2" } as unknown as Song,
     ],
   };
 
   const mockGenreRepository = {
-    find: jest.fn(),
-    findOne: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -38,7 +39,7 @@ describe("SqlGenresRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -138,8 +139,8 @@ describe("SqlGenresRepository", () => {
 
       const result = await repository.findByIds(["1", "2"]);
 
-      expect(result[0].name).toBe("Rock");
-      expect(result[1].name).toBe("Pop");
+      expect(result[0]!.name).toBe("Rock");
+      expect(result[1]!.name).toBe("Pop");
     });
   });
 
@@ -191,7 +192,10 @@ describe("SqlGenresRepository", () => {
     });
 
     it("should handle genres with null songs relation", async () => {
-      const genreWithNullSongs = { ...mockGenre, songs: null as any };
+      const genreWithNullSongs = {
+        ...mockGenre,
+        songs: null as unknown as Song[],
+      };
       mockGenreRepository.findOne.mockResolvedValue(genreWithNullSongs);
 
       const result = await repository.findOne("1");

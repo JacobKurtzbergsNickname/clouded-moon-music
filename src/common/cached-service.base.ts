@@ -60,7 +60,7 @@ export abstract class CachedServiceBase {
     return ResultAsync.fromPromise(
       this.redisService.set(cacheKey, JSON.stringify(data), ttl),
       (error) => error as Error,
-    );
+    ).map((result) => (result ?? "OK") as "OK");
   }
 
   /**
@@ -89,5 +89,43 @@ export abstract class CachedServiceBase {
       this.redisService.deletePattern(pattern),
       (error) => error as Error,
     );
+  }
+
+  /**
+   * Generic cache-aside helper for list queries.
+   * Checks cache first; on miss, calls fallback and populates cache.
+   * @param cacheKey - The cache key to check
+   * @param ttl - Cache TTL in seconds
+   * @param fallback - Async function to fetch data when cache misses
+   * @returns The data, from cache or the fallback
+   */
+  protected async findAllCached<T>(
+    cacheKey: string,
+    ttl: number,
+    fallback: () => Promise<T[]>,
+  ): Promise<T[]> {
+    const cachedResult = await this.getCached<T[]>(cacheKey);
+
+    if (cachedResult.isOk()) {
+      this.logger.info(`Cache hit: ${cacheKey}`);
+      return cachedResult.value;
+    }
+
+    this.logger.warn(
+      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
+    );
+
+    const items = await fallback();
+
+    const writeResult = await this.setCached(cacheKey, items, ttl);
+    writeResult.match(
+      () => this.logger.info(`Cache populated: ${cacheKey}`),
+      (error) =>
+        this.logger.warn(
+          `Cache write failed for ${cacheKey}: ${error.message}`,
+        ),
+    );
+
+    return items;
   }
 }

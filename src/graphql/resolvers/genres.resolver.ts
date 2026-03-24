@@ -1,13 +1,15 @@
 import {
   Args,
   ID,
+  Mutation,
   Parent,
   Query,
   ResolveField,
   Resolver,
 } from "@nestjs/graphql";
 import { GenreType } from "../models/genre.type";
-import { SongType } from "../models/song.type";
+import { SongType, SongRawGqlType } from "../models/song.type";
+import { CreateGenreInput, UpdateGenreInput } from "../models/genre.input";
 import { GraphqlGenresService } from "../graphql.service";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
 
@@ -30,9 +32,28 @@ export class GenresResolver {
     return this.graphqlGenresService.findOne(id);
   }
 
+  @Mutation(() => GenreType, { name: "createGenre" })
+  create(@Args("input") input: CreateGenreInput): Promise<GenreType> {
+    return this.graphqlGenresService.create(input.name);
+  }
+
+  @Mutation(() => GenreType, { name: "updateGenre", nullable: true })
+  update(
+    @Args("id", { type: () => ID }) id: string,
+    @Args("input") input: UpdateGenreInput,
+  ): Promise<GenreType | null> {
+    return this.graphqlGenresService.update(id, input.name);
+  }
+
+  @Mutation(() => ID, { name: "removeGenre", nullable: true })
+  remove(@Args("id", { type: () => ID }) id: string): Promise<string | null> {
+    return this.graphqlGenresService.remove(id);
+  }
+
   @ResolveField(() => [SongType], { name: "songs" })
-  async songs(@Parent() genre: Pick<GenreType, "id">): Promise<SongType[]> {
-    // Use DataLoader to batch-load songs for this genre
+  async songs(
+    @Parent() genre: Pick<GenreType, "id">,
+  ): Promise<SongRawGqlType[]> {
     return this.dataLoadersService.songsByGenreLoader.load(genre.id);
   }
 }

@@ -27,23 +27,23 @@ describe("SqlSongsRepository", () => {
   } as unknown as Song;
 
   const mockSongRepository = {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
+    find: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
+    remove: vi.fn(),
   };
 
   const mockArtistRepository = {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
   };
 
   const mockGenreRepository = {
-    findOne: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    save: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -74,7 +74,7 @@ describe("SqlSongsRepository", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -169,7 +169,7 @@ describe("SqlSongsRepository", () => {
 
       const result = await repository.create(createDto);
 
-      expect(result.title).toBe("Test Song");
+      expect(result!.title).toBe("Test Song");
       expect(artistRepository.findOne).toHaveBeenCalled();
       expect(genreRepository.findOne).toHaveBeenCalled();
       expect(songRepository.save).toHaveBeenCalled();
@@ -213,7 +213,7 @@ describe("SqlSongsRepository", () => {
       mockSongRepository.create.mockReturnValue(mockSong);
       mockSongRepository.save.mockResolvedValue(mockSong);
 
-      await repository.create(dtoWithoutGenres as CreateSongDTO);
+      await repository.create(dtoWithoutGenres as unknown as CreateSongDTO);
 
       expect(genreRepository.findOne).not.toHaveBeenCalled();
     });
@@ -227,7 +227,7 @@ describe("SqlSongsRepository", () => {
 
       const result = await repository.update("1", { title: "Updated Song" });
 
-      expect(result.title).toBe("Updated Song");
+      expect(result!.title).toBe("Updated Song");
     });
 
     it("should return null for non-existent song", async () => {
@@ -356,7 +356,7 @@ describe("SqlSongsRepository", () => {
 
       const result = await repository.replace("1", replaceDto);
 
-      expect(result.title).toBe("Replaced Song");
+      expect(result!.title).toBe("Replaced Song");
       expect(songRepository.save).toHaveBeenCalled();
     });
 
@@ -413,7 +413,10 @@ describe("SqlSongsRepository", () => {
       mockArtistRepository.findOne.mockResolvedValue(mockArtist);
       mockSongRepository.save.mockResolvedValue({ ...mockSong });
 
-      await repository.replace("1", replaceDtoNoGenres as CreateSongDTO);
+      await repository.replace(
+        "1",
+        replaceDtoNoGenres as unknown as CreateSongDTO,
+      );
 
       expect(genreRepository.findOne).not.toHaveBeenCalled();
     });

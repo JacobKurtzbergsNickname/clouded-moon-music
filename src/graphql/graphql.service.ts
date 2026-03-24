@@ -5,7 +5,7 @@ import { GenresService } from "../genres/genres.service";
 import { PlaylistsService } from "../playlists/playlists.service";
 import CreateSongDTO from "../songs/models/create-song.dto";
 import { CreatePlaylistDTO } from "../playlists/models/create-playlist.dto";
-import { SongType } from "./models/song.type";
+import { SongRawGqlType } from "./models/song.type";
 import { ArtistType } from "./models/artist.type";
 import { GenreType } from "./models/genre.type";
 import { PlaylistType } from "./models/playlist.type";
@@ -14,35 +14,23 @@ import { PlaylistType } from "./models/playlist.type";
 export class GraphqlSongsService {
   constructor(private readonly songsService: SongsService) {}
 
-  async findAll(): Promise<SongType[]> {
-    const songs = await this.songsService.findAll();
-    // Safe cast: SongDTO structure matches SongType for scalar fields.
-    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
-    return songs as unknown as SongType[];
+  async findAll(): Promise<SongRawGqlType[]> {
+    return this.songsService.findAll();
   }
 
-  async findOne(id: string): Promise<SongType | null> {
-    const song = await this.songsService.findOne(id);
-    // Safe cast: SongDTO structure matches SongType for scalar fields.
-    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
-    return song as unknown as SongType | null;
+  async findOne(id: string): Promise<SongRawGqlType | null> {
+    return this.songsService.findOne(id);
   }
 
-  async create(input: Partial<CreateSongDTO>): Promise<SongType> {
-    const song = await this.songsService.create(input as CreateSongDTO);
-    // Safe cast: SongDTO structure matches SongType for scalar fields.
-    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
-    return song as unknown as SongType;
+  async create(input: Partial<CreateSongDTO>): Promise<SongRawGqlType> {
+    return this.songsService.create(input as CreateSongDTO);
   }
 
   async update(
     id: string,
     input: Partial<CreateSongDTO>,
-  ): Promise<SongType | null> {
-    const song = await this.songsService.update(id, input);
-    // Safe cast: SongDTO structure matches SongType for scalar fields.
-    // Relationship fields (artists, genres) are resolved via @ResolveField in resolver.
-    return song as unknown as SongType | null;
+  ): Promise<SongRawGqlType | null> {
+    return this.songsService.update(id, input);
   }
 
   remove(id: string): Promise<string | null> {
@@ -70,6 +58,21 @@ export class GraphqlArtistsService {
       name: artist.name,
     } as ArtistType;
   }
+
+  async create(name: string): Promise<ArtistType> {
+    const artist = await this.artistsService.create(name);
+    return { id: String(artist.id), name: artist.name } as ArtistType;
+  }
+
+  async update(id: string, name: string): Promise<ArtistType | null> {
+    const artist = await this.artistsService.update(id, name);
+    if (!artist) return null;
+    return { id: String(artist.id), name: artist.name } as ArtistType;
+  }
+
+  remove(id: string): Promise<string | null> {
+    return this.artistsService.remove(id);
+  }
 }
 
 @Injectable()
@@ -91,6 +94,21 @@ export class GraphqlGenresService {
       id: String(genre.id),
       name: genre.name,
     } as GenreType;
+  }
+
+  async create(name: string): Promise<GenreType> {
+    const genre = await this.genresService.create(name);
+    return { id: String(genre.id), name: genre.name } as GenreType;
+  }
+
+  async update(id: string, name: string): Promise<GenreType | null> {
+    const genre = await this.genresService.update(id, name);
+    if (!genre) return null;
+    return { id: String(genre.id), name: genre.name } as GenreType;
+  }
+
+  remove(id: string): Promise<string | null> {
+    return this.genresService.remove(id);
   }
 }
 

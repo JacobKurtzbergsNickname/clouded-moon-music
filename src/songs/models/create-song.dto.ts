@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsInt,
+  MaxLength,
   Min,
   Max,
 } from "class-validator";
@@ -17,7 +18,8 @@ export default class CreateSongDTO {
   })
   @IsString()
   @IsNotEmpty()
-  readonly title: string;
+  @MaxLength(255)
+  readonly title!: string;
 
   @ApiProperty({
     description: "List of artists for the song",
@@ -27,7 +29,7 @@ export default class CreateSongDTO {
   @IsString({ each: true })
   @IsNotEmpty()
   @IsArray()
-  readonly artists: Array<string>;
+  readonly artists!: Array<string>;
 
   @ApiProperty({
     description: "The album name",
@@ -35,7 +37,8 @@ export default class CreateSongDTO {
   })
   @IsString()
   @IsNotEmpty()
-  readonly album: string;
+  @MaxLength(255)
+  readonly album!: string;
 
   @ApiProperty({
     description: "The year the song was released",
@@ -47,7 +50,7 @@ export default class CreateSongDTO {
   @Min(1900)
   @Max(new Date().getFullYear())
   @IsOptional()
-  readonly year: number;
+  readonly year!: number;
 
   @ApiProperty({
     description: "The release date of the song",
@@ -55,7 +58,7 @@ export default class CreateSongDTO {
   })
   @IsDateString()
   @IsNotEmpty()
-  readonly releaseDate: Date;
+  readonly releaseDate!: Date;
 
   @ApiProperty({
     description: "List of genres for the song",
@@ -66,7 +69,7 @@ export default class CreateSongDTO {
   @IsString({ each: true })
   @IsArray()
   @IsOptional()
-  readonly genres: Array<string>;
+  readonly genres!: Array<string>;
 
   @ApiProperty({
     description: "Duration of the song in seconds",
@@ -75,6 +78,7 @@ export default class CreateSongDTO {
   })
   @IsInt()
   @Min(1)
+  @Max(86400)
   @IsNotEmpty()
-  readonly duration: number; // duration in seconds
+  readonly duration!: number; // duration in seconds
 }

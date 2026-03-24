@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { SongsController } from "./songs.controller";
 import { SongsService } from "./songs.service";
@@ -9,7 +10,7 @@ describe("SongsController", () => {
   let songsService: SongsService;
 
   const mockSongDTO: SongDTO = {
-    id: "1",
+    id: "507f1f77bcf86cd799439011",
     title: "Test Song",
     artists: ["Test Artist"],
     album: "Test Album",
@@ -20,12 +21,12 @@ describe("SongsController", () => {
   };
 
   const mockSongsService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    replace: jest.fn(),
-    remove: jest.fn(),
+    create: vi.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    update: vi.fn(),
+    replace: vi.fn(),
+    remove: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -44,7 +45,7 @@ describe("SongsController", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should be defined", () => {
@@ -87,10 +88,20 @@ describe("SongsController", () => {
     it("should return a song by id", async () => {
       mockSongsService.findOne.mockResolvedValue(mockSongDTO);
 
-      const result = await controller.findOne("1");
+      const result = await controller.findOne("507f1f77bcf86cd799439011");
 
       expect(result).toEqual(mockSongDTO);
-      expect(songsService.findOne).toHaveBeenCalledWith("1");
+      expect(songsService.findOne).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
+    });
+
+    it("should throw NotFoundException when song not found", async () => {
+      mockSongsService.findOne.mockResolvedValue(null);
+
+      await expect(
+        controller.findOne("507f1f77bcf86cd799439011"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -100,10 +111,24 @@ describe("SongsController", () => {
       const updatedSong = { ...mockSongDTO, title: "Updated Song" };
       mockSongsService.update.mockResolvedValue(updatedSong);
 
-      const result = await controller.update("1", updateDto);
+      const result = await controller.update(
+        "507f1f77bcf86cd799439011",
+        updateDto,
+      );
 
       expect(result).toEqual(updatedSong);
-      expect(songsService.update).toHaveBeenCalledWith("1", updateDto);
+      expect(songsService.update).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+        updateDto,
+      );
+    });
+
+    it("should throw NotFoundException when song not found", async () => {
+      mockSongsService.update.mockResolvedValue(null);
+
+      await expect(
+        controller.update("507f1f77bcf86cd799439011", { title: "Updated" }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -119,24 +144,56 @@ describe("SongsController", () => {
         releaseDate: new Date("2025-01-01"),
       };
 
-      const replacedSong = { ...mockSongDTO, ...replaceDto, id: "1" };
+      const replacedSong = { ...mockSongDTO, ...replaceDto };
       mockSongsService.replace.mockResolvedValue(replacedSong);
 
-      const result = await controller.replace("1", replaceDto);
+      const result = await controller.replace(
+        "507f1f77bcf86cd799439011",
+        replaceDto,
+      );
 
       expect(result).toEqual(replacedSong);
-      expect(songsService.replace).toHaveBeenCalledWith("1", replaceDto);
+      expect(songsService.replace).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+        replaceDto,
+      );
+    });
+
+    it("should throw NotFoundException when song not found", async () => {
+      const replaceDto: CreateSongDTO = {
+        title: "Replaced Song",
+        artists: ["New Artist"],
+        album: "New Album",
+        year: 2025,
+        genres: ["Pop"],
+        duration: 240,
+        releaseDate: new Date("2025-01-01"),
+      };
+      mockSongsService.replace.mockResolvedValue(null);
+
+      await expect(
+        controller.replace("507f1f77bcf86cd799439011", replaceDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe("remove", () => {
     it("should remove a song", async () => {
-      mockSongsService.remove.mockResolvedValue("1");
+      mockSongsService.remove.mockResolvedValue("507f1f77bcf86cd799439011");
 
-      const result = await controller.remove("1");
+      await controller.remove("507f1f77bcf86cd799439011");
 
-      expect(result).toBe("1");
-      expect(songsService.remove).toHaveBeenCalledWith("1");
+      expect(songsService.remove).toHaveBeenCalledWith(
+        "507f1f77bcf86cd799439011",
+      );
+    });
+
+    it("should throw NotFoundException when song not found", async () => {
+      mockSongsService.remove.mockResolvedValue(null);
+
+      await expect(
+        controller.remove("507f1f77bcf86cd799439011"),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });
