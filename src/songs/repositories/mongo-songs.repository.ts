@@ -108,9 +108,7 @@ export class MongoSongsRepository implements SongsRepository {
       return [];
     }
     // Single MongoDB query using $in operator
-    const docs = await this.songModel
-      .find({ album: { $in: albumIds } })
-      .exec();
+    const docs = await this.songModel.find({ album: { $in: albumIds } }).exec();
     return docs.map((doc) => this.toSong(doc));
   }
 

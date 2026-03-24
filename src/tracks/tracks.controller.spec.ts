@@ -90,7 +90,11 @@ describe("TracksController", () => {
     };
 
     it("should create a track", async () => {
-      const created = { id: "uuid-3", ...dto, createdAt: new Date() } as TrackDTO;
+      const created = {
+        id: "uuid-3",
+        ...dto,
+        createdAt: new Date(),
+      } as TrackDTO;
       mockTracksService.create.mockResolvedValue(created);
 
       const result = await controller.create(dto);
@@ -100,8 +104,16 @@ describe("TracksController", () => {
     });
 
     it("should create a WAV track", async () => {
-      const wavDto: CreateTrackDTO = { ...dto, format: "wav", storageKey: "tracks/uuid-4/master.wav" };
-      const created = { id: "uuid-4", ...wavDto, createdAt: new Date() } as TrackDTO;
+      const wavDto: CreateTrackDTO = {
+        ...dto,
+        format: "wav",
+        storageKey: "tracks/uuid-4/master.wav",
+      };
+      const created = {
+        id: "uuid-4",
+        ...wavDto,
+        createdAt: new Date(),
+      } as TrackDTO;
       mockTracksService.create.mockResolvedValue(created);
 
       const result = await controller.create(wavDto);
@@ -229,7 +241,8 @@ describe("TracksController", () => {
       const result = controller.requestUpload("tracks/uuid-5/master.flac");
 
       expect(result).toEqual({
-        uploadUrl: "https://r2.example.com/tracks/uuid-5/master.flac?sig=upload",
+        uploadUrl:
+          "https://r2.example.com/tracks/uuid-5/master.flac?sig=upload",
         expiresAt,
       });
       expect(tracksService.getUploadUrl).toHaveBeenCalledWith(
@@ -278,9 +291,15 @@ describe("TracksController", () => {
         "Content-Type",
         "audio/flac",
       );
-      expect(mockRes.setHeader).toHaveBeenCalledWith("Content-Length", 10485760);
+      expect(mockRes.setHeader).toHaveBeenCalledWith(
+        "Content-Length",
+        10485760,
+      );
       expect(mockRes.setHeader).toHaveBeenCalledWith("Accept-Ranges", "bytes");
-      expect(mockRes.setHeader).toHaveBeenCalledWith("Cache-Control", "no-store");
+      expect(mockRes.setHeader).toHaveBeenCalledWith(
+        "Cache-Control",
+        "no-store",
+      );
       expect(mockReadStream.pipe).toHaveBeenCalledWith(mockRes);
     });
 
@@ -304,7 +323,10 @@ describe("TracksController", () => {
         "Content-Type",
         "audio/wav",
       );
-      expect(mockRes.setHeader).toHaveBeenCalledWith("Content-Length", 52428800);
+      expect(mockRes.setHeader).toHaveBeenCalledWith(
+        "Content-Length",
+        52428800,
+      );
     });
 
     it("should throw NotFoundException in production", async () => {
