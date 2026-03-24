@@ -10,9 +10,21 @@ import {
 import { GraphqlSongsService } from "../graphql.service";
 import { SongType, SongRawGqlType } from "../models/song.type";
 import { ArtistType } from "../models/artist.type";
+import { AlbumType } from "../models/album.type";
 import { GenreType } from "../models/genre.type";
 import { CreateSongInput, UpdateSongInput } from "../models/song.input";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
+
+/**
+ * Runtime structure of parent object in field resolvers.
+ * Represents the DTO structure with string arrays for relationships,
+ * which will be resolved to proper GraphQL types by @ResolveField.
+ */
+type SongDTORuntime = Omit<SongType, "artists" | "genres" | "album"> & {
+  artists?: string[];
+  genres?: string[];
+  album?: string;
+};
 
 @Resolver(() => SongType)
 export class SongsResolver {
@@ -31,6 +43,31 @@ export class SongsResolver {
     @Args("id", { type: () => ID }) id: string,
   ): Promise<SongRawGqlType | null> {
     return this.graphqlSongsService.findOne(id);
+  }
+
+  @ResolveField(() => AlbumType, { name: "album", nullable: true })
+  async album(@Parent() song: SongType): Promise<AlbumType | null> {
+    const songRuntime = song as unknown as SongDTORuntime;
+    const albumRef = songRuntime.album;
+    if (!albumRef) return null;
+
+    // Legacy data stores album titles as plain strings; short-circuit before DB lookup
+    if (typeof albumRef === "string" && /\D/.test(albumRef.trim())) {
+      const title = albumRef.trim();
+      if (!title) return null;
+      return { id: title, title } as AlbumType;
+    }
+
+    const normalizedAlbumId =
+      typeof albumRef === "string" ? albumRef.trim() : String(albumRef);
+    if (!normalizedAlbumId) return null;
+
+    const album =
+      await this.dataLoadersService.albumLoader.load(normalizedAlbumId);
+    if (album) return album;
+
+    // Fallback for legacy strings that look like IDs but have no album record
+    return { id: normalizedAlbumId, title: albumRef } as AlbumType;
   }
 
   @ResolveField(() => [ArtistType], { name: "artists" })

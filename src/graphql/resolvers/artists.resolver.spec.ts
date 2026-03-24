@@ -105,7 +105,7 @@ describe("ArtistsResolver", () => {
           year: 2024,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as unknown as SongType,
       ];
 
       mockDataLoadersService.songsByArtistLoader.load.mockResolvedValue(

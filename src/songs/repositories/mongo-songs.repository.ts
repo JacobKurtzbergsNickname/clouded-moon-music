@@ -123,6 +123,20 @@ export class MongoSongsRepository implements SongsRepository {
   }
 
   /**
+   * Find all songs that belong to any of the specified album IDs in a single database query.
+   * @param albumIds - Array of album IDs to filter by
+   * @returns Array of SongDTO objects belonging to any of the specified albums
+   */
+  async findByAlbumIds(albumIds: string[]): Promise<SongDTO[]> {
+    if (albumIds.length === 0) {
+      return [];
+    }
+    // Single MongoDB query using $in operator
+    const docs = await this.songModel.find({ album: { $in: albumIds } }).exec();
+    return docs.map((doc) => this.toSong(doc));
+  }
+
+  /**
    * Converts a Mongoose document to a plain Song DTO object
    */
   private toSong(doc: SongDocument): SongDTO {

@@ -104,7 +104,7 @@ describe("GenresResolver", () => {
           year: 2024,
           duration: 180,
           releaseDate: new Date(),
-        } as SongType,
+        } as unknown as SongType,
       ];
 
       mockDataLoadersService.songsByGenreLoader.load.mockResolvedValue(

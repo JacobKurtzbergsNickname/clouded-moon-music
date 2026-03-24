@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { SongsResolver } from "./songs.resolver";
 import { GraphqlSongsService } from "../graphql.service";
 import { DataLoadersService } from "../dataloaders/dataloaders.service";
-import { SongRawGqlType } from "../models/song.type";
+import { SongRawGqlType, SongType } from "../models/song.type";
 import { ArtistType } from "../models/artist.type";
 import { GenreType } from "../models/genre.type";
 import { CreateSongInput, UpdateSongInput } from "../models/song.input";
@@ -26,6 +26,9 @@ describe("SongsResolver", () => {
         load: vi.fn(),
       },
       genreLoader: {
+        load: vi.fn(),
+      },
+      albumLoader: {
         load: vi.fn(),
       },
     };
@@ -63,7 +66,7 @@ describe("SongsResolver", () => {
           year: 2020,
           duration: 180,
           releaseDate: new Date(),
-        } as SongRawGqlType,
+        } as unknown as SongRawGqlType,
       ];
 
       vi.spyOn(graphqlSongsService, "findAll").mockResolvedValue(mockSongs);
@@ -82,7 +85,7 @@ describe("SongsResolver", () => {
         year: 2020,
         duration: 180,
         releaseDate: new Date(),
-      } as SongRawGqlType;
+      } as unknown as SongRawGqlType;
 
       vi.spyOn(graphqlSongsService, "findOne").mockResolvedValue(mockSong);
 
@@ -97,11 +100,10 @@ describe("SongsResolver", () => {
       const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
-        album: "Test Album",
         duration: 180,
         releaseDate: new Date(),
         artists: ["artist1", "artist2"],
-      };
+      } as unknown as SongRawGqlType;
 
       const mockArtists: ArtistType[] = [
         { id: "artist1", name: "Artist 1" },
@@ -121,11 +123,10 @@ describe("SongsResolver", () => {
       const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
-        album: "Test Album",
         duration: 180,
         releaseDate: new Date(),
         artists: ["artist1", "artist2"],
-      };
+      } as unknown as SongRawGqlType;
 
       const mockArtists: Array<ArtistType | null> = [
         { id: "artist1", name: "Artist 1" },
@@ -146,11 +147,10 @@ describe("SongsResolver", () => {
       const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
-        album: "Test Album",
         duration: 180,
         releaseDate: new Date(),
         genres: ["genre1", "genre2"],
-      };
+      } as unknown as SongRawGqlType;
 
       const mockGenres: GenreType[] = [
         { id: "genre1", name: "Genre 1" },
@@ -169,10 +169,9 @@ describe("SongsResolver", () => {
       const mockSong: SongRawGqlType = {
         id: "1",
         title: "Test Song",
-        album: "Test Album",
         duration: 180,
         releaseDate: new Date(),
-      };
+      } as unknown as SongRawGqlType;
 
       const result = await resolver.genres(mockSong);
       expect(result).toBeNull();
@@ -192,7 +191,7 @@ describe("SongsResolver", () => {
       const mockCreatedSong: SongRawGqlType = {
         id: "1",
         ...input,
-      } as SongRawGqlType;
+      } as unknown as SongRawGqlType;
 
       vi.spyOn(graphqlSongsService, "create").mockResolvedValue(
         mockCreatedSong,
@@ -215,7 +214,7 @@ describe("SongsResolver", () => {
         album: "Album",
         duration: 200,
         releaseDate: new Date(),
-      } as SongRawGqlType;
+      } as unknown as SongRawGqlType;
 
       vi.spyOn(graphqlSongsService, "update").mockResolvedValue(
         mockUpdatedSong,
@@ -232,6 +231,39 @@ describe("SongsResolver", () => {
 
       const result = await resolver.remove("1");
       expect(result).toBe("1");
+    });
+  });
+
+  describe("album", () => {
+    it("should return legacy album as inline AlbumType without loader hit", async () => {
+      const legacySong = {
+        id: "1",
+        album: "Blood Fire Death",
+      } as unknown as SongType;
+
+      const result = await resolver.album(legacySong);
+
+      expect(result).toEqual({
+        id: "Blood Fire Death",
+        title: "Blood Fire Death",
+      });
+      expect(dataLoadersService.albumLoader.load).not.toHaveBeenCalled();
+    });
+
+    it("should use album loader when album looks like an ID and fallback when missing", async () => {
+      const songWithIdAlbum = {
+        id: "1",
+        album: "42",
+      } as unknown as SongType;
+
+      vi.spyOn(dataLoadersService.albumLoader, "load").mockResolvedValueOnce(
+        null,
+      );
+
+      const result = await resolver.album(songWithIdAlbum);
+
+      expect(dataLoadersService.albumLoader.load).toHaveBeenCalledWith("42");
+      expect(result).toEqual({ id: "42", title: "42" });
     });
   });
 });

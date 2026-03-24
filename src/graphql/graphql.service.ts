@@ -1,12 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { SongsService } from "../songs/songs.service";
 import { ArtistsService } from "../artists/artists.service";
+import { AlbumsService } from "../albums/albums.service";
 import { GenresService } from "../genres/genres.service";
 import { PlaylistsService } from "../playlists/playlists.service";
 import CreateSongDTO from "../songs/models/create-song.dto";
 import { CreatePlaylistDTO } from "../playlists/models/create-playlist.dto";
 import { SongRawGqlType } from "./models/song.type";
 import { ArtistType } from "./models/artist.type";
+import { AlbumType } from "./models/album.type";
 import { GenreType } from "./models/genre.type";
 import { PlaylistType } from "./models/playlist.type";
 
@@ -72,6 +74,30 @@ export class GraphqlArtistsService {
 
   remove(id: string): Promise<string | null> {
     return this.artistsService.remove(id);
+  }
+}
+
+@Injectable()
+export class GraphqlAlbumsService {
+  constructor(private readonly albumsService: AlbumsService) {}
+
+  async findAll(): Promise<AlbumType[]> {
+    const albums = await this.albumsService.findAll();
+    return albums.map((a) => ({
+      id: String(a.id),
+      title: a.title,
+      releaseYear: a.releaseYear,
+    })) as AlbumType[];
+  }
+
+  async findOne(id: string): Promise<AlbumType | null> {
+    const album = await this.albumsService.findOne(id);
+    if (!album) return null;
+    return {
+      id: String(album.id),
+      title: album.title,
+      releaseYear: album.releaseYear,
+    } as AlbumType;
   }
 }
 
