@@ -270,6 +270,10 @@ describe("SongsService", () => {
       ]);
       mockGenresService.findByIds.mockResolvedValue([
         { id: "202", name: "Jazz", songs: [] },
+        { id: "artist-1", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
       ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
 
@@ -295,6 +299,7 @@ describe("SongsService", () => {
     it("should throw BadRequestException when genre IDs do not exist", async () => {
       mockArtistsService.findByIds.mockResolvedValue([
         { id: "101", name: "Artist", songs: [] },
+        { id: "artist-1", name: "Artist", songs: [] },
       ]);
       mockGenresService.findByIds.mockResolvedValue([null]);
 
@@ -310,6 +315,10 @@ describe("SongsService", () => {
       ]);
       mockGenresService.findByIds.mockResolvedValue([
         { id: "202", name: "Jazz", songs: [] },
+        { id: "artist-1", name: "Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
       ]);
       mockRepository.create.mockResolvedValue(mockCreatedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis del failed"));
@@ -423,6 +432,10 @@ describe("SongsService", () => {
       ]);
       mockGenresService.findByIds.mockResolvedValue([
         { id: "202", name: "Jazz", songs: [] },
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
       ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
 
@@ -441,6 +454,10 @@ describe("SongsService", () => {
       ]);
       mockGenresService.findByIds.mockResolvedValue([
         { id: "202", name: "Jazz", songs: [] },
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
       ]);
       mockRepository.replace.mockResolvedValue(null);
 
@@ -456,6 +473,10 @@ describe("SongsService", () => {
       ]);
       mockGenresService.findByIds.mockResolvedValue([
         { id: "202", name: "Jazz", songs: [] },
+        { id: "artist-1", name: "New Artist", songs: [] },
+      ]);
+      mockGenresService.findByIds.mockResolvedValue([
+        { id: "genre-1", name: "Jazz", songs: [] },
       ]);
       mockRepository.replace.mockResolvedValue(mockReplacedSong);
       mockRedisService.del.mockRejectedValue(new Error("Redis failed"));

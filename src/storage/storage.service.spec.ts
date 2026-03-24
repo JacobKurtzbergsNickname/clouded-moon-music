@@ -3,10 +3,14 @@ import { StorageService } from "./storage.service";
 // Helper — create a service with a specific provider env var
 function buildService(
   provider = "local",
-  secret = "test-secret",
+  secret: string | null = "test-secret",
 ): StorageService {
   process.env.STORAGE_PROVIDER = provider;
-  process.env.STORAGE_SECRET_ACCESS_KEY = secret;
+  if (secret === null) {
+    delete process.env.STORAGE_SECRET_ACCESS_KEY;
+  } else {
+    process.env.STORAGE_SECRET_ACCESS_KEY = secret;
+  }
   process.env.CDN_BASE_URL = "http://localhost:3456";
   process.env.SIGNED_URL_EXPIRY = "60";
   return new StorageService();
@@ -81,6 +85,22 @@ describe("StorageService", () => {
       const sig1 = new URL(url1).searchParams.get("sig");
       const sig2 = new URL(url2).searchParams.get("sig");
       expect(sig1).not.toBe(sig2);
+    });
+
+    it("should fall back to a default signing key when the secret is unset", () => {
+      const service = buildService("local", null);
+
+      const { url } = service.getSignedDownloadUrl("k", "uuid-1");
+      const parsed = new URL(url);
+      const expires = parsed.searchParams.get("expires")!;
+      const sig = parsed.searchParams.get("sig")!;
+
+      expect(sig).toBeTruthy();
+      expect(service.verifyLocalSignature("uuid-1", expires, sig)).toBe(true);
+
+      const upload = service.getSignedUploadUrl("tracks/uuid-1/master.flac");
+      const uploadSig = new URL(upload.url).searchParams.get("sig");
+      expect(uploadSig).toBeTruthy();
     });
   });
 

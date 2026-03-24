@@ -11,9 +11,22 @@ export interface SignedUrlResult {
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly config: StorageConfig;
+  private readonly signingKey: string;
 
   constructor() {
     this.config = getStorageConfig();
+    const trimmedSecret = this.config.secretAccessKey?.trim();
+
+    if (trimmedSecret) {
+      this.signingKey = trimmedSecret;
+    } else if (this.config.provider === "local") {
+      this.signingKey = "local-dev-fallback-secret";
+      this.logger.warn(
+        "STORAGE_SECRET_ACCESS_KEY not set; using fallback dev signing key for local storage provider.",
+      );
+    } else {
+      this.signingKey = "";
+    }
   }
 
   /**
@@ -102,9 +115,11 @@ export class StorageService {
   }
 
   private buildS3CompatibleSignedUrl(
-    _storageKey: string,
-    _ttlSeconds: number,
+    storageKey: string,
+    ttlSeconds: number,
   ): SignedUrlResult {
+    void storageKey;
+    void ttlSeconds;
     throw new NotImplementedException(
       "S3-compatible signed download URL is not implemented. " +
         "Configure STORAGE_PROVIDER=local for development or implement " +
@@ -113,9 +128,11 @@ export class StorageService {
   }
 
   private buildS3CompatibleSignedUploadUrl(
-    _storageKey: string,
-    _ttlSeconds: number,
+    storageKey: string,
+    ttlSeconds: number,
   ): SignedUrlResult {
+    void storageKey;
+    void ttlSeconds;
     throw new NotImplementedException(
       "S3-compatible signed upload URL is not implemented. " +
         "Configure STORAGE_PROVIDER=local for development or implement " +
@@ -124,14 +141,13 @@ export class StorageService {
   }
 
   private hmacSign(payload: string): string {
-    if (!this.config.secretAccessKey) {
+    if (!this.signingKey) {
       throw new Error(
         "STORAGE_SECRET_ACCESS_KEY must be configured for HMAC signing. " +
           "Set this environment variable before starting the application.",
       );
     }
-    return createHmac("sha256", this.config.secretAccessKey)
-      .update(payload)
-      .digest("hex");
+
+    return createHmac("sha256", this.signingKey).update(payload).digest("hex");
   }
 }
