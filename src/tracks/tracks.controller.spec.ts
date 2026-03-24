@@ -235,14 +235,16 @@ describe("TracksController", () => {
   // POST /tracks/upload
   // ---------------------------------------------------------------------------
   describe("requestUpload", () => {
-    it("should return a signed upload URL", () => {
+    it("should return a signed upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockTracksService.getUploadUrl.mockReturnValue({
+      mockTracksService.getUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/tracks/uuid-5/master.flac?sig=upload",
         expiresAt,
       });
 
-      const result = controller.requestUpload("tracks/uuid-5/master.flac");
+      const result = await controller.requestUpload(
+        "tracks/uuid-5/master.flac",
+      );
 
       expect(result).toEqual({
         uploadUrl:
@@ -254,14 +256,14 @@ describe("TracksController", () => {
       );
     });
 
-    it("should generate a WAV upload URL", () => {
+    it("should generate a WAV upload URL", async () => {
       const expiresAt = new Date("2026-01-01T00:01:00.000Z");
-      mockTracksService.getUploadUrl.mockReturnValue({
+      mockTracksService.getUploadUrl.mockResolvedValue({
         url: "https://r2.example.com/tracks/uuid-6/master.wav?sig=upload",
         expiresAt,
       });
 
-      const result = controller.requestUpload("tracks/uuid-6/master.wav");
+      const result = await controller.requestUpload("tracks/uuid-6/master.wav");
 
       expect(result.uploadUrl).toContain("master.wav");
     });
