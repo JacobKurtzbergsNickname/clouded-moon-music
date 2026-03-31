@@ -2,20 +2,13 @@
 
 import { Module } from "@nestjs/common";
 import { WinstonModule } from "nest-winston";
-import * as winston from "winston";
 import { CMLogger } from "./logger.service";
+import winstonLogger from "./winston.config";
 
 @Module({
   imports: [
     WinstonModule.forRoot({
-      transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({
-          filename: "logs/error.log",
-          level: "error",
-        }),
-        new winston.transports.File({ filename: "logs/combined.log" }),
-      ],
+      instance: winstonLogger,
     }),
   ],
   providers: [CMLogger],

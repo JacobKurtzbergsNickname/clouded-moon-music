@@ -1,16 +1,24 @@
-import { Logger, MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import {
+  APP_FILTER,
+  APP_INTERCEPTOR,
+  ClassSerializerInterceptor,
+  Logger,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Connection } from "mongoose";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { WinstonModule } from "nest-winston";
-import winston from "winston";
 import { join } from "path";
 import depthLimit from "graphql-depth-limit";
 import { createComplexityRule } from "graphql-query-complexity";
 import { GraphQLError } from "graphql";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -113,23 +121,15 @@ import { PlaylistsModule } from "./playlists/playlists.module";
     HealthModule,
     PlaylistsModule,
 
-    WinstonModule.forRoot({
-      transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({
-          filename: "logs/error.log",
-          level: "error",
-        }),
-        new winston.transports.File({
-          filename: "logs/combined.log",
-        }),
-      ],
-    }),
-
     LoggerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
