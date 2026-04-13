@@ -4,9 +4,10 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Logger,
+  Injectable,
 } from "@nestjs/common";
 import { Request, Response } from "express";
+import { CMLogger } from "../logger";
 
 interface ErrorResponse {
   statusCode: number;
@@ -15,9 +16,10 @@ interface ErrorResponse {
   message: string | string[];
 }
 
+@Injectable()
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(HttpExceptionFilter.name);
+  constructor(private readonly logger: CMLogger) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();

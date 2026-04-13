@@ -1,7 +1,6 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Result } from "neverthrow";
 import { CMLogger } from "../common/logger";
-import { ILogEntry } from "../common/logger/interfaces/log.interface";
 import { CachedServiceBase } from "../common/cached-service.base";
 import { RedisService } from "../redis/redis.service";
 import { CACHE_KEYS, CACHE_TTL } from "../redis/redis.constants";
@@ -78,33 +77,9 @@ export class SongsService extends CachedServiceBase {
 
   async findOne(id: string): Promise<SongDTO | null> {
     this.logger.info(`Method: findOne(${id})`);
-    const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-    const cachedResult = await this.getCached<SongDTO>(cacheKey);
-
-    if (cachedResult.isOk()) {
-      this.logger.info(`Cache hit: ${cacheKey}`);
-      return cachedResult.value;
-    }
-
-    this.logger.warn(
-      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
+    return this.findOneCached(`${CACHE_KEYS.SONG}${id}`, CACHE_TTL.SONG, () =>
+      this.songsRepository.findOne(id),
     );
-
-    const song = await this.songsRepository.findOne(id);
-
-    if (song) {
-      const cacheWriteResult = await this.setCached(
-        cacheKey,
-        song,
-        CACHE_TTL.SONG,
-      );
-      cacheWriteResult.match(
-        () => this.logger.info(`Cache populated: ${cacheKey}`),
-        (error) => this.logger.warn(`Cache write failed: ${error.message}`),
-      );
-    }
-
-    return song;
   }
 
   /**
@@ -125,14 +100,9 @@ export class SongsService extends CachedServiceBase {
    * @returns Array of SongDTO objects containing any of the specified artists
    */
   async findByArtistIds(artistIds: string[]): Promise<SongDTO[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Finding songs for ${artistIds.length} artists`,
-      context: "SongsService",
-    };
-    this.logger.info("Method: findByArtistIds()", logEntry);
-
+    this.logger.info(
+      `Method: findByArtistIds() — finding songs for ${artistIds.length} artists`,
+    );
     return this.songsRepository.findByArtistIds(artistIds);
   }
 
@@ -143,14 +113,9 @@ export class SongsService extends CachedServiceBase {
    * @returns Array of SongDTO objects belonging to any of the specified albums
    */
   async findByAlbumIds(albumIds: string[]): Promise<SongDTO[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Finding songs for ${albumIds.length} albums`,
-      context: "SongsService",
-    };
-    this.logger.info("Method: findByAlbumIds()", logEntry);
-
+    this.logger.info(
+      `Method: findByAlbumIds() — finding songs for ${albumIds.length} albums`,
+    );
     return this.songsRepository.findByAlbumIds(albumIds);
   }
 
@@ -161,75 +126,16 @@ export class SongsService extends CachedServiceBase {
    * @returns Array of SongDTO objects containing any of the specified genres
    */
   async findByGenreIds(genreIds: string[]): Promise<SongDTO[]> {
-    const logEntry: ILogEntry = {
-      timestamp: new Date().toISOString(),
-      level: "info",
-      message: `Finding songs for ${genreIds.length} genres`,
-      context: "SongsService",
-    };
-    this.logger.info("Method: findByGenreIds()", logEntry);
-
+    this.logger.info(
+      `Method: findByGenreIds() — finding songs for ${genreIds.length} genres`,
+    );
     return this.songsRepository.findByGenreIds(genreIds);
   }
 
   async create(dto: CreateSongDTO): Promise<SongDTO> {
     await this.validateReferences(dto.artists, dto.genres);
     const song = await this.songsRepository.create(dto);
-
-    // Invalidate song list caches
-    const invalidateResult = await this.invalidateCache(
-      CACHE_KEYS.SONGS_LIST_ALL,
-    );
-    const invalidatePatternResult = await this.invalidateCachePattern(
-      `${CACHE_KEYS.SONGS_LIST_FILTERED}*`,
-    );
-
-    // Invalidate artist and genre caches since new ones may have been created
-    const invalidateArtistsResult = await this.invalidateCache(
-      CACHE_KEYS.ARTISTS_LIST_ALL,
-    );
-    const invalidateGenresResult = await this.invalidateCache(
-      CACHE_KEYS.GENRES_LIST_ALL,
-    );
-
-    // Invalidate individual artist and genre caches if they exist
-    const invalidateArtistPattern = await this.invalidateCachePattern(
-      `${CACHE_KEYS.ARTIST}*`,
-    );
-    const invalidateGenrePattern = await this.invalidateCachePattern(
-      `${CACHE_KEYS.GENRE}*`,
-    );
-
-    // Invalidate album caches since song count has changed
-    const invalidateAlbumsResult = await this.invalidateCache(
-      CACHE_KEYS.ALBUMS_LIST_ALL,
-    );
-    const invalidateAlbumPattern = await this.invalidateCachePattern(
-      `${CACHE_KEYS.ALBUM}*`,
-    );
-
-    Result.combine([
-      invalidateResult,
-      invalidatePatternResult,
-      invalidateArtistsResult,
-      invalidateGenresResult,
-      invalidateArtistPattern,
-      invalidateGenrePattern,
-      invalidateAlbumsResult,
-      invalidateAlbumPattern,
-    ]).match(
-      () =>
-        this.logger.info("Cache invalidated after create", {
-          timestamp: new Date().toISOString(),
-          level: "info",
-          message:
-            "Invalidated song, artist, genre, and album caches after song creation",
-          context: "SongsService",
-        }),
-      (error) =>
-        this.logger.warn(`Cache invalidation failed: ${error.message}`),
-    );
-
+    await this.invalidateSongCaches();
     return song;
   }
 
@@ -240,57 +146,7 @@ export class SongsService extends CachedServiceBase {
     await this.validateReferences(song.artists, song.genres);
     const updatedSong = await this.songsRepository.update(id, song);
     if (updatedSong) {
-      const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-      const invalidateResult = await this.invalidateCache(
-        cacheKey,
-        CACHE_KEYS.SONGS_LIST_ALL,
-      );
-      const invalidatePatternResult = await this.invalidateCachePattern(
-        `${CACHE_KEYS.SONGS_LIST_FILTERED}*`,
-      );
-
-      // Invalidate artist and genre caches since relationships may have changed
-      const invalidateArtistsResult = await this.invalidateCache(
-        CACHE_KEYS.ARTISTS_LIST_ALL,
-      );
-      const invalidateGenresResult = await this.invalidateCache(
-        CACHE_KEYS.GENRES_LIST_ALL,
-      );
-      const invalidateArtistPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ARTIST}*`,
-      );
-      const invalidateGenrePattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.GENRE}*`,
-      );
-
-      // Invalidate album caches since album reference may have changed
-      const invalidateAlbumsResult = await this.invalidateCache(
-        CACHE_KEYS.ALBUMS_LIST_ALL,
-      );
-      const invalidateAlbumPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ALBUM}*`,
-      );
-
-      Result.combine([
-        invalidateResult,
-        invalidatePatternResult,
-        invalidateArtistsResult,
-        invalidateGenresResult,
-        invalidateArtistPattern,
-        invalidateGenrePattern,
-        invalidateAlbumsResult,
-        invalidateAlbumPattern,
-      ]).match(
-        () =>
-          this.logger.info("Cache invalidated after update", {
-            timestamp: new Date().toISOString(),
-            level: "info",
-            message: `Invalidated caches for song ${id} and related entities`,
-            context: "SongsService",
-          }),
-        (error) =>
-          this.logger.warn(`Cache invalidation failed: ${error.message}`),
-      );
+      await this.invalidateSongCaches(`${CACHE_KEYS.SONG}${id}`);
     }
     return updatedSong;
   }
@@ -299,57 +155,7 @@ export class SongsService extends CachedServiceBase {
     await this.validateReferences(song.artists, song.genres);
     const replacedSong = await this.songsRepository.replace(id, song);
     if (replacedSong) {
-      const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-      const invalidateResult = await this.invalidateCache(
-        cacheKey,
-        CACHE_KEYS.SONGS_LIST_ALL,
-      );
-      const invalidatePatternResult = await this.invalidateCachePattern(
-        `${CACHE_KEYS.SONGS_LIST_FILTERED}*`,
-      );
-
-      // Invalidate artist and genre caches since relationships may have changed
-      const invalidateArtistsResult = await this.invalidateCache(
-        CACHE_KEYS.ARTISTS_LIST_ALL,
-      );
-      const invalidateGenresResult = await this.invalidateCache(
-        CACHE_KEYS.GENRES_LIST_ALL,
-      );
-      const invalidateArtistPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ARTIST}*`,
-      );
-      const invalidateGenrePattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.GENRE}*`,
-      );
-
-      // Invalidate album caches since album reference may have changed
-      const invalidateAlbumsResult = await this.invalidateCache(
-        CACHE_KEYS.ALBUMS_LIST_ALL,
-      );
-      const invalidateAlbumPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ALBUM}*`,
-      );
-
-      Result.combine([
-        invalidateResult,
-        invalidatePatternResult,
-        invalidateArtistsResult,
-        invalidateGenresResult,
-        invalidateArtistPattern,
-        invalidateGenrePattern,
-        invalidateAlbumsResult,
-        invalidateAlbumPattern,
-      ]).match(
-        () =>
-          this.logger.info("Cache invalidated after replace", {
-            timestamp: new Date().toISOString(),
-            level: "info",
-            message: `Invalidated caches for song ${id} and related entities`,
-            context: "SongsService",
-          }),
-        (error) =>
-          this.logger.warn(`Cache invalidation failed: ${error.message}`),
-      );
+      await this.invalidateSongCaches(`${CACHE_KEYS.SONG}${id}`);
     }
     return replacedSong;
   }
@@ -357,30 +163,7 @@ export class SongsService extends CachedServiceBase {
   async remove(id: string): Promise<string | null> {
     const result = await this.songsRepository.remove(id);
     if (result) {
-      const cacheKey = `${CACHE_KEYS.SONG}${id}`;
-
-      // Invalidate song, artist, and genre caches with a single grouped call
-      await this.invalidateSongCaches(cacheKey);
-
-      // Invalidate album caches since song count has changed (separate call)
-      const invalidateAlbumsResult = await this.invalidateCache(
-        CACHE_KEYS.ALBUMS_LIST_ALL,
-      );
-      const invalidateAlbumPattern = await this.invalidateCachePattern(
-        `${CACHE_KEYS.ALBUM}*`,
-      );
-
-      Result.combine([invalidateAlbumsResult, invalidateAlbumPattern]).match(
-        () =>
-          this.logger.info("Cache invalidated after delete", {
-            timestamp: new Date().toISOString(),
-            level: "info",
-            message: `Invalidated caches for song ${id} and related entities`,
-            context: "SongsService",
-          }),
-        (error) =>
-          this.logger.warn(`Cache invalidation failed: ${error.message}`),
-      );
+      await this.invalidateSongCaches(`${CACHE_KEYS.SONG}${id}`);
     }
     return result;
   }
@@ -395,11 +178,13 @@ export class SongsService extends CachedServiceBase {
         CACHE_KEYS.SONGS_LIST_ALL,
         CACHE_KEYS.ARTISTS_LIST_ALL,
         CACHE_KEYS.GENRES_LIST_ALL,
+        CACHE_KEYS.ALBUMS_LIST_ALL,
         ...extraKeys,
       ),
       this.invalidateCachePattern(`${CACHE_KEYS.SONGS_LIST_FILTERED}*`),
       this.invalidateCachePattern(`${CACHE_KEYS.ARTIST}*`),
       this.invalidateCachePattern(`${CACHE_KEYS.GENRE}*`),
+      this.invalidateCachePattern(`${CACHE_KEYS.ALBUM}*`),
     ]);
 
     Result.combine(results).match(

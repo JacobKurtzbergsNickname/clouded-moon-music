@@ -31,33 +31,9 @@ export class GenresService extends CachedServiceBase {
 
   async findOne(id: string): Promise<GenreDTO | null> {
     this.logger.info(`Method: findOne(${id})`);
-    const cacheKey = `${CACHE_KEYS.GENRE}${id}`;
-    const cachedResult = await this.getCached<GenreDTO>(cacheKey);
-
-    if (cachedResult.isOk()) {
-      this.logger.info(`Cache hit: ${cacheKey}`);
-      return cachedResult.value;
-    }
-
-    this.logger.warn(
-      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
+    return this.findOneCached(`${CACHE_KEYS.GENRE}${id}`, CACHE_TTL.GENRE, () =>
+      this.genresRepository.findOne(id),
     );
-
-    const genre = await this.genresRepository.findOne(id);
-
-    if (genre) {
-      const cacheWriteResult = await this.setCached(
-        cacheKey,
-        genre,
-        CACHE_TTL.GENRE,
-      );
-      cacheWriteResult.match(
-        () => this.logger.info(`Cache populated: ${cacheKey}`),
-        (error) => this.logger.warn(`Cache write failed: ${error.message}`),
-      );
-    }
-
-    return genre;
   }
 
   /**
@@ -82,12 +58,10 @@ export class GenresService extends CachedServiceBase {
   async update(id: string, name: string): Promise<GenreDTO | null> {
     const genre = await this.genresRepository.update(id, name);
     if (genre) {
-      await Promise.all([
-        this.invalidateCache(
-          CACHE_KEYS.GENRES_LIST_ALL,
-          `${CACHE_KEYS.GENRE}${id}`,
-        ),
-      ]);
+      await this.invalidateCache(
+        CACHE_KEYS.GENRES_LIST_ALL,
+        `${CACHE_KEYS.GENRE}${id}`,
+      );
     }
     return genre;
   }
