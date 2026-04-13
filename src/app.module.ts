@@ -1,12 +1,11 @@
 import {
-  APP_FILTER,
-  APP_INTERCEPTOR,
   ClassSerializerInterceptor,
   Logger,
   MiddlewareConsumer,
   Module,
   NestModule,
 } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Connection } from "mongoose";
@@ -47,13 +46,13 @@ import { PlaylistsModule } from "./playlists/playlists.module";
       useFactory: (config: ConfigService) => {
         const mongoConnectionFactory = (connection: Connection) => {
           connection.on("connected", () => {
-            winston.info("MongoDB connected successfully");
+            Logger.log("MongoDB connected successfully", "MongoDB");
           });
           connection.on("error", (error: Error) => {
-            winston.error("MongoDB connection error:", error);
+            Logger.error("MongoDB connection error:", error.stack, "MongoDB");
           });
           connection.on("disconnected", () => {
-            winston.warn("MongoDB disconnected");
+            Logger.warn("MongoDB disconnected", "MongoDB");
           });
           return connection;
         };
