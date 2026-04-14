@@ -12,10 +12,10 @@ healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
-[variables]
-NODE_ENV = "production"
-PORT = "3456"
-
+# ── Environment Variables ─────────────────────────────────────────────────────
+# Set all variables in the Railway dashboard (Variables tab), not here.
+# Required: NODE_ENV=production, PORT=3456
+#
 # ── MongoDB ──────────────────────────────────────────────────────────────────
 # If you link a Railway MongoDB plugin, set MONGODB_URI to its connection string.
 # The app will use MONGODB_URI directly (see src/config/mongodb.config.ts).
