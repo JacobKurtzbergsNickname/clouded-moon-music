@@ -12,9 +12,13 @@ type GenresRepositoryMock = Mocked<
   Pick<GenresRepository, "findAll" | "findOne">
 >;
 type RedisServiceMock = Mocked<Pick<RedisService, "get" | "set">>;
-type LoggerMock = Mocked<
-  Pick<CMLogger, "info" | "error" | "warn" | "debug" | "verbose">
->;
+type LoggerMock = {
+  info: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  debug: ReturnType<typeof vi.fn>;
+  verbose: ReturnType<typeof vi.fn>;
+};
 
 describe("GenresService", () => {
   let service: GenresService;
