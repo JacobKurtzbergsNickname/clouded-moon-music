@@ -1,16 +1,23 @@
-import { Logger, MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Connection } from "mongoose";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { WinstonModule } from "nest-winston";
-import winston from "winston";
 import { join } from "path";
 import depthLimit from "graphql-depth-limit";
 import { createComplexityRule } from "graphql-query-complexity";
 import { GraphQLError } from "graphql";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -39,13 +46,13 @@ import { PlaylistsModule } from "./playlists/playlists.module";
       useFactory: (config: ConfigService) => {
         const mongoConnectionFactory = (connection: Connection) => {
           connection.on("connected", () => {
-            winston.info("MongoDB connected successfully");
+            Logger.log("MongoDB connected successfully", "MongoDB");
           });
           connection.on("error", (error: Error) => {
-            winston.error("MongoDB connection error:", error);
+            Logger.error("MongoDB connection error:", error.stack, "MongoDB");
           });
           connection.on("disconnected", () => {
-            winston.warn("MongoDB disconnected");
+            Logger.warn("MongoDB disconnected", "MongoDB");
           });
           return connection;
         };
@@ -113,23 +120,15 @@ import { PlaylistsModule } from "./playlists/playlists.module";
     HealthModule,
     PlaylistsModule,
 
-    WinstonModule.forRoot({
-      transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({
-          filename: "logs/error.log",
-          level: "error",
-        }),
-        new winston.transports.File({
-          filename: "logs/combined.log",
-        }),
-      ],
-    }),
-
     LoggerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

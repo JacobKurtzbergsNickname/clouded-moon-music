@@ -521,6 +521,7 @@ describe("SongsService", () => {
         "songs:list:all",
         "artists:list:all",
         "genres:list:all",
+        "albums:list:all",
         "song:123",
       );
       expect(mockRedisService.deletePattern).toHaveBeenCalledWith(

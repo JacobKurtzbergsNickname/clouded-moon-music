@@ -31,33 +31,11 @@ export class ArtistsService extends CachedServiceBase {
 
   async findOne(id: string): Promise<ArtistDTO | null> {
     this.logger.info(`Method: findOne(${id})`);
-    const cacheKey = `${CACHE_KEYS.ARTIST}${id}`;
-    const cachedResult = await this.getCached<ArtistDTO>(cacheKey);
-
-    if (cachedResult.isOk()) {
-      this.logger.info(`Cache hit: ${cacheKey}`);
-      return cachedResult.value;
-    }
-
-    this.logger.warn(
-      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
+    return this.findOneCached(
+      `${CACHE_KEYS.ARTIST}${id}`,
+      CACHE_TTL.ARTIST,
+      () => this.artistsRepository.findOne(id),
     );
-
-    const artist = await this.artistsRepository.findOne(id);
-
-    if (artist) {
-      const cacheWriteResult = await this.setCached(
-        cacheKey,
-        artist,
-        CACHE_TTL.ARTIST,
-      );
-      cacheWriteResult.match(
-        () => this.logger.info(`Cache populated: ${cacheKey}`),
-        (error) => this.logger.warn(`Cache write failed: ${error.message}`),
-      );
-    }
-
-    return artist;
   }
 
   /**
@@ -82,12 +60,10 @@ export class ArtistsService extends CachedServiceBase {
   async update(id: string, name: string): Promise<ArtistDTO | null> {
     const artist = await this.artistsRepository.update(id, name);
     if (artist) {
-      await Promise.all([
-        this.invalidateCache(
-          CACHE_KEYS.ARTISTS_LIST_ALL,
-          `${CACHE_KEYS.ARTIST}${id}`,
-        ),
-      ]);
+      await this.invalidateCache(
+        CACHE_KEYS.ARTISTS_LIST_ALL,
+        `${CACHE_KEYS.ARTIST}${id}`,
+      );
     }
     return artist;
   }

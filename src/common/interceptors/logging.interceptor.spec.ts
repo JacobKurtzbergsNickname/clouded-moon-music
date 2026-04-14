@@ -1,13 +1,15 @@
-import { ExecutionContext, Logger } from "@nestjs/common";
+import { ExecutionContext } from "@nestjs/common";
 import { lastValueFrom, of } from "rxjs";
 import { LoggingInterceptor } from "./logging.interceptor";
+import { CMLogger } from "../logger";
 
 describe("LoggingInterceptor", () => {
   let interceptor: LoggingInterceptor;
+  let mockLogger: { info: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    interceptor = new LoggingInterceptor();
-    vi.spyOn(Logger.prototype, "log").mockImplementation(() => undefined);
+    mockLogger = { info: vi.fn() };
+    interceptor = new LoggingInterceptor(mockLogger as unknown as CMLogger);
   });
 
   afterEach(() => {
@@ -19,7 +21,6 @@ describe("LoggingInterceptor", () => {
   });
 
   it("should log the request method and URL after completion", async () => {
-    const logSpy = vi.spyOn(Logger.prototype, "log");
     const mockContext = {
       switchToHttp: () => ({
         getRequest: () => ({ method: "GET", url: "/songs" }),
@@ -32,6 +33,8 @@ describe("LoggingInterceptor", () => {
 
     await lastValueFrom(interceptor.intercept(mockContext, mockCallHandler));
 
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("GET /songs"));
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining("GET /songs"),
+    );
   });
 });

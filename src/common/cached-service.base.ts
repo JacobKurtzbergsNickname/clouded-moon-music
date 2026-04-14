@@ -92,6 +92,46 @@ export abstract class CachedServiceBase {
   }
 
   /**
+   * Generic cache-aside helper for single-item queries.
+   * Checks cache first; on miss, calls fallback and populates cache if found.
+   * @param cacheKey - The cache key to check
+   * @param ttl - Cache TTL in seconds
+   * @param fallback - Async function to fetch data when cache misses
+   * @returns The item, from cache or the fallback, or null if not found
+   */
+  protected async findOneCached<T>(
+    cacheKey: string,
+    ttl: number,
+    fallback: () => Promise<T | null>,
+  ): Promise<T | null> {
+    const cachedResult = await this.getCached<T>(cacheKey);
+
+    if (cachedResult.isOk()) {
+      this.logger.info(`Cache hit: ${cacheKey}`);
+      return cachedResult.value;
+    }
+
+    this.logger.warn(
+      `Cache miss for ${cacheKey}, falling back to DB: ${cachedResult.error.message}`,
+    );
+
+    const item = await fallback();
+
+    if (item) {
+      const writeResult = await this.setCached(cacheKey, item, ttl);
+      writeResult.match(
+        () => this.logger.info(`Cache populated: ${cacheKey}`),
+        (error) =>
+          this.logger.warn(
+            `Cache write failed for ${cacheKey}: ${error.message}`,
+          ),
+      );
+    }
+
+    return item;
+  }
+
+  /**
    * Generic cache-aside helper for list queries.
    * Checks cache first; on miss, calls fallback and populates cache.
    * @param cacheKey - The cache key to check

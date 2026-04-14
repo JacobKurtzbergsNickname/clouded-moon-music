@@ -1,12 +1,14 @@
-import { HttpException, HttpStatus, Logger } from "@nestjs/common";
+import { HttpException, HttpStatus } from "@nestjs/common";
 import { HttpExceptionFilter } from "./http-exception.filter";
+import { CMLogger } from "../logger";
 
 describe("HttpExceptionFilter", () => {
   let filter: HttpExceptionFilter;
+  let mockLogger: { warn: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    filter = new HttpExceptionFilter();
-    vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+    mockLogger = { warn: vi.fn() };
+    filter = new HttpExceptionFilter(mockLogger as unknown as CMLogger);
   });
 
   afterEach(() => {
@@ -74,6 +76,24 @@ describe("HttpExceptionFilter", () => {
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
         message: ["field is required", "field must be a string"],
       }),
+    );
+  });
+
+  it("should log the error via CMLogger", () => {
+    const exception = new HttpException("Forbidden", HttpStatus.FORBIDDEN);
+    const mockHost = {
+      switchToHttp: vi.fn().mockReturnValue({
+        getResponse: vi.fn().mockReturnValue({
+          status: vi.fn().mockReturnValue({ json: vi.fn() }),
+        }),
+        getRequest: vi.fn().mockReturnValue({ url: "/test", method: "GET" }),
+      }),
+    } as never;
+
+    filter.catch(exception, mockHost);
+
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("403"),
     );
   });
 });
