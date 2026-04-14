@@ -1,0 +1,60 @@
+# railway.toml — Clouded Moon Music API
+# https://docs.railway.com/reference/config-as-code
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npm run start:prod"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[variables]
+NODE_ENV = "production"
+PORT = "3456"
+
+# ── MongoDB ──────────────────────────────────────────────────────────────────
+# If you link a Railway MongoDB plugin, set MONGODB_URI to its connection string.
+# The app will use MONGODB_URI directly (see src/config/mongodb.config.ts).
+# Otherwise set the individual variables below:
+#
+#   MONGO_HOST        = "<railway-mongo-host>"
+#   MONGO_PORT        = "27017"
+#   MONGO_USER        = "<user>"
+#   MONGO_PASSWORD    = "<password>"   # set as a secret in the dashboard
+#   MONGO_DATABASE    = "clouded_moon_music"
+#   MONGO_AUTH_SOURCE = "admin"
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+# Link a Railway Postgres plugin; set the variables below.
+# NOTE: TypeORM synchronize is DISABLED in production — run schema migrations
+# manually before first deploy (or use a Railway deploy hook / start script).
+#
+#   POSTGRES_HOST     = "<railway-postgres-host>"
+#   POSTGRES_PORT     = "5432"
+#   POSTGRES_USER     = "<user>"
+#   POSTGRES_PASSWORD = "<password>"   # set as a secret in the dashboard
+#   POSTGRES_DB       = "clouded_moon_music"
+
+# ── Redis ─────────────────────────────────────────────────────────────────────
+# Link a Railway Redis plugin and set the variables below.
+# Enable REDIS_TLS if your Railway Redis instance requires TLS (most do).
+#
+#   REDIS_HOST        = "<railway-redis-host>"
+#   REDIS_PORT        = "6379"
+#   REDIS_PASSWORD    = "<password>"   # set as a secret in the dashboard
+#   REDIS_TLS         = "true"
+
+# ── Auth0 ─────────────────────────────────────────────────────────────────────
+# Set all Auth0 variables as secrets in the Railway dashboard:
+#
+#   AUTH0_DOMAIN          = "<tenant>.auth0.com"
+#   AUTH0_CLIENT_ID       = "<client-id>"
+#   AUTH0_CLIENT_SECRET   = "<client-secret>"
+#   AUTH0_AUDIENCE        = "https://api.cloudedmoonmusic.com"
+#   AUTH0_CALLBACK_URL    = "https://<your-railway-domain>/callback"
+#   AUTH0_LOGOUT_URL      = "https://<your-railway-domain>"
+#   AUTH0_BASE_URL        = "https://<your-railway-domain>"

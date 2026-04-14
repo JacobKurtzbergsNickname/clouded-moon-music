@@ -26,7 +26,11 @@
     "seed:dry": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --dry-run",
     "seed:postgres": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --postgres-only",
     "seed:mongo": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --mongo-only",
-    "seed:clear": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --clear"
+    "seed:clear": "ts-node -r tsconfig-paths/register scripts/seed-database.ts --clear",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "migration:run:prod": "node -e \"require('./dist/data-source').AppDataSource.initialize().then(ds => ds.runMigrations()).then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1011.0",
