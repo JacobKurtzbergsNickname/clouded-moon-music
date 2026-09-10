@@ -138,9 +138,9 @@ describe("MongoSongsRepository", () => {
   describe("create", () => {
     it("should create and return a new song", async () => {
       const saveMock = vi.fn().mockResolvedValue(mockSongDocument);
-      songModel.mockImplementation(
-        () => ({ save: saveMock }) as unknown as SongDocument,
-      );
+      songModel.mockImplementation(function () {
+        return { save: saveMock } as unknown as SongDocument;
+      });
 
       const result = await repository.create(mockCreateSongDTO);
 
